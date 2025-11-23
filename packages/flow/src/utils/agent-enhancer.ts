@@ -12,8 +12,9 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { getOutputStylesDir, getRulesDir } from './config/paths.js';
+import { getOutputStylesDir, getRulesDir, getAgentsDir } from './config/paths.js';
 import { yamlUtils } from './config/target-utils.js';
+import { CLIError } from './error-handler.js';
 
 /**
  * Load and combine rules and output styles
@@ -129,4 +130,74 @@ export async function enhanceAgentContent(
   }
 
   return `${agentContent}\n\n---\n\n# Rules and Output Styles\n\n${rulesAndStyles}`;
+}
+
+/**
+ * Load agent content from various locations
+ * @param agentName - Name of the agent (without .md extension)
+ * @param agentFilePath - Optional specific file path to load from
+ * @param enabledRules - Optional array of enabled rule names
+ * @param enabledOutputStyles - Optional array of enabled output style names
+ */
+export async function loadAgentContent(
+  agentName: string,
+  agentFilePath?: string,
+  enabledRules?: string[],
+  enabledOutputStyles?: string[]
+): Promise<string> {
+  try {
+    // If specific file path provided, load from there
+    if (agentFilePath) {
+      const content = await fs.readFile(path.resolve(agentFilePath), 'utf-8');
+      // Enhance with enabled rules and styles
+      return await enhanceAgentContent(content, enabledRules, enabledOutputStyles);
+    }
+
+    // First try to load from .claude/agents/ directory (processed agents with rules already included)
+    const claudeAgentPath = path.join(process.cwd(), '.claude', 'agents', `${agentName}.md`);
+
+    try {
+      const content = await fs.readFile(claudeAgentPath, 'utf-8');
+      // Enhance with enabled output styles (rules are already included in the file)
+      return await enhanceAgentContent(content, [], enabledOutputStyles);
+    } catch (_error) {
+      // Try to load from local agents/ directory (user-defined agents)
+      const localAgentPath = path.join(process.cwd(), 'agents', `${agentName}.md`);
+
+      try {
+        const content = await fs.readFile(localAgentPath, 'utf-8');
+        // Enhance user-defined agents with enabled rules and styles
+        return await enhanceAgentContent(content, enabledRules, enabledOutputStyles);
+      } catch (_error2) {
+        // Try to load from the package's agents directory
+        const packageAgentsDir = getAgentsDir();
+        const packageAgentPath = path.join(packageAgentsDir, `${agentName}.md`);
+
+        const content = await fs.readFile(packageAgentPath, 'utf-8');
+        // Enhance package agents with enabled rules and styles
+        return await enhanceAgentContent(content, enabledRules, enabledOutputStyles);
+      }
+    }
+  } catch (_error) {
+    throw new CLIError(
+      `Agent '${agentName}' not found${agentFilePath ? ` at ${agentFilePath}` : ''}`,
+      'AGENT_NOT_FOUND'
+    );
+  }
+}
+
+/**
+ * Extract agent instructions from agent content (strip YAML front matter)
+ */
+export function extractAgentInstructions(agentContent: string): string {
+  // Extract content after YAML front matter
+  const yamlFrontMatterRegex = /^---\s*\n[\s\S]*?\n---\s*\n/;
+  const match = agentContent.match(yamlFrontMatterRegex);
+
+  if (match) {
+    return agentContent.substring(match[0].length).trim();
+  }
+
+  // If no front matter, return the full content
+  return agentContent.trim();
 }

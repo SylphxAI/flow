@@ -9,7 +9,7 @@ import { FlowExecutor } from '../../core/flow-executor.js';
 import { targetManager } from '../../core/target-manager.js';
 import { UpgradeManager } from '../../core/upgrade-manager.js';
 import { showWelcome } from '../../utils/display/banner.js';
-import { loadAgentContent, extractAgentInstructions } from '../run-command.js';
+import { loadAgentContent, extractAgentInstructions } from '../../utils/agent-enhancer.js';
 import { CLIError } from '../../utils/error-handler.js';
 import type { RunCommandOptions } from '../../types.js';
 import type { FlowOptions } from './types.js';
