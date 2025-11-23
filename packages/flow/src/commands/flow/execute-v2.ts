@@ -134,6 +134,12 @@ export async function executeFlowV2(
     console.log(chalk.cyan('⚡ Quick mode enabled\n'));
   }
 
+  // Replace mode info
+  if (options.replace) {
+    console.log(chalk.yellow('🔄 Replace mode: All user settings will be replaced with Flow settings'));
+    console.log(chalk.dim('   Settings will be restored after execution\n'));
+  }
+
   // Step 0: First-run quick setup
   const firstRunSetup = new FirstRunSetup();
   const configService = new GlobalConfigService();
@@ -165,6 +171,7 @@ export async function executeFlowV2(
       verbose: options.verbose,
       skipBackup: false,
       skipSecrets: false,
+      replace: options.replace || false,
     });
 
     // Step 3: Detect target and load agent
@@ -205,25 +212,18 @@ export async function executeFlowV2(
     // Step 4: Execute command
     await executeTargetCommand(targetId, systemPrompt, userPrompt, runOptions);
 
-    // Step 5: Cleanup (restore environment) - skip if persist flag is set
-    if (options.persist) {
-      console.log(chalk.yellow('\n⚠️  Persist mode: Flow settings retained'));
-      console.log(chalk.dim('   Run without --persist to restore original settings\n'));
-    } else {
-      await executor.cleanup(projectPath);
-    }
+    // Step 5: Cleanup (restore environment)
+    await executor.cleanup(projectPath);
 
     console.log(chalk.green('✓ Session complete\n'));
   } catch (error) {
     console.error(chalk.red.bold('\n✗ Execution failed:'), error);
 
-    // Ensure cleanup even on error (unless persist flag is set)
-    if (!options.persist) {
-      try {
-        await executor.cleanup(projectPath);
-      } catch (cleanupError) {
-        console.error(chalk.red('✗ Cleanup failed:'), cleanupError);
-      }
+    // Ensure cleanup even on error
+    try {
+      await executor.cleanup(projectPath);
+    } catch (cleanupError) {
+      console.error(chalk.red('✗ Cleanup failed:'), cleanupError);
     }
 
     throw error;
