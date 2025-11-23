@@ -420,7 +420,9 @@ ${rules}
   }
 
   /**
-   * Attach single files (CLAUDE.md, .cursorrules, etc.)
+   * Attach single files (output styles like silent.md)
+   * NOTE: These files are placed in the target config directory (.claude/ or .opencode/),
+   * NOT in the project root directory.
    */
   private async attachSingleFiles(
     projectPath: string,
@@ -428,33 +430,22 @@ ${rules}
     result: AttachResult,
     manifest: BackupManifest
   ): Promise<void> {
+    // Get target from manifest to determine correct directory
+    const target = manifest.target;
+    const targetDir = this.projectManager.getTargetConfigDir(projectPath, target);
+
     for (const file of singleFiles) {
-      const filePath = path.join(projectPath, file.path);
+      // Write to target config directory, not project root
+      const filePath = path.join(targetDir, file.path);
       const existed = existsSync(filePath);
 
       if (existed) {
-        // User has file, append Flow content
-        const userContent = await fs.readFile(filePath, 'utf-8');
-
-        // Check if already appended
-        if (userContent.includes('<!-- Sylphx Flow Enhancement -->')) {
-          continue;
-        }
-
-        const merged = `${userContent}
-
----
-
-**Sylphx Flow Enhancement:**
-
-${file.content}
-`;
-
-        await fs.writeFile(filePath, merged);
+        // User has file, overwrite with Flow content (backed up already)
+        await fs.writeFile(filePath, file.content);
 
         manifest.backup.singleFiles[file.path] = {
           existed: true,
-          originalSize: userContent.length,
+          originalSize: (await fs.readFile(filePath, 'utf-8')).length,
           flowContentAdded: true,
         };
       } else {
