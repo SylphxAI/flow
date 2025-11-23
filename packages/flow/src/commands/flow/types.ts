@@ -35,7 +35,7 @@ export interface FlowOptions {
   continue?: boolean;
 
   // Attach strategy
-  replace?: boolean; // Replace all settings instead of merging
+  merge?: boolean; // Merge with user settings instead of replacing (default: replace)
 
   // Loop mode
   loop?: number;

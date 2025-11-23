@@ -17,7 +17,7 @@ export interface FlowExecutorOptions {
   verbose?: boolean;
   skipBackup?: boolean;
   skipSecrets?: boolean;
-  replace?: boolean; // Replace mode: delete user files before attaching
+  merge?: boolean; // Merge mode: keep user files (default: replace all)
 }
 
 export class FlowExecutor {
@@ -125,9 +125,9 @@ export class FlowExecutor {
     // Step 6: Register cleanup hooks
     this.cleanupHandler.registerCleanupHooks(projectHash);
 
-    // Step 7: Replace mode - clear user files before attaching
-    if (options.replace) {
-      console.log(chalk.cyan('🔄 Replace mode: Clearing existing settings...'));
+    // Step 7: Default replace mode - clear user files before attaching (unless merge flag is set)
+    if (!options.merge) {
+      console.log(chalk.cyan('🔄 Clearing existing settings...'));
       await this.clearUserSettings(projectPath, target);
     }
 
