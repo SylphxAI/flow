@@ -169,6 +169,7 @@ export class FlowExecutor {
 
   /**
    * Clear user settings in replace mode
+   * This ensures a clean slate for Flow's configuration
    */
   private async clearUserSettings(
     projectPath: string,
@@ -188,7 +189,7 @@ export class FlowExecutor {
       ? { agents: 'agents', commands: 'commands' }
       : { agents: 'agent', commands: 'command' };
 
-    // Clear agents directory
+    // 1. Clear agents directory (including AGENTS.md rules file)
     const agentsDir = path.join(targetDir, dirs.agents);
     if (existsSync(agentsDir)) {
       const files = await fs.readdir(agentsDir);
@@ -197,7 +198,7 @@ export class FlowExecutor {
       }
     }
 
-    // Clear commands directory
+    // 2. Clear commands directory
     const commandsDir = path.join(targetDir, dirs.commands);
     if (existsSync(commandsDir)) {
       const files = await fs.readdir(commandsDir);
@@ -206,31 +207,69 @@ export class FlowExecutor {
       }
     }
 
-    // Clear MCP configuration
-    const configPath = target === 'claude-code'
-      ? path.join(targetDir, 'settings.json')
-      : path.join(targetDir, '.mcp.json');
-
-    if (existsSync(configPath)) {
-      // Clear MCP servers section only, keep other settings
-      const config = JSON.parse(await fs.readFile(configPath, 'utf-8'));
-      if (target === 'claude-code') {
-        if (config.mcp?.servers) {
-          config.mcp.servers = {};
-          await fs.writeFile(configPath, JSON.stringify(config, null, 2));
-        }
-      } else {
-        // For opencode, clear the entire .mcp.json
-        await fs.writeFile(configPath, JSON.stringify({ servers: {} }, null, 2));
-      }
-    }
-
-    // Clear hooks directory if exists
+    // 3. Clear hooks directory
     const hooksDir = path.join(targetDir, 'hooks');
     if (existsSync(hooksDir)) {
       const files = await fs.readdir(hooksDir);
       for (const file of files) {
         await fs.unlink(path.join(hooksDir, file));
+      }
+    }
+
+    // 4. Clear MCP configuration completely
+    const configPath = target === 'claude-code'
+      ? path.join(targetDir, 'settings.json')
+      : path.join(targetDir, '.mcp.json');
+
+    if (existsSync(configPath)) {
+      if (target === 'claude-code') {
+        // For Claude Code, clear entire MCP section to remove all user config
+        const config = JSON.parse(await fs.readFile(configPath, 'utf-8'));
+        if (config.mcp) {
+          // Remove entire MCP configuration, not just servers
+          delete config.mcp;
+          await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+        }
+      } else {
+        // For OpenCode, clear the entire .mcp.json file
+        await fs.writeFile(configPath, JSON.stringify({ servers: {} }, null, 2));
+      }
+    }
+
+    // 5. Clear AGENTS.md rules file (for OpenCode)
+    // Claude Code AGENTS.md is already handled in agents directory
+    if (target === 'opencode') {
+      const rulesPath = path.join(targetDir, 'AGENTS.md');
+      if (existsSync(rulesPath)) {
+        await fs.unlink(rulesPath);
+      }
+    }
+
+    // 6. Clear single files (output styles like silent.md)
+    // These are now in the target directory, not project root
+    const singleFiles = ['silent.md']; // Add other known single files here
+    for (const fileName of singleFiles) {
+      const filePath = path.join(targetDir, fileName);
+      if (existsSync(filePath)) {
+        await fs.unlink(filePath);
+      }
+    }
+
+    // 7. Clean up any Flow-created files in project root (legacy bug cleanup)
+    // This handles files that were incorrectly created in project root
+    const legacySingleFiles = ['silent.md'];
+    for (const fileName of legacySingleFiles) {
+      const filePath = path.join(projectPath, fileName);
+      if (existsSync(filePath)) {
+        // Only delete if it looks like a Flow-created file
+        try {
+          const content = await fs.readFile(filePath, 'utf-8');
+          if (content.includes('Sylphx Flow') || content.includes('Silent Execution Style')) {
+            await fs.unlink(filePath);
+          }
+        } catch {
+          // Ignore errors - file might not be readable
+        }
       }
     }
   }
