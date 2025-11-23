@@ -11,49 +11,23 @@ import { StateDetector } from '../core/state-detector.js';
 import { UpgradeManager } from '../core/upgrade-manager.js';
 import { showWelcome } from '../utils/display/banner.js';
 import { showStatus } from '../utils/display/status.js';
-import { executeFlow } from './flow/execute.js';
+import { executeFlow } from './flow/execute-v2.js';
 import type { FlowOptions } from './flow/types.js';
 
 /**
- * Smart flow command
+ * Flow command (simplified for attach mode)
  */
 export const flowCommand = new Command('flow')
-  .description('Intelligent development flow (auto-detect state and act accordingly)')
+  .description('Run Flow with automatic environment attach')
 
-  // Smart options
-  .option('--init-only', 'Only initialize, do not run')
-  .option('--run-only', 'Only run, skip initialization')
-  .option('--sync', 'Synchronize with Flow templates (delete and re-install template files)')
-  .option('--upgrade', 'Upgrade Sylphx Flow to latest version')
-  .option('--upgrade-target', 'Upgrade target platform (Claude Code/OpenCode)')
-
-  // Smart configuration options
-  .option('--quick', 'Quick mode: use saved defaults and skip all prompts')
-  .option('--select-provider', 'Prompt to select provider each run')
-  .option('--select-agent', 'Prompt to select agent each run')
-  .option('--use-defaults', 'Skip prompts, use saved defaults')
-  .option('--provider <provider>', 'Override provider for this run (anthropic|z.ai|kimi)')
-
-  // Init options
-  .option('--target <type>', 'Target platform (opencode, claude-code, auto-detect)')
-  .option('--verbose', 'Show detailed output')
-  .option('--dry-run', 'Show what would be done without making changes')
-  .option('--no-mcp', 'Skip MCP installation')
-  .option('--no-agents', 'Skip agents installation')
-  .option('--no-rules', 'Skip rules installation')
-  .option('--no-output-styles', 'Skip output styles installation')
-  .option('--no-slash-commands', 'Skip slash commands installation')
-  .option('--no-hooks', 'Skip hooks setup')
-
-  // Run options
+  // Core options
+  .option('--quick', 'Quick mode: skip upgrade checks')
   .option('--agent <name>', 'Agent to use (default: coder)', 'coder')
   .option('--agent-file <path>', 'Load agent from specific file')
+  .option('--verbose', 'Show detailed output')
+  .option('--dry-run', 'Show what would be done without making changes')
   .option('-p, --print', 'Headless print mode (output only, no interactive)')
   .option('-c, --continue', 'Continue previous conversation (requires print mode)')
-
-  // Loop options
-  .option('--loop [interval]', 'Loop mode: run repeatedly (optional cooldown in seconds)')
-  .option('--max-runs <number>', 'Maximum loop iterations (default: infinite)', parseInt)
 
   // Prompt argument
   .argument('[prompt]', 'Prompt to execute with agent (optional, supports @file.txt for file input)')
@@ -63,34 +37,17 @@ export const flowCommand = new Command('flow')
   });
 
 /**
- * Setup command - alias for `flow --init-only`
- * Kept for backward compatibility
+ * Setup command - deprecated (attach mode is automatic)
  */
 export const setupCommand = new Command('setup')
-  .description('Initialize project configuration (alias for: flow --init-only)')
+  .description('[DEPRECATED] No longer needed - Flow uses automatic attach mode')
   .action(async () => {
-    console.log(chalk.yellow('ℹ  The "setup" command is deprecated.'));
-    console.log(chalk.yellow('   Please use: flow --init-only\n'));
-
-    showWelcome();
-
-    const { runInit } = await import('./init-command.js');
-    await runInit({
-      target: undefined,
-      verbose: false,
-      dryRun: false,
-      clear: false,
-      mcp: true,
-      agents: true,
-      rules: true,
-      outputStyles: true,
-      slashCommands: true,
-      hooks: true,
-      helpOption: () => {},
-    });
-
-    console.log(chalk.green('\n✅ Setup complete!'));
-    console.log(chalk.dim('\nNext time, use: flow --init-only'));
+    console.log(chalk.yellow('⚠️  The "setup" command is deprecated.\n'));
+    console.log(chalk.cyan('Flow now uses automatic attach mode:'));
+    console.log(chalk.dim('   • No installation needed'));
+    console.log(chalk.dim('   • Environment attached automatically'));
+    console.log(chalk.dim('   • Restored on exit\n'));
+    console.log(chalk.green('✨ Just run: sylphx-flow "your prompt"\n'));
   });
 
 /**
