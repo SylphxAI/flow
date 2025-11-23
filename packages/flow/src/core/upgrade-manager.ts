@@ -8,6 +8,7 @@ import type { ProjectState } from './state-detector.js';
 import { CLIError } from '../utils/error-handler.js';
 import { ConfigService } from '../services/config-service.js';
 import { getProjectSettingsFile } from '../config/constants.js';
+import { detectPackageManager, getUpgradeCommand, type PackageManager } from '../utils/package-manager-detector.js';
 
 const execAsync = promisify(exec);
 
@@ -92,6 +93,7 @@ export class UpgradeManager {
       return false;
     }
 
+    const packageManager = detectPackageManager(this.projectPath);
     const spinner = ora('Upgrading Sylphx Flow...').start();
 
     try {
@@ -101,26 +103,32 @@ export class UpgradeManager {
       }
 
       if (this.options.dryRun) {
+        const cmd = getUpgradeCommand('@sylphx/flow', packageManager);
         spinner.succeed(`Dry run: ${state.version} → ${state.latestVersion}`);
+        console.log(chalk.dim(`  Would run: ${cmd}`));
         return true;
       }
 
-      // Auto-install via npm
+      // Auto-install using detected package manager
       if (autoInstall) {
-        spinner.text = 'Installing latest version via npm...';
-        const installCmd = 'npm install -g @sylphx/flow@latest';
+        const installCmd = getUpgradeCommand('@sylphx/flow', packageManager);
+        spinner.text = `Installing latest version via ${packageManager}...`;
 
         try {
           await execAsync(installCmd);
-          spinner.succeed(`Upgraded to ${state.latestVersion}`);
+          spinner.succeed(`Upgraded to ${state.latestVersion} using ${packageManager}`);
         } catch (error) {
-          spinner.warn('Auto-install failed, please run: npm install -g @sylphx/flow@latest');
+          spinner.warn(`Auto-install failed, please run: ${installCmd}`);
           if (this.options.verbose) {
             console.error(error);
           }
         }
       } else {
-        // Just update config metadata
+        // Show manual upgrade command
+        const installCmd = getUpgradeCommand('@sylphx/flow', packageManager);
+        spinner.info(`To upgrade, run: ${chalk.cyan(installCmd)}`);
+
+        // Update config metadata
         const configPath = path.join(this.projectPath, getProjectSettingsFile());
         try {
           const config = JSON.parse(await fs.readFile(configPath, 'utf-8'));
@@ -130,8 +138,6 @@ export class UpgradeManager {
         } catch {
           // Cannot update config
         }
-
-        spinner.succeed(`Upgraded to ${state.latestVersion}`);
       }
 
       return true;
@@ -176,8 +182,10 @@ export class UpgradeManager {
     }
 
     if (autoInstall) {
-      // Use npm to install latest version
-      const { stdout } = await execAsync('npm install -g @anthropic-ai/claude-code@latest');
+      // Use detected package manager to install latest version
+      const packageManager = detectPackageManager(this.projectPath);
+      const installCmd = getUpgradeCommand('@anthropic-ai/claude-code', packageManager);
+      const { stdout } = await execAsync(installCmd);
 
       if (this.options.verbose) {
         console.log(stdout);
