@@ -428,7 +428,8 @@ Please begin your response with a comprehensive summary of all the instructions 
 
   /**
    * Setup agents for Claude Code
-   * Install agents to .claude/agents/ directory with rules and output styles appended
+   * Install agents to .claude/agents/ directory with rules appended
+   * Output styles are applied dynamically at runtime based on user settings
    */
   async setupAgents(cwd: string, options: CommonOptions): Promise<SetupResult> {
     const { enhanceAgentContent } = await import('../utils/agent-enhancer.js');
@@ -445,8 +446,8 @@ Please begin your response with a comprehensive summary of all the instructions 
         // Transform agent content (converts to Claude Code format, strips unsupported fields)
         const transformed = await this.transformAgentContent(content, undefined, sourcePath);
 
-        // Enhance with rules and output styles
-        const enhanced = await enhanceAgentContent(transformed, rules);
+        // Enhance with rules only (output styles are applied dynamically at runtime)
+        const enhanced = await enhanceAgentContent(transformed, rules, []);
 
         return enhanced;
       },
