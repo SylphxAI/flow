@@ -46,19 +46,11 @@ const TARGET_INSTALLATIONS: TargetInstallation[] = [
   {
     id: 'opencode',
     name: 'OpenCode',
-    package: '@openrouter/opencode',
+    package: 'opencode',
     checkCommand: 'opencode --version',
-    installCommand: (pm: PackageManager) => {
-      switch (pm) {
-        case 'npm':
-          return 'npm install -g @openrouter/opencode';
-        case 'bun':
-          return 'bun install -g @openrouter/opencode';
-        case 'pnpm':
-          return 'pnpm install -g @openrouter/opencode';
-        case 'yarn':
-          return 'yarn global add @openrouter/opencode';
-      }
+    installCommand: () => {
+      // OpenCode is not available via npm - requires manual installation
+      return 'Visit https://opencode.ai to download and install';
     },
   },
   {
@@ -150,10 +142,11 @@ export class TargetInstaller {
       return false;
     }
 
-    // Special handling for Cursor (not npm-installable)
-    if (targetId === 'cursor') {
-      console.log(chalk.yellow('\n⚠️  Cursor requires manual installation'));
-      console.log(chalk.cyan('   Visit https://cursor.sh to download and install\n'));
+    // Special handling for non-npm-installable targets
+    if (targetId === 'cursor' || targetId === 'opencode') {
+      const installUrl = targetId === 'cursor' ? 'https://cursor.sh' : 'https://opencode.ai';
+      console.log(chalk.yellow(`\n⚠️  ${installation.name} requires manual installation`));
+      console.log(chalk.cyan(`   Visit ${installUrl} to download and install\n`));
       return false;
     }
 

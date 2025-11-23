@@ -135,14 +135,14 @@ export async function executeFlowV2(
   const configService = new GlobalConfigService();
   await configService.initialize();
 
-  // Step 1: Determine target (settings preference > installed > prompt and install)
+  // Step 1: Determine target
   const targetInstaller = new TargetInstaller(projectPath);
   const installedTargets = await targetInstaller.detectInstalledTargets();
   const settings = await configService.loadSettings();
 
   let selectedTargetId: string | null = null;
 
-  // Priority 1: Use saved default target from settings
+  // If settings has a default target, ALWAYS use it (never fallback to auto-detection)
   if (settings.defaultTarget) {
     selectedTargetId = settings.defaultTarget;
     const installation = targetInstaller.getInstallationInfo(selectedTargetId);
@@ -151,33 +151,36 @@ export async function executeFlowV2(
     if (installedTargets.includes(selectedTargetId)) {
       console.log(chalk.green(`✓ Using ${installation?.name} (from settings)\n`));
     } else {
-      // Preferred target not installed - install it
+      // Preferred target not installed - try to install it
       console.log(chalk.yellow(`⚠️  ${installation?.name} is set as default but not installed\n`));
       const installed = await targetInstaller.install(selectedTargetId, true);
+
       if (!installed) {
-        console.log(chalk.red(`✗ Failed to install ${installation?.name}\n`));
-        console.log(chalk.yellow('⚠️  Falling back to auto-detection...\n'));
-        selectedTargetId = null;
-      } else {
-        console.log();
+        // Installation failed - show error and exit
+        console.log(chalk.red(`\n✗ Cannot proceed: ${installation?.name} is not installed and auto-install failed`));
+        console.log(chalk.yellow('   Please either:'));
+        console.log(chalk.cyan('   1. Install manually (see instructions above)'));
+        console.log(chalk.cyan('   2. Change default target: sylphx-flow settings\n'));
+        process.exit(1);
       }
+
+      console.log();
     }
-  }
+  } else {
+    // No settings preference - use auto-detection
+    if (installedTargets.length > 0) {
+      // Auto-detect first installed target
+      selectedTargetId = installedTargets[0];
+      const installation = targetInstaller.getInstallationInfo(selectedTargetId);
+      console.log(chalk.green(`✓ Using ${installation?.name} (auto-detected)\n`));
+    } else {
+      // No target installed - prompt user to select and install
+      selectedTargetId = await targetInstaller.autoDetectAndInstall();
 
-  // Priority 2: Auto-detect installed targets
-  if (!selectedTargetId && installedTargets.length > 0) {
-    selectedTargetId = installedTargets[0];
-    const installation = targetInstaller.getInstallationInfo(selectedTargetId);
-    console.log(chalk.green(`✓ Using ${installation?.name} (auto-detected)\n`));
-  }
-
-  // Priority 3: No target installed - prompt and install
-  if (!selectedTargetId) {
-    selectedTargetId = await targetInstaller.autoDetectAndInstall();
-
-    if (!selectedTargetId) {
-      console.log(chalk.red('✗ No AI CLI installed. Please install one manually.\n'));
-      process.exit(1);
+      if (!selectedTargetId) {
+        console.log(chalk.red('✗ No AI CLI installed. Please install one manually.\n'));
+        process.exit(1);
+      }
     }
   }
 
