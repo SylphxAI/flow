@@ -74,7 +74,7 @@ export class CleanupHandler {
   }
 
   /**
-   * Normal exit cleanup
+   * Normal exit cleanup (with multi-session support)
    */
   private async onExit(): Promise<void> {
     if (!this.currentProjectHash) {
@@ -82,12 +82,11 @@ export class CleanupHandler {
     }
 
     try {
-      const session = await this.sessionManager.getActiveSession(this.currentProjectHash);
+      const { shouldRestore, session } = await this.sessionManager.endSession(this.currentProjectHash);
 
-      if (session && session.cleanupRequired) {
-        // Restore backup silently on normal exit
+      if (shouldRestore && session) {
+        // Last session - restore backup silently on normal exit
         await this.backupManager.restoreBackup(this.currentProjectHash, session.sessionId);
-        await this.sessionManager.endSession(this.currentProjectHash, session.sessionId);
         await this.backupManager.cleanupOldBackups(this.currentProjectHash, 3);
       }
     } catch (error) {
@@ -96,7 +95,7 @@ export class CleanupHandler {
   }
 
   /**
-   * Signal-based cleanup (SIGINT, SIGTERM, etc.)
+   * Signal-based cleanup (SIGINT, SIGTERM, etc.) with multi-session support
    */
   private async onSignal(signal: string): Promise<void> {
     if (!this.currentProjectHash) {
@@ -104,15 +103,18 @@ export class CleanupHandler {
     }
 
     try {
-      const session = await this.sessionManager.getActiveSession(this.currentProjectHash);
+      console.log(chalk.cyan('🧹 Cleaning up...'));
 
-      if (session && session.cleanupRequired) {
-        console.log(chalk.cyan('🧹 Restoring environment...'));
+      const { shouldRestore, session } = await this.sessionManager.endSession(this.currentProjectHash);
 
+      if (shouldRestore && session) {
+        // Last session - restore environment
+        console.log(chalk.cyan('   Restoring environment...'));
         await this.backupManager.restoreBackup(this.currentProjectHash, session.sessionId);
-        await this.sessionManager.endSession(this.currentProjectHash, session.sessionId);
-
         console.log(chalk.green('✓ Environment restored'));
+      } else if (!shouldRestore && session) {
+        // Other sessions still running
+        console.log(chalk.yellow(`   ${session.refCount} session(s) still running`));
       }
     } catch (error) {
       console.error(chalk.red('✗ Cleanup failed:'), error);
@@ -150,18 +152,14 @@ export class CleanupHandler {
   }
 
   /**
-   * Manually cleanup a specific project session
+   * Manually cleanup a specific project session (with multi-session support)
    */
   async cleanup(projectHash: string): Promise<void> {
-    const session = await this.sessionManager.getActiveSession(projectHash);
+    const { shouldRestore, session } = await this.sessionManager.endSession(projectHash);
 
-    if (!session) {
-      return;
-    }
-
-    if (session.cleanupRequired) {
+    if (shouldRestore && session) {
+      // Last session - restore environment
       await this.backupManager.restoreBackup(projectHash, session.sessionId);
-      await this.sessionManager.endSession(projectHash, session.sessionId);
       await this.backupManager.cleanupOldBackups(projectHash, 3);
     }
   }

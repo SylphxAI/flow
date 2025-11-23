@@ -43,7 +43,7 @@ export class FlowExecutor {
   }
 
   /**
-   * Execute complete flow with attach mode
+   * Execute complete flow with attach mode (with multi-session support)
    */
   async execute(
     projectPath: string,
@@ -65,7 +65,29 @@ export class FlowExecutor {
       console.log(chalk.dim(`Target: ${target}\n`));
     }
 
-    // Step 3: Create backup
+    // Check for existing session
+    const existingSession = await this.sessionManager.getActiveSession(projectHash);
+
+    if (existingSession) {
+      // Joining existing session
+      console.log(chalk.cyan('🔗 Joining existing session...'));
+
+      const { session, isFirstSession } = await this.sessionManager.startSession(
+        projectPath,
+        projectHash,
+        target,
+        existingSession.backupPath
+      );
+
+      // Register cleanup hooks
+      this.cleanupHandler.registerCleanupHooks(projectHash);
+
+      console.log(chalk.green(`   ✓ Joined session (${session.refCount} active session(s))\n`));
+      console.log(chalk.green('✓ Flow environment ready!\n'));
+      return;
+    }
+
+    // First session - create backup and attach
     console.log(chalk.cyan('💾 Creating backup...'));
     const backup = await this.backupManager.createBackup(
       projectPath,
@@ -91,7 +113,7 @@ export class FlowExecutor {
     }
 
     // Step 5: Start session
-    const session = await this.sessionManager.startSession(
+    const { session, isFirstSession } = await this.sessionManager.startSession(
       projectPath,
       projectHash,
       target,
