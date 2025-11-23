@@ -12,19 +12,28 @@ export const settingsCommand = new Command('settings')
   .description('Configure Sylphx Flow settings')
   .option('--section <section>', 'Directly open a section (mcp, provider, target, general)')
   .action(async (options) => {
-    const configService = new GlobalConfigService();
-    await configService.initialize();
+    try {
+      const configService = new GlobalConfigService();
+      await configService.initialize();
 
-    console.log(chalk.cyan.bold('\n╭─ Sylphx Flow Settings ─────────────────────────╮'));
-    console.log(chalk.cyan.bold('│                                                 │'));
-    console.log(chalk.cyan.bold('│  Configure your Flow environment                │'));
-    console.log(chalk.cyan.bold('│                                                 │'));
-    console.log(chalk.cyan.bold('╰─────────────────────────────────────────────────╯\n'));
+      console.log(chalk.cyan.bold('\n╭─ Sylphx Flow Settings ─────────────────────────╮'));
+      console.log(chalk.cyan.bold('│                                                 │'));
+      console.log(chalk.cyan.bold('│  Configure your Flow environment                │'));
+      console.log(chalk.cyan.bold('│                                                 │'));
+      console.log(chalk.cyan.bold('╰─────────────────────────────────────────────────╯\n'));
 
-    if (options.section) {
-      await openSection(options.section, configService);
-    } else {
-      await showMainMenu(configService);
+      if (options.section) {
+        await openSection(options.section, configService);
+      } else {
+        await showMainMenu(configService);
+      }
+    } catch (error: any) {
+      // Handle user cancellation (Ctrl+C)
+      if (error.name === 'ExitPromptError' || error.message?.includes('force closed')) {
+        console.log(chalk.yellow('\n\n⚠️  Settings cancelled by user'));
+        process.exit(0);
+      }
+      throw error;
     }
   });
 
