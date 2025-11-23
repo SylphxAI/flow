@@ -22,14 +22,9 @@ export class TemplateLoader {
 
   /**
    * Load all templates for target
+   * Uses flat assets directory structure (no target-specific subdirectories)
    */
   async loadTemplates(target: 'claude-code' | 'opencode'): Promise<FlowTemplates> {
-    const targetDir = path.join(this.assetsDir, target);
-
-    if (!existsSync(targetDir)) {
-      throw new Error(`Templates not found for target: ${target}`);
-    }
-
     const templates: FlowTemplates = {
       agents: [],
       commands: [],
@@ -40,43 +35,40 @@ export class TemplateLoader {
     };
 
     // Load agents
-    const agentsDir = path.join(targetDir, 'agents');
+    const agentsDir = path.join(this.assetsDir, 'agents');
     if (existsSync(agentsDir)) {
       templates.agents = await this.loadAgents(agentsDir);
     }
 
-    // Load commands (slash commands for claude-code, modes for opencode)
-    const commandsDir = target === 'claude-code'
-      ? path.join(targetDir, 'commands')
-      : path.join(targetDir, 'modes');
+    // Load commands (slash-commands directory)
+    const commandsDir = path.join(this.assetsDir, 'slash-commands');
     if (existsSync(commandsDir)) {
       templates.commands = await this.loadCommands(commandsDir);
     }
 
-    // Load rules (AGENTS.md)
-    const rulesPath = path.join(targetDir, 'AGENTS.md');
-    if (existsSync(rulesPath)) {
-      templates.rules = await fs.readFile(rulesPath, 'utf-8');
+    // Load rules (check multiple possible locations)
+    const rulesLocations = [
+      path.join(this.assetsDir, 'rules', 'AGENTS.md'),
+      path.join(this.assetsDir, 'AGENTS.md'),
+    ];
+
+    for (const rulesPath of rulesLocations) {
+      if (existsSync(rulesPath)) {
+        templates.rules = await fs.readFile(rulesPath, 'utf-8');
+        break;
+      }
     }
 
     // Load MCP servers (if any)
-    const mcpConfigPath = path.join(targetDir, 'mcp-servers.json');
+    const mcpConfigPath = path.join(this.assetsDir, 'mcp-servers.json');
     if (existsSync(mcpConfigPath)) {
       templates.mcpServers = await this.loadMCPServers(mcpConfigPath);
     }
 
-    // Load hooks (claude-code only)
-    if (target === 'claude-code') {
-      const hooksDir = path.join(targetDir, 'hooks');
-      if (existsSync(hooksDir)) {
-        templates.hooks = await this.loadHooks(hooksDir);
-      }
-    }
-
-    // Load single files (CLAUDE.md, .cursorrules, etc.)
-    const singleFilesDir = path.join(targetDir, 'single-files');
-    if (existsSync(singleFilesDir)) {
-      templates.singleFiles = await this.loadSingleFiles(singleFilesDir);
+    // Load output styles (single files)
+    const outputStylesDir = path.join(this.assetsDir, 'output-styles');
+    if (existsSync(outputStylesDir)) {
+      templates.singleFiles = await this.loadSingleFiles(outputStylesDir);
     }
 
     return templates;
@@ -186,10 +178,12 @@ export class TemplateLoader {
   }
 
   /**
-   * Check if templates exist for target
+   * Check if templates exist (uses flat directory structure)
    */
   async hasTemplates(target: 'claude-code' | 'opencode'): Promise<boolean> {
-    const targetDir = path.join(this.assetsDir, target);
-    return existsSync(targetDir);
+    // Check if any template directories exist
+    const agentsDir = path.join(this.assetsDir, 'agents');
+    const commandsDir = path.join(this.assetsDir, 'slash-commands');
+    return existsSync(agentsDir) || existsSync(commandsDir);
   }
 }
