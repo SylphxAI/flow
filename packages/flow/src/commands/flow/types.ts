@@ -34,6 +34,9 @@ export interface FlowOptions {
   print?: boolean;
   continue?: boolean;
 
+  // Cleanup control
+  persist?: boolean; // Skip cleanup, keep all Flow modifications
+
   // Loop mode
   loop?: number;
   maxRuns?: number;
