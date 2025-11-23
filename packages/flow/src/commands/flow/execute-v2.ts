@@ -131,25 +131,54 @@ export async function executeFlowV2(
   // Show welcome banner
   showWelcome();
 
-  // Step 1: Auto-detect and install target if not found
+  // Initialize config service early to check for saved preferences
+  const configService = new GlobalConfigService();
+  await configService.initialize();
+
+  // Step 1: Determine target (settings preference > installed > prompt and install)
   const targetInstaller = new TargetInstaller(projectPath);
   const installedTargets = await targetInstaller.detectInstalledTargets();
+  const settings = await configService.loadSettings();
 
   let selectedTargetId: string | null = null;
 
-  if (installedTargets.length === 0) {
-    // No target installed - prompt and install
+  // Priority 1: Use saved default target from settings
+  if (settings.defaultTarget) {
+    selectedTargetId = settings.defaultTarget;
+    const installation = targetInstaller.getInstallationInfo(selectedTargetId);
+
+    // Check if the preferred target is installed
+    if (installedTargets.includes(selectedTargetId)) {
+      console.log(chalk.green(`✓ Using ${installation?.name} (from settings)\n`));
+    } else {
+      // Preferred target not installed - install it
+      console.log(chalk.yellow(`⚠️  ${installation?.name} is set as default but not installed\n`));
+      const installed = await targetInstaller.install(selectedTargetId, true);
+      if (!installed) {
+        console.log(chalk.red(`✗ Failed to install ${installation?.name}\n`));
+        console.log(chalk.yellow('⚠️  Falling back to auto-detection...\n'));
+        selectedTargetId = null;
+      } else {
+        console.log();
+      }
+    }
+  }
+
+  // Priority 2: Auto-detect installed targets
+  if (!selectedTargetId && installedTargets.length > 0) {
+    selectedTargetId = installedTargets[0];
+    const installation = targetInstaller.getInstallationInfo(selectedTargetId);
+    console.log(chalk.green(`✓ Using ${installation?.name} (auto-detected)\n`));
+  }
+
+  // Priority 3: No target installed - prompt and install
+  if (!selectedTargetId) {
     selectedTargetId = await targetInstaller.autoDetectAndInstall();
 
     if (!selectedTargetId) {
       console.log(chalk.red('✗ No AI CLI installed. Please install one manually.\n'));
       process.exit(1);
     }
-  } else {
-    // Use the first detected target (priority order)
-    selectedTargetId = installedTargets[0];
-    const installation = targetInstaller.getInstallationInfo(selectedTargetId);
-    console.log(chalk.green(`✓ Using ${installation?.name}\n`));
   }
 
   // Step 2: Auto-upgrade Flow and target CLI
@@ -164,10 +193,6 @@ export async function executeFlowV2(
     console.log(chalk.yellow('🔄 Replace mode (default): All settings will use Flow configuration'));
     console.log(chalk.dim('   Use --merge to keep your existing settings\n'));
   }
-
-  // Initialize config service
-  const configService = new GlobalConfigService();
-  await configService.initialize();
 
   // Create executor
   const executor = new FlowExecutor();
