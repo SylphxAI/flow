@@ -5,14 +5,20 @@ import { targetManager } from '../core/target-manager.js';
 import { CLIError } from '../utils/error-handler.js';
 import { getAgentsDir } from '../utils/config/paths.js';
 
-export async function loadAgentContent(agentName: string, agentFilePath?: string): Promise<string> {
+export async function loadAgentContent(
+  agentName: string,
+  agentFilePath?: string,
+  enabledRules?: string[],
+  enabledOutputStyles?: string[]
+): Promise<string> {
   const { enhanceAgentContent } = await import('../utils/agent-enhancer.js');
 
   try {
     // If specific file path provided, load from there
     if (agentFilePath) {
       const content = await fs.readFile(path.resolve(agentFilePath), 'utf-8');
-      return content;
+      // Enhance with enabled rules and styles
+      return await enhanceAgentContent(content, enabledRules, enabledOutputStyles);
     }
 
     // First try to load from .claude/agents/ directory (processed agents with rules and styles)
@@ -27,16 +33,16 @@ export async function loadAgentContent(agentName: string, agentFilePath?: string
 
       try {
         const content = await fs.readFile(localAgentPath, 'utf-8');
-        // Enhance user-defined agents with rules and styles
-        return await enhanceAgentContent(content);
+        // Enhance user-defined agents with enabled rules and styles
+        return await enhanceAgentContent(content, enabledRules, enabledOutputStyles);
       } catch (_error2) {
         // Try to load from the package's agents directory
         const packageAgentsDir = getAgentsDir();
         const packageAgentPath = path.join(packageAgentsDir, `${agentName}.md`);
 
         const content = await fs.readFile(packageAgentPath, 'utf-8');
-        // Enhance package agents with rules and styles
-        return await enhanceAgentContent(content);
+        // Enhance package agents with enabled rules and styles
+        return await enhanceAgentContent(content, enabledRules, enabledOutputStyles);
       }
     }
   } catch (_error) {

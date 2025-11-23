@@ -18,6 +18,7 @@ import {
 } from './commands/flow-command.js';
 import { settingsCommand } from './commands/settings-command.js';
 import { executeFlow } from './commands/flow/execute-v2.js';
+import { UserCancelledError } from './utils/errors.js';
 
 // Read version from package.json
 const __filename = fileURLToPath(import.meta.url);
@@ -53,7 +54,6 @@ export function createCLI(): Command {
   // This allows `sylphx-flow "prompt"` instead of requiring `sylphx-flow flow "prompt"`
   program
     .argument('[prompt]', 'Prompt to execute with agent (optional, supports @file.txt for file input)')
-    .option('--quick', 'Quick mode: skip upgrade checks')
     .option('--agent <name>', 'Agent to use (default: coder)', 'coder')
     .option('--agent-file <path>', 'Load agent from specific file')
     .option('--verbose', 'Show detailed output')
@@ -148,6 +148,12 @@ function setupGlobalErrorHandling(): void {
  */
 function handleCommandError(error: unknown): void {
   if (error instanceof Error) {
+    // Handle user cancellation gracefully
+    if (error instanceof UserCancelledError) {
+      console.log('\n⚠️  Operation cancelled by user\n');
+      process.exit(0);
+    }
+
     // Handle Commander.js specific errors
     if (error.name === 'CommanderError') {
       const commanderError = error as any;

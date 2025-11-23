@@ -7,6 +7,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { GlobalConfigService } from '../services/global-config.js';
+import { UserCancelledError } from '../utils/errors.js';
 
 export const settingsCommand = new Command('settings')
   .description('Configure Sylphx Flow settings')
@@ -30,8 +31,7 @@ export const settingsCommand = new Command('settings')
     } catch (error: any) {
       // Handle user cancellation (Ctrl+C)
       if (error.name === 'ExitPromptError' || error.message?.includes('force closed')) {
-        console.log(chalk.yellow('\n\n⚠️  Settings cancelled by user'));
-        process.exit(0);
+        throw new UserCancelledError('Settings cancelled by user');
       }
       throw error;
     }
@@ -48,6 +48,10 @@ async function showMainMenu(configService: GlobalConfigService): Promise<void> {
         name: 'choice',
         message: 'What would you like to configure?',
         choices: [
+          { name: '🤖 Agents & Default Agent', value: 'agents' },
+          { name: '📋 Rules', value: 'rules' },
+          { name: '🎨 Output Styles', value: 'outputStyles' },
+          new inquirer.Separator(),
           { name: '📡 MCP Servers', value: 'mcp' },
           { name: '🔑 Provider & API Keys (Claude Code)', value: 'provider' },
           { name: '🎯 Target Platform', value: 'target' },
@@ -72,6 +76,15 @@ async function showMainMenu(configService: GlobalConfigService): Promise<void> {
  */
 async function openSection(section: string, configService: GlobalConfigService): Promise<void> {
   switch (section) {
+    case 'agents':
+      await configureAgents(configService);
+      break;
+    case 'rules':
+      await configureRules(configService);
+      break;
+    case 'outputStyles':
+      await configureOutputStyles(configService);
+      break;
     case 'mcp':
       await configureMCP(configService);
       break;
@@ -87,6 +100,174 @@ async function openSection(section: string, configService: GlobalConfigService):
     default:
       console.log(chalk.red(`Unknown section: ${section}`));
   }
+}
+
+/**
+ * Configure Agents
+ */
+async function configureAgents(configService: GlobalConfigService): Promise<void> {
+  console.log(chalk.cyan.bold('\n━━━ 🤖 Agent Configuration\n'));
+
+  const flowConfig = await configService.loadFlowConfig();
+  const settings = await configService.loadSettings();
+  const currentAgents = flowConfig.agents || {};
+
+  // Available agents
+  const availableAgents = {
+    coder: 'Coder - Write and modify code',
+    writer: 'Writer - Documentation and explanation',
+    reviewer: 'Reviewer - Code review and critique',
+    orchestrator: 'Orchestrator - Task coordination',
+  };
+
+  // Get current enabled agents
+  const currentEnabled = Object.keys(currentAgents).filter(
+    (key) => currentAgents[key].enabled
+  );
+
+  const { selectedAgents } = await inquirer.prompt([
+    {
+      type: 'checkbox',
+      name: 'selectedAgents',
+      message: 'Select agents to enable:',
+      choices: Object.entries(availableAgents).map(([key, name]) => ({
+        name,
+        value: key,
+        checked: currentEnabled.includes(key),
+      })),
+    },
+  ]);
+
+  // Update agents
+  for (const key of Object.keys(availableAgents)) {
+    if (selectedAgents.includes(key)) {
+      currentAgents[key] = { enabled: true };
+    } else {
+      currentAgents[key] = { enabled: false };
+    }
+  }
+
+  // Select default agent
+  const { defaultAgent } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'defaultAgent',
+      message: 'Select default agent:',
+      choices: selectedAgents.map((key: string) => ({
+        name: availableAgents[key as keyof typeof availableAgents],
+        value: key,
+      })),
+      default: settings.defaultAgent || 'coder',
+    },
+  ]);
+
+  flowConfig.agents = currentAgents;
+  await configService.saveFlowConfig(flowConfig);
+
+  settings.defaultAgent = defaultAgent;
+  await configService.saveSettings(settings);
+
+  console.log(chalk.green(`\n✓ Agent configuration saved`));
+  console.log(chalk.dim(`  Enabled agents: ${selectedAgents.length}`));
+  console.log(chalk.dim(`  Default agent: ${defaultAgent}`));
+}
+
+/**
+ * Configure Rules
+ */
+async function configureRules(configService: GlobalConfigService): Promise<void> {
+  console.log(chalk.cyan.bold('\n━━━ 📋 Rules Configuration\n'));
+
+  const flowConfig = await configService.loadFlowConfig();
+  const currentRules = flowConfig.rules || {};
+
+  // Available rules
+  const availableRules = {
+    core: 'Core - Identity, personality, execution',
+    'code-standards': 'Code Standards - Quality, patterns, anti-patterns',
+    workspace: 'Workspace - Documentation management',
+  };
+
+  // Get current enabled rules
+  const currentEnabled = Object.keys(currentRules).filter(
+    (key) => currentRules[key].enabled
+  );
+
+  const { selectedRules } = await inquirer.prompt([
+    {
+      type: 'checkbox',
+      name: 'selectedRules',
+      message: 'Select rules to enable:',
+      choices: Object.entries(availableRules).map(([key, name]) => ({
+        name,
+        value: key,
+        checked: currentEnabled.includes(key),
+      })),
+    },
+  ]);
+
+  // Update rules
+  for (const key of Object.keys(availableRules)) {
+    if (selectedRules.includes(key)) {
+      currentRules[key] = { enabled: true };
+    } else {
+      currentRules[key] = { enabled: false };
+    }
+  }
+
+  flowConfig.rules = currentRules;
+  await configService.saveFlowConfig(flowConfig);
+
+  console.log(chalk.green(`\n✓ Rules configuration saved`));
+  console.log(chalk.dim(`  Enabled rules: ${selectedRules.length}`));
+}
+
+/**
+ * Configure Output Styles
+ */
+async function configureOutputStyles(configService: GlobalConfigService): Promise<void> {
+  console.log(chalk.cyan.bold('\n━━━ 🎨 Output Styles Configuration\n'));
+
+  const flowConfig = await configService.loadFlowConfig();
+  const currentStyles = flowConfig.outputStyles || {};
+
+  // Available output styles
+  const availableStyles = {
+    silent: 'Silent - Execution without narration',
+  };
+
+  // Get current enabled styles
+  const currentEnabled = Object.keys(currentStyles).filter(
+    (key) => currentStyles[key].enabled
+  );
+
+  const { selectedStyles } = await inquirer.prompt([
+    {
+      type: 'checkbox',
+      name: 'selectedStyles',
+      message: 'Select output styles to enable:',
+      choices: Object.entries(availableStyles).map(([key, name]) => ({
+        name,
+        value: key,
+        checked: currentEnabled.includes(key),
+      })),
+    },
+  ]);
+
+  // Update styles
+  for (const key of Object.keys(availableStyles)) {
+    if (selectedStyles.includes(key)) {
+      currentStyles[key] = { enabled: true };
+    } else {
+      currentStyles[key] = { enabled: false };
+    }
+  }
+
+  flowConfig.outputStyles = currentStyles;
+  await configService.saveFlowConfig(flowConfig);
+
+  console.log(chalk.green(`\n✓ Output styles configuration saved`));
+  console.log(chalk.dim(`  Enabled styles: ${selectedStyles.length}`));
 }
 
 /**

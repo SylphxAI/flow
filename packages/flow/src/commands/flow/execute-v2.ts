@@ -14,15 +14,14 @@ import { CLIError } from '../../utils/error-handler.js';
 import type { RunCommandOptions } from '../../types.js';
 import type { FlowOptions } from './types.js';
 import { resolvePrompt } from './prompt.js';
-import { FirstRunSetup } from '../../services/first-run-setup.js';
 import { GlobalConfigService } from '../../services/global-config.js';
+import { UserCancelledError } from '../../utils/errors.js';
 
 /**
  * Select and configure provider for Claude Code
  */
 async function selectProvider(
-  configService: GlobalConfigService,
-  useDefaults: boolean
+  configService: GlobalConfigService
 ): Promise<void> {
   try {
     const providerConfig = await configService.loadProviderConfig();
@@ -46,13 +45,7 @@ async function selectProvider(
     return;
   }
 
-  // Quick mode or useDefaults: use default provider
-  if (useDefaults) {
-    console.log(chalk.dim('Using default Claude Code provider\n'));
-    return;
-  }
-
-  // Ask user which provider to use
+  // Ask user which provider to use for this session
   const { selectedProvider } = await inquirer.prompt([
     {
       type: 'list',
@@ -91,8 +84,7 @@ async function selectProvider(
   } catch (error: any) {
     // Handle user cancellation (Ctrl+C)
     if (error.name === 'ExitPromptError' || error.message?.includes('force closed')) {
-      console.log(chalk.yellow('\n⚠️  Provider selection cancelled'));
-      process.exit(0);
+      throw new UserCancelledError('Provider selection cancelled');
     }
     throw error;
   }
@@ -137,12 +129,6 @@ export async function executeFlowV2(
   // Show welcome banner
   showWelcome();
 
-  // Quick mode settings
-  if (options.quick) {
-    options.useDefaults = true;
-    console.log(chalk.cyan('⚡ Quick mode enabled\n'));
-  }
-
   // Mode info
   if (options.merge) {
     console.log(chalk.cyan('🔗 Merge mode: Flow settings will be merged with your existing settings'));
@@ -152,28 +138,22 @@ export async function executeFlowV2(
     console.log(chalk.dim('   Use --merge to keep your existing settings\n'));
   }
 
-  // Step 0: First-run quick setup
-  const firstRunSetup = new FirstRunSetup();
+  // Initialize config service
   const configService = new GlobalConfigService();
-
-  if (await firstRunSetup.shouldRun()) {
-    await firstRunSetup.run(options.useDefaults || false);
-  }
+  await configService.initialize();
 
   // Create executor
   const executor = new FlowExecutor();
   const projectManager = executor.getProjectManager();
 
   // Step 1: Check for upgrades (non-intrusive)
-  if (!options.quick) {
-    const upgradeManager = new UpgradeManager();
-    const updates = await upgradeManager.checkUpdates();
+  const upgradeManager = new UpgradeManager();
+  const updates = await upgradeManager.checkUpdates();
 
-    if (updates.flowUpdate || updates.targetUpdate) {
-      console.log(
-        chalk.yellow('📦 Updates available! Run: sylphx-flow upgrade --auto\n')
-      );
-    }
+  if (updates.flowUpdate || updates.targetUpdate) {
+    console.log(
+      chalk.yellow('📦 Updates available! Run: sylphx-flow upgrade --auto\n')
+    );
   }
 
   // Step 2: Execute attach mode lifecycle
@@ -195,16 +175,45 @@ export async function executeFlowV2(
 
     // Step 3.5: Provider selection (Claude Code only)
     if (targetId === 'claude-code') {
-      await selectProvider(configService, options.useDefaults || false);
+      await selectProvider(configService);
     }
 
-    const agent = options.agent || 'coder';
+    // Step 3.6: Load Flow settings and determine agent to use
+    const settings = await configService.loadSettings();
+    const flowConfig = await configService.loadFlowConfig();
+
+    // Determine which agent to use (CLI option > settings default > 'coder')
+    const agent = options.agent || settings.defaultAgent || 'coder';
+
+    // Check if agent is enabled
+    if (!flowConfig.agents[agent]?.enabled) {
+      console.log(chalk.yellow(`⚠️  Agent '${agent}' is not enabled in settings`));
+      console.log(chalk.yellow(`   Enable it with: sylphx-flow settings`));
+      console.log(chalk.yellow(`   Using 'coder' agent instead\n`));
+      // Fallback to first enabled agent or coder
+      const enabledAgents = await configService.getEnabledAgents();
+      const fallbackAgent = enabledAgents.length > 0 ? enabledAgents[0] : 'coder';
+      options.agent = fallbackAgent;
+    }
 
     console.log(chalk.cyan(`🤖 Running agent: ${agent}\n`));
 
-    // Load agent content
-    const agentContent = await loadAgentContent(agent, options.agentFile);
+    // Load enabled rules and output styles from config
+    const enabledRules = await configService.getEnabledRules();
+    const enabledOutputStyles = await configService.getEnabledOutputStyles();
+
+    console.log(chalk.dim(`   Enabled rules: ${enabledRules.join(', ')}`));
+    console.log(chalk.dim(`   Enabled output styles: ${enabledOutputStyles.join(', ')}\n`));
+
+    // Load agent content with only enabled rules and styles
+    const agentContent = await loadAgentContent(
+      agent,
+      options.agentFile,
+      enabledRules,
+      enabledOutputStyles
+    );
     const agentInstructions = extractAgentInstructions(agentContent);
+
     const systemPrompt = `AGENT INSTRUCTIONS:\n${agentInstructions}`;
 
     const userPrompt = prompt?.trim() || '';
@@ -229,6 +238,18 @@ export async function executeFlowV2(
 
     console.log(chalk.green('✓ Session complete\n'));
   } catch (error) {
+    // Handle user cancellation gracefully
+    if (error instanceof UserCancelledError) {
+      console.log(chalk.yellow('\n⚠️  Operation cancelled by user'));
+      try {
+        await executor.cleanup(projectPath);
+        console.log(chalk.green('   ✓ Settings restored\n'));
+      } catch (cleanupError) {
+        console.error(chalk.red('   ✗ Cleanup failed:'), cleanupError);
+      }
+      process.exit(0);
+    }
+
     console.error(chalk.red.bold('\n✗ Execution failed:'), error);
 
     // Ensure cleanup even on error

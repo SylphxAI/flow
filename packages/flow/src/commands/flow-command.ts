@@ -21,13 +21,13 @@ export const flowCommand = new Command('flow')
   .description('Run Flow with automatic environment attach')
 
   // Core options
-  .option('--quick', 'Quick mode: skip upgrade checks')
   .option('--agent <name>', 'Agent to use (default: coder)', 'coder')
   .option('--agent-file <path>', 'Load agent from specific file')
   .option('--verbose', 'Show detailed output')
   .option('--dry-run', 'Show what would be done without making changes')
   .option('-p, --print', 'Headless print mode (output only, no interactive)')
   .option('-c, --continue', 'Continue previous conversation (requires print mode)')
+  .option('--merge', 'Merge Flow settings with existing settings (default: replace all)')
 
   // Prompt argument
   .argument('[prompt]', 'Prompt to execute with agent (optional, supports @file.txt for file input)')

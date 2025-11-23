@@ -11,8 +11,28 @@ import { existsSync } from 'node:fs';
 export interface GlobalSettings {
   version: string;
   defaultTarget?: 'claude-code' | 'opencode';
+  defaultAgent?: string; // Default agent to use (e.g., 'coder', 'writer', 'reviewer', 'orchestrator')
   firstRun: boolean;
   lastUpdated: string;
+}
+
+export interface AgentConfig {
+  enabled: boolean;
+}
+
+export interface RuleConfig {
+  enabled: boolean;
+}
+
+export interface OutputStyleConfig {
+  enabled: boolean;
+}
+
+export interface FlowConfig {
+  version: string;
+  agents: Record<string, AgentConfig>; // e.g., { coder: { enabled: true }, writer: { enabled: false } }
+  rules: Record<string, RuleConfig>; // e.g., { core: { enabled: true }, workspace: { enabled: true } }
+  outputStyles: Record<string, OutputStyleConfig>; // e.g., { silent: { enabled: true } }
 }
 
 export interface ProviderConfig {
@@ -92,6 +112,13 @@ export class GlobalConfigService {
    */
   private getMCPConfigPath(): string {
     return path.join(this.flowHomeDir, 'mcp-config.json');
+  }
+
+  /**
+   * Get Flow config file path
+   */
+  private getFlowConfigPath(): string {
+    return path.join(this.flowHomeDir, 'flow-config.json');
   }
 
   /**
@@ -210,6 +237,76 @@ export class GlobalConfigService {
     }
 
     return enabled;
+  }
+
+  /**
+   * Load Flow config (agents, rules, output styles)
+   */
+  async loadFlowConfig(): Promise<FlowConfig> {
+    const configPath = this.getFlowConfigPath();
+
+    if (!existsSync(configPath)) {
+      // Default: all agents, all rules, all output styles enabled
+      return {
+        version: '1.0.0',
+        agents: {
+          coder: { enabled: true },
+          writer: { enabled: true },
+          reviewer: { enabled: true },
+          orchestrator: { enabled: true },
+        },
+        rules: {
+          core: { enabled: true },
+          'code-standards': { enabled: true },
+          workspace: { enabled: true },
+        },
+        outputStyles: {
+          silent: { enabled: true },
+        },
+      };
+    }
+
+    const data = await fs.readFile(configPath, 'utf-8');
+    return JSON.parse(data);
+  }
+
+  /**
+   * Save Flow config
+   */
+  async saveFlowConfig(config: FlowConfig): Promise<void> {
+    await this.initialize();
+    const configPath = this.getFlowConfigPath();
+    await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+  }
+
+  /**
+   * Get enabled agents
+   */
+  async getEnabledAgents(): Promise<string[]> {
+    const config = await this.loadFlowConfig();
+    return Object.entries(config.agents)
+      .filter(([_, agentConfig]) => agentConfig.enabled)
+      .map(([name]) => name);
+  }
+
+  /**
+   * Get enabled rules
+   */
+  async getEnabledRules(): Promise<string[]> {
+    const config = await this.loadFlowConfig();
+    return Object.entries(config.rules)
+      .filter(([_, ruleConfig]) => ruleConfig.enabled)
+      .map(([name]) => name);
+  }
+
+  /**
+   * Get enabled output styles
+   */
+  async getEnabledOutputStyles(): Promise<string[]> {
+    const config = await this.loadFlowConfig();
+    return Object.entries(config.outputStyles)
+      .filter(([_, styleConfig]) => styleConfig.enabled)
+      .map(([name]) => name);
   }
 
   /**

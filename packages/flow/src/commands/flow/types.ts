@@ -26,9 +26,7 @@ export interface FlowOptions {
   // Smart configuration options
   selectProvider?: boolean;
   selectAgent?: boolean;
-  useDefaults?: boolean;
   provider?: string;
-  quick?: boolean;
 
   // Execution modes
   print?: boolean;
