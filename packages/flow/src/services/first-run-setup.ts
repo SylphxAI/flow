@@ -24,7 +24,7 @@ export class FirstRunSetup {
   /**
    * Run quick setup wizard
    */
-  async run(): Promise<QuickSetupResult> {
+  async run(useDefaults = false): Promise<QuickSetupResult> {
     console.log(chalk.cyan.bold('\n╭─────────────────────────────────────────────────╮'));
     console.log(chalk.cyan.bold('│                                                 │'));
     console.log(chalk.cyan.bold('│  Welcome to Sylphx Flow!                        │'));
@@ -32,89 +32,110 @@ export class FirstRunSetup {
     console.log(chalk.cyan.bold('│                                                 │'));
     console.log(chalk.cyan.bold('╰─────────────────────────────────────────────────╯\n'));
 
-    // Step 1: Select target platform
-    console.log(chalk.cyan('🔧 Quick Setup (1/3) - Target Platform\n'));
-    const { target } = await inquirer.prompt([
-      {
-        type: 'list',
-        name: 'target',
-        message: 'Select your preferred platform:',
-        choices: [
-          { name: 'Claude Code', value: 'claude-code' },
-          { name: 'OpenCode', value: 'opencode' },
-        ],
-        default: 'claude-code',
-      },
-    ]);
+    let target: 'claude-code' | 'opencode' = 'claude-code';
 
-    let provider: string | undefined;
+    // Step 1: Select target platform
+    if (useDefaults) {
+      console.log(chalk.dim('Using default target: claude-code\n'));
+    } else {
+      console.log(chalk.cyan('🔧 Quick Setup (1/3) - Target Platform\n'));
+      const result = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'target',
+          message: 'Select your preferred platform:',
+          choices: [
+            { name: 'Claude Code', value: 'claude-code' },
+            { name: 'OpenCode', value: 'opencode' },
+          ],
+          default: 'claude-code',
+        },
+      ]);
+      target = result.target;
+    }
+
+    let provider: string | undefined = 'ask-every-time';
     const apiKeys: Record<string, Record<string, string>> = {};
 
     // Step 2: Provider setup (Claude Code only)
     if (target === 'claude-code') {
-      console.log(chalk.cyan('\n🔧 Quick Setup (2/3) - Provider\n'));
-      const { selectedProvider } = await inquirer.prompt([
-        {
-          type: 'list',
-          name: 'selectedProvider',
-          message: 'Select your preferred provider:',
-          choices: [
-            { name: 'Ask me every time', value: 'ask-every-time' },
-            { name: 'Default (Claude Code built-in)', value: 'default' },
-            { name: 'Kimi (requires API key)', value: 'kimi' },
-            { name: 'Z.ai (requires API key)', value: 'zai' },
-          ],
-          default: 'ask-every-time',
-        },
-      ]);
+      if (useDefaults) {
+        console.log(chalk.dim('Using default provider: ask-every-time\n'));
+      } else {
+        console.log(chalk.cyan('\n🔧 Quick Setup (2/3) - Provider\n'));
+        const { selectedProvider } = await inquirer.prompt([
+          {
+            type: 'list',
+            name: 'selectedProvider',
+            message: 'Select your preferred provider:',
+            choices: [
+              { name: 'Ask me every time', value: 'ask-every-time' },
+              { name: 'Default (Claude Code built-in)', value: 'default' },
+              { name: 'Kimi (requires API key)', value: 'kimi' },
+              { name: 'Z.ai (requires API key)', value: 'zai' },
+            ],
+            default: 'ask-every-time',
+          },
+        ]);
 
-      provider = selectedProvider;
+        provider = selectedProvider;
+      }
 
-      // Configure API key if needed
-      if (selectedProvider === 'kimi' || selectedProvider === 'zai') {
+      // Configure API key if needed (skip in quick mode)
+      if (!useDefaults && (provider === 'kimi' || provider === 'zai')) {
         const { apiKey } = await inquirer.prompt([
           {
             type: 'password',
             name: 'apiKey',
-            message: selectedProvider === 'kimi' ? 'Enter Kimi API key:' : 'Enter Z.ai API key:',
+            message: provider === 'kimi' ? 'Enter Kimi API key:' : 'Enter Z.ai API key:',
             mask: '*',
           },
         ]);
 
-        apiKeys[selectedProvider] = { apiKey };
+        apiKeys[provider] = { apiKey };
       }
     }
 
     // Step 3: MCP Servers
+    let mcpServers: string[] = [];
     const stepNumber = target === 'claude-code' ? '3/3' : '2/2';
-    console.log(chalk.cyan('\n🔧 Quick Setup (' + stepNumber + ') - MCP Servers\n'));
 
-    const { mcpServers } = await inquirer.prompt([
-      {
-        type: 'checkbox',
-        name: 'mcpServers',
-        message: 'Select MCP servers to enable:',
-        choices: [
-          { name: 'GitHub (requires GITHUB_TOKEN)', value: 'github' },
-          { name: 'Web Search', value: 'web-search-prime', checked: true },
-          { name: 'GitHub Code Search', value: 'grep', checked: true },
-          { name: 'Playwright Browser Control', value: 'playwright' },
-          { name: 'Z.ai Vision & Video', value: 'zai-mcp-server' },
-          { name: 'Context7 Docs', value: 'context7' },
-          { name: 'Notion', value: 'notion' },
-        ],
-      },
-    ]);
+    if (useDefaults) {
+      // Default MCP servers
+      mcpServers = ['grep', 'context7', 'playwright'];
+      console.log(chalk.dim('Using default MCP servers: grep, context7, playwright\n'));
+    } else {
+      console.log(chalk.cyan('\n🔧 Quick Setup (' + stepNumber + ') - MCP Servers\n'));
 
-    // Configure MCP API keys
+      const result = await inquirer.prompt([
+        {
+          type: 'checkbox',
+          name: 'mcpServers',
+          message: 'Select MCP servers to enable:',
+          choices: [
+            { name: 'GitHub (requires GITHUB_TOKEN)', value: 'github' },
+            { name: 'Web Search', value: 'web-search-prime', checked: true },
+            { name: 'GitHub Code Search', value: 'grep', checked: true },
+            { name: 'Playwright Browser Control', value: 'playwright' },
+            { name: 'Z.ai Vision & Video', value: 'zai-mcp-server' },
+            { name: 'Context7 Docs', value: 'context7' },
+            { name: 'Notion', value: 'notion' },
+          ],
+        },
+      ]);
+      mcpServers = result.mcpServers;
+    }
+
+    // Configure MCP API keys (skip in quick mode)
     const mcpServerRequirements: Record<string, string[]> = {
       github: ['GITHUB_TOKEN'],
       notion: ['NOTION_API_KEY'],
     };
 
-    for (const serverKey of mcpServers) {
-      const requirements = mcpServerRequirements[serverKey];
-      if (requirements) {
+    if (!useDefaults) {
+      for (const serverKey of mcpServers) {
+        const requirements = mcpServerRequirements[serverKey];
+        if (requirements) {
         const configMessage = 'Configure ' + requirements[0] + ' for ' + serverKey + '?';
         const { shouldConfigure } = await inquirer.prompt([
           {
@@ -137,6 +158,7 @@ export class FirstRunSetup {
           const answers = await inquirer.prompt(questions);
 
           apiKeys[serverKey] = answers;
+        }
         }
       }
     }

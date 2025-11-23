@@ -139,7 +139,7 @@ export async function executeFlowV2(
   const configService = new GlobalConfigService();
 
   if (await firstRunSetup.shouldRun()) {
-    await firstRunSetup.run();
+    await firstRunSetup.run(options.useDefaults || false);
   }
 
   // Create executor
