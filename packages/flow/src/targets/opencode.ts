@@ -3,8 +3,8 @@ import path from 'node:path';
 import chalk from 'chalk';
 import { getRulesPath, ruleFileExists } from '../config/rules.js';
 import { MCP_SERVER_REGISTRY } from '../config/servers.js';
-import { FileInstaller } from '../core/installers/file-installer.js';
-import { MCPInstaller } from '../core/installers/mcp-installer.js';
+import { installToDirectory, installFile } from '../core/installers/file-installer.js';
+import { createMCPInstaller } from '../core/installers/mcp-installer.js';
 import type { AgentMetadata } from '../types/target-config.types.js';
 import type { CommonOptions, MCPServerConfigUnion, SetupResult, Target } from '../types.js';
 import { getAgentsDir, getOutputStylesDir, getSlashCommandsDir } from '../utils/config/paths.js';
@@ -232,19 +232,9 @@ export const opencodeTarget: Target = {
    * Install agents to .opencode/agent/ directory
    */
   async setupAgents(cwd: string, options: CommonOptions): Promise<SetupResult> {
-    // Clean up old 'commands' directory if it exists (migration from old structure)
-    // This ensures OpenCode won't crash with ConfigDirectoryTypoError
-    const oldCommandsDir = path.join(cwd, '.opencode/commands');
-    try {
-      await fs.rm(oldCommandsDir, { recursive: true, force: true });
-    } catch {
-      // Ignore if doesn't exist
-    }
-
-    const installer = new FileInstaller();
     const agentsDir = path.join(cwd, this.config.agentDir);
 
-    const results = await installer.installToDirectory(
+    const results = await installToDirectory(
       getAgentsDir(),
       agentsDir,
       async (content, sourcePath) => {
@@ -336,11 +326,10 @@ export const opencodeTarget: Target = {
       throw new Error('Core rules file not found');
     }
 
-    const installer = new FileInstaller();
     const rulesDestPath = path.join(cwd, this.config.rulesFile);
     const rulePath = getRulesPath('core');
 
-    await installer.installFile(
+    await installFile(
       rulePath,
       rulesDestPath,
       async (content) => {
@@ -371,7 +360,7 @@ export const opencodeTarget: Target = {
     }
 
     // Install MCP servers
-    const installer = new MCPInstaller(this);
+    const installer = createMCPInstaller(this);
     const result = await installer.setupMCP({ ...options, quiet: true });
 
     return { count: result.selectedServers.length };
@@ -386,18 +375,9 @@ export const opencodeTarget: Target = {
       return { count: 0 };
     }
 
-    // Clean up old 'commands' directory if it exists (migration from old structure)
-    const oldCommandsDir = path.join(cwd, '.opencode/commands');
-    try {
-      await fs.rm(oldCommandsDir, { recursive: true, force: true });
-    } catch {
-      // Ignore if doesn't exist
-    }
-
-    const installer = new FileInstaller();
     const slashCommandsDir = path.join(cwd, this.config.slashCommandsDir);
 
-    const results = await installer.installToDirectory(
+    const results = await installToDirectory(
       getSlashCommandsDir(),
       slashCommandsDir,
       async (content) => {

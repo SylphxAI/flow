@@ -3,8 +3,8 @@ import fs from 'node:fs';
 import fsPromises from 'node:fs/promises';
 import path from 'node:path';
 import chalk from 'chalk';
-import { FileInstaller } from '../core/installers/file-installer.js';
-import { MCPInstaller } from '../core/installers/mcp-installer.js';
+import { installToDirectory } from '../core/installers/file-installer.js';
+import { createMCPInstaller } from '../core/installers/mcp-installer.js';
 import type { AgentMetadata } from '../types/target-config.types.js';
 import type { CommonOptions, MCPServerConfigUnion, SetupResult, Target } from '../types.js';
 import { CLIError } from '../utils/error-handler.js';
@@ -432,10 +432,9 @@ Please begin your response with a comprehensive summary of all the instructions 
    */
   async setupAgents(cwd: string, options: CommonOptions): Promise<SetupResult> {
     const { enhanceAgentContent } = await import('../utils/agent-enhancer.js');
-    const installer = new FileInstaller();
     const agentsDir = path.join(cwd, this.config.agentDir);
 
-    const results = await installer.installToDirectory(
+    const results = await installToDirectory(
       getAgentsDir(),
       agentsDir,
       async (content, sourcePath) => {
@@ -491,7 +490,7 @@ Please begin your response with a comprehensive summary of all the instructions 
    * Select, configure, install, and approve MCP servers
    */
   async setupMCP(cwd: string, options: CommonOptions): Promise<SetupResult> {
-    const installer = new MCPInstaller(this);
+    const installer = createMCPInstaller(this);
     const result = await installer.setupMCP({ ...options, quiet: true });
 
     // Approve servers in Claude Code settings
@@ -513,10 +512,9 @@ Please begin your response with a comprehensive summary of all the instructions 
       return { count: 0 };
     }
 
-    const installer = new FileInstaller();
     const slashCommandsDir = path.join(cwd, this.config.slashCommandsDir);
 
-    const results = await installer.installToDirectory(
+    const results = await installToDirectory(
       getSlashCommandsDir(),
       slashCommandsDir,
       async (content) => {
