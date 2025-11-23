@@ -39,10 +39,3 @@ export interface FlowOptions {
   loop?: number;
   maxRuns?: number;
 }
-
-export interface SetupContext {
-  resolvedTarget: string;
-  initializedSuccessfully: boolean;
-  systemPrompt?: string;
-  runOptions?: RunCommandOptions;
-}
