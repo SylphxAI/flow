@@ -134,10 +134,13 @@ export async function executeFlowV2(
     console.log(chalk.cyan('⚡ Quick mode enabled\n'));
   }
 
-  // Replace mode info
-  if (options.replace) {
-    console.log(chalk.yellow('🔄 Replace mode: All user settings will be replaced with Flow settings'));
+  // Mode info
+  if (options.merge) {
+    console.log(chalk.cyan('🔗 Merge mode: Flow settings will be merged with your existing settings'));
     console.log(chalk.dim('   Settings will be restored after execution\n'));
+  } else {
+    console.log(chalk.yellow('🔄 Replace mode (default): All settings will use Flow configuration'));
+    console.log(chalk.dim('   Use --merge to keep your existing settings\n'));
   }
 
   // Step 0: First-run quick setup
@@ -171,7 +174,7 @@ export async function executeFlowV2(
       verbose: options.verbose,
       skipBackup: false,
       skipSecrets: false,
-      replace: options.replace || false,
+      merge: options.merge || false,
     });
 
     // Step 3: Detect target and load agent

@@ -60,7 +60,7 @@ export function createCLI(): Command {
     .option('--dry-run', 'Show what would be done without making changes')
     .option('-p, --print', 'Headless print mode (output only, no interactive)')
     .option('-c, --continue', 'Continue previous conversation (requires print mode)')
-    .option('--replace', 'Replace all user settings with Flow settings (always restores after)')
+    .option('--merge', 'Merge Flow settings with existing settings (default: replace all)')
 
     .action(async (prompt, options) => {
       await executeFlow(prompt, options);
