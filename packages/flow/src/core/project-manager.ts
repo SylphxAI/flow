@@ -80,32 +80,49 @@ export class ProjectManager {
 
   /**
    * Detect target platform (claude-code or opencode)
+   * Priority: local settings > directory detection > global settings > default
    */
   async detectTarget(projectPath: string): Promise<'claude-code' | 'opencode'> {
-    // Check for .opencode directory first
-    const opencodePath = path.join(projectPath, '.opencode');
-    if (existsSync(opencodePath)) {
-      return 'opencode';
-    }
-
-    // Check for .claude directory
-    const claudePath = path.join(projectPath, '.claude');
-    if (existsSync(claudePath)) {
-      return 'claude-code';
-    }
-
-    // Default to opencode (can be overridden by user settings)
-    const settingsPath = path.join(this.flowHomeDir, 'settings.json');
-    if (existsSync(settingsPath)) {
+    // 1. Check local project settings first (.sylphx-flow/settings.json)
+    const localSettingsPath = path.join(projectPath, '.sylphx-flow', 'settings.json');
+    if (existsSync(localSettingsPath)) {
       try {
-        const settings = JSON.parse(await fs.readFile(settingsPath, 'utf-8'));
-        return settings.defaultTarget || 'opencode';
+        const settings = JSON.parse(await fs.readFile(localSettingsPath, 'utf-8'));
+        if (settings.target) {
+          return settings.target;
+        }
       } catch {
-        // Fall through to default
+        // Fall through
       }
     }
 
-    return 'opencode';
+    // 2. Check which directories exist
+    const hasOpencode = existsSync(path.join(projectPath, '.opencode'));
+    const hasClaude = existsSync(path.join(projectPath, '.claude'));
+
+    // If only one exists, use that
+    if (hasOpencode && !hasClaude) {
+      return 'opencode';
+    }
+    if (hasClaude && !hasOpencode) {
+      return 'claude-code';
+    }
+
+    // 3. Check global settings (~/.sylphx-flow/settings.json)
+    const globalSettingsPath = path.join(this.flowHomeDir, 'settings.json');
+    if (existsSync(globalSettingsPath)) {
+      try {
+        const settings = JSON.parse(await fs.readFile(globalSettingsPath, 'utf-8'));
+        if (settings.defaultTarget) {
+          return settings.defaultTarget;
+        }
+      } catch {
+        // Fall through
+      }
+    }
+
+    // 4. Default to claude-code
+    return 'claude-code';
   }
 
   /**
