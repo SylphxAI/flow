@@ -87,86 +87,108 @@ export class UpgradeManager {
     };
   }
 
-  async upgradeFlow(state: ProjectState): Promise<boolean> {
+  async upgradeFlow(state: ProjectState, autoInstall: boolean = false): Promise<boolean> {
     if (!state.outdated || !state.latestVersion) {
       return false;
     }
 
-    const spinner = ora('升级 Sylphx Flow...').start();
+    const spinner = ora('Upgrading Sylphx Flow...').start();
 
     try {
-      // 备份当前配置
+      // Backup current config
       if (!this.options.skipBackup) {
         await this.backupConfig();
       }
 
       if (this.options.dryRun) {
-        spinner.succeed(`模拟升级: ${state.version} → ${state.latestVersion}`);
+        spinner.succeed(`Dry run: ${state.version} → ${state.latestVersion}`);
         return true;
       }
 
-      // sym link 方式 - 实际需要重新安装
-      // 这里假设用户会通过 git pull 或 npm update 更新
-      // 我们只需要更新配置文件和 component
+      // Auto-install via npm
+      if (autoInstall) {
+        spinner.text = 'Installing latest version via npm...';
+        const installCmd = 'npm install -g @sylphx/flow@latest';
 
-      // 更新配置文件中的版本号
-      const configPath = path.join(this.projectPath, getProjectSettingsFile());
-      try {
-        const config = JSON.parse(await fs.readFile(configPath, 'utf-8'));
-        config.version = state.latestVersion;
-        config.lastUpdated = new Date().toISOString();
-        await fs.writeFile(configPath, JSON.stringify(config, null, 2));
-      } catch {
-        // 无法更新配置
+        try {
+          await execAsync(installCmd);
+          spinner.succeed(`Upgraded to ${state.latestVersion}`);
+        } catch (error) {
+          spinner.warn('Auto-install failed, please run: npm install -g @sylphx/flow@latest');
+          if (this.options.verbose) {
+            console.error(error);
+          }
+        }
+      } else {
+        // Just update config metadata
+        const configPath = path.join(this.projectPath, getProjectSettingsFile());
+        try {
+          const config = JSON.parse(await fs.readFile(configPath, 'utf-8'));
+          config.version = state.latestVersion;
+          config.lastUpdated = new Date().toISOString();
+          await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+        } catch {
+          // Cannot update config
+        }
+
+        spinner.succeed(`Upgraded to ${state.latestVersion}`);
       }
 
-      spinner.succeed(`已升级到 ${state.latestVersion}`);
       return true;
     } catch (error) {
-      spinner.fail('升级失败');
+      spinner.fail('Upgrade failed');
       throw new CLIError(
-        `升级 Sylphx Flow 失败: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to upgrade Sylphx Flow: ${error instanceof Error ? error.message : String(error)}`,
         'UPGRADE_FAILED'
       );
     }
   }
 
-  async upgradeTarget(state: ProjectState): Promise<boolean> {
+  async upgradeTarget(state: ProjectState, autoInstall: boolean = false): Promise<boolean> {
     if (!state.target || !state.targetLatestVersion) {
       return false;
     }
 
-    const spinner = ora(`升级 ${state.target}...`).start();
+    const spinner = ora(`Upgrading ${state.target}...`).start();
 
     try {
       if (state.target === 'claude-code') {
-        await this.upgradeClaudeCode();
+        await this.upgradeClaudeCode(autoInstall);
       } else if (state.target === 'opencode') {
         await this.upgradeOpenCode();
       }
 
-      spinner.succeed(`${state.target} 已升级到最新版本`);
+      spinner.succeed(`${state.target} upgraded to latest version`);
       return true;
     } catch (error) {
-      spinner.fail(`${state.target} 升级失败`);
+      spinner.fail(`${state.target} upgrade failed`);
       throw new CLIError(
-        `升级 ${state.target} 失败: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to upgrade ${state.target}: ${error instanceof Error ? error.message : String(error)}`,
         'TARGET_UPGRADE_FAILED'
       );
     }
   }
 
-  private async upgradeClaudeCode(): Promise<void> {
+  private async upgradeClaudeCode(autoInstall: boolean = false): Promise<void> {
     if (this.options.dryRun) {
-      console.log('模拟: claude update');
+      console.log('Dry run: claude update');
       return;
     }
 
-    // Claude Code has built-in update command
-    const { stdout } = await execAsync('claude update');
+    if (autoInstall) {
+      // Use npm to install latest version
+      const { stdout } = await execAsync('npm install -g @anthropic-ai/claude-code@latest');
 
-    if (this.options.verbose) {
-      console.log(stdout);
+      if (this.options.verbose) {
+        console.log(stdout);
+      }
+    } else {
+      // Claude Code has built-in update command
+      const { stdout } = await execAsync('claude update');
+
+      if (this.options.verbose) {
+        console.log(stdout);
+      }
     }
   }
 
@@ -256,12 +278,18 @@ export class UpgradeManager {
 
   private async getLatestFlowVersion(): Promise<string | null> {
     try {
-      // 从当前 package.json 获取（假设是当前开发版本）
-      const packagePath = path.join(__dirname, '..', '..', 'package.json');
-      const packageJson = JSON.parse(await fs.readFile(packagePath, 'utf-8'));
-      return packageJson.version || null;
+      // Check npm registry for latest published version
+      const { stdout } = await execAsync('npm view @sylphx/flow version');
+      return stdout.trim();
     } catch {
-      return null;
+      // Fallback: read from local package.json
+      try {
+        const packagePath = path.join(__dirname, '..', '..', 'package.json');
+        const packageJson = JSON.parse(await fs.readFile(packagePath, 'utf-8'));
+        return packageJson.version || null;
+      } catch {
+        return null;
+      }
     }
   }
 
@@ -279,17 +307,13 @@ export class UpgradeManager {
     return null;
   }
 
-  private async getLatestTargetVersion(target: string): Promise<string | null> {
-    if (target === 'claude-code') {
-      try {
-        const { stdout } = await execAsync('npm view @anthropic-ai/claude-code version');
-        return stdout.trim();
-      } catch {
-        return null;
-      }
+  private async getLatestTargetVersion(): Promise<string | null> {
+    try {
+      const { stdout } = await execAsync('npm view @anthropic-ai/claude-code version');
+      return stdout.trim();
+    } catch {
+      return null;
     }
-
-    return null;
   }
 
   static async isUpgradeAvailable(): Promise<boolean> {

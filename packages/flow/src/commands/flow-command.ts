@@ -193,11 +193,12 @@ export const doctorCommand = new Command('doctor')
 export const upgradeCommand = new Command('upgrade')
   .description('Upgrade Sylphx Flow and components')
   .option('--check', 'Only check for updates, do not upgrade')
+  .option('--auto', 'Automatically install updates via npm')
   .option('--components', 'Upgrade components (agents, rules, etc)', true)
   .option('--target', 'Upgrade target platform (Claude Code/OpenCode)')
   .option('--verbose', 'Show detailed output')
   .action(async (options) => {
-    console.log(chalk.cyan.bold('📦 检查更新\n'));
+    console.log(chalk.cyan.bold('📦 Checking for updates\n'));
 
     const detector = new StateDetector();
     const upgradeManager = new UpgradeManager();
@@ -205,7 +206,7 @@ export const upgradeCommand = new Command('upgrade')
     const updates = await upgradeManager.checkUpdates();
 
     if (!updates.flowUpdate && !updates.targetUpdate) {
-      console.log(chalk.green('✓ 所有组件已是最新版本\n'));
+      console.log(chalk.green('✓ All components are up to date\n'));
       return;
     }
 
@@ -219,7 +220,7 @@ export const upgradeCommand = new Command('upgrade')
 
     // Check only
     if (options.check) {
-      console.log('\n' + chalk.dim('使用 --no-check 或省略参数进行升级'));
+      console.log('\n' + chalk.dim('Run without --check to upgrade'));
       return;
     }
 
@@ -229,13 +230,13 @@ export const upgradeCommand = new Command('upgrade')
       {
         type: 'confirm',
         name: 'confirm',
-        message: '确认升级到最新版本?',
+        message: 'Upgrade to latest version?',
         default: true,
       },
     ]);
 
     if (!confirm) {
-      console.log(chalk.dim('\n升级已取消'));
+      console.log(chalk.dim('\nUpgrade cancelled'));
       return;
     }
 
@@ -243,16 +244,21 @@ export const upgradeCommand = new Command('upgrade')
     console.log('');
 
     const state = await detector.detect();
+    const autoInstall = options.auto || false;
 
     if (updates.flowUpdate) {
-      console.log(chalk.cyan.bold('\n━ 升级 Sylphx Flow\n'));
-      await upgradeManager.upgradeFlow(state);
+      console.log(chalk.cyan.bold('\n━ Upgrading Sylphx Flow\n'));
+      await upgradeManager.upgradeFlow(state, autoInstall);
     }
 
     if (updates.targetUpdate && options.target) {
-      console.log(chalk.cyan.bold('\n━ 升级 Target\n'));
-      await upgradeManager.upgradeTarget(state);
+      console.log(chalk.cyan.bold('\n━ Upgrading Target\n'));
+      await upgradeManager.upgradeTarget(state, autoInstall);
     }
 
-    console.log(chalk.green('\n✓ 升级完成\n'));
+    console.log(chalk.green('\n✓ Upgrade complete\n'));
+
+    if (!autoInstall) {
+      console.log(chalk.dim('💡 Tip: Use --auto flag to automatically install updates via npm\n'));
+    }
   });
