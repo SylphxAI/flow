@@ -154,18 +154,43 @@ export async function executeFlowV2(
 
   let selectedTargetId: string | null = null;
 
-  // Check if user wants to be asked every time or has a specific preference
-  const shouldAskEveryTime = !settings.defaultTarget || settings.defaultTarget === 'ask-every-time';
+  // Distinguish between three cases:
+  // 1. User explicitly set "ask-every-time" → always prompt
+  // 2. User has no setting (undefined/null) → allow auto-detect
+  // 3. User has specific target → use that target
+  const isAskEveryTime = settings.defaultTarget === 'ask-every-time';
+  const hasNoSetting = !settings.defaultTarget;
+  const hasSpecificTarget = settings.defaultTarget && settings.defaultTarget !== 'ask-every-time';
 
-  if (shouldAskEveryTime) {
-    // Auto-detection mode (default behavior)
+  if (isAskEveryTime) {
+    // User explicitly wants to be asked every time - ALWAYS prompt, never auto-detect
+    console.log(chalk.cyan('🔍 Detecting installed AI CLIs...\n'));
+
+    selectedTargetId = await promptForTargetSelection(
+      installedTargets,
+      'Select AI CLI to use:',
+      'execution'
+    );
+
+    const installation = targetInstaller.getInstallationInfo(selectedTargetId);
+    const installed = await ensureTargetInstalled(selectedTargetId, targetInstaller, installedTargets);
+
+    if (!installed) {
+      process.exit(1);
+    }
+
+    if (installedTargets.includes(selectedTargetId)) {
+      console.log(chalk.green(`✓ Using ${installation?.name}\n`));
+    }
+  } else if (hasNoSetting) {
+    // No setting - use auto-detection (smart default behavior)
     if (installedTargets.length === 1) {
       // Exactly 1 target found - use it automatically
       selectedTargetId = installedTargets[0];
       const installation = targetInstaller.getInstallationInfo(selectedTargetId);
       console.log(chalk.green(`✓ Using ${installation?.name} (auto-detected)\n`));
     } else {
-      // 0 or multiple targets - show unified selection
+      // 0 or multiple targets - prompt for selection
       console.log(chalk.cyan('🔍 Detecting installed AI CLIs...\n'));
 
       selectedTargetId = await promptForTargetSelection(
@@ -185,7 +210,7 @@ export async function executeFlowV2(
         console.log(chalk.green(`✓ Using ${installation?.name}\n`));
       }
     }
-  } else {
+  } else if (hasSpecificTarget) {
     // User has a specific target preference - ALWAYS use it
     selectedTargetId = settings.defaultTarget;
     const installation = targetInstaller.getInstallationInfo(selectedTargetId);
