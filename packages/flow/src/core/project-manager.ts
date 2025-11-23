@@ -79,49 +79,139 @@ export class ProjectManager {
   }
 
   /**
-   * Detect target platform (claude-code or opencode)
-   * Priority: local settings > directory detection > global settings > default
+   * Check if a command is available on the system
    */
-  async detectTarget(projectPath: string): Promise<'claude-code' | 'opencode'> {
-    // 1. Check local project settings first (.sylphx-flow/settings.json)
-    const localSettingsPath = path.join(projectPath, '.sylphx-flow', 'settings.json');
-    if (existsSync(localSettingsPath)) {
+  private async isCommandAvailable(command: string): Promise<boolean> {
+    try {
+      const { execSync } = await import('node:child_process');
+      execSync(`which ${command}`, { stdio: 'ignore' });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Detect which commands are installed on this machine
+   */
+  private async detectInstalledCommands(): Promise<{
+    claudeCode: boolean;
+    opencode: boolean;
+  }> {
+    const [claudeCode, opencode] = await Promise.all([
+      this.isCommandAvailable('claude'),
+      this.isCommandAvailable('opencode'),
+    ]);
+
+    return { claudeCode, opencode };
+  }
+
+  /**
+   * Get project-specific target preference from global config
+   */
+  private async getProjectTargetPreference(
+    projectHash: string
+  ): Promise<'claude-code' | 'opencode' | undefined> {
+    const prefsPath = path.join(this.flowHomeDir, 'project-preferences.json');
+    if (!existsSync(prefsPath)) {
+      return undefined;
+    }
+
+    try {
+      const prefs = JSON.parse(await fs.readFile(prefsPath, 'utf-8'));
+      return prefs.projects?.[projectHash]?.target;
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * Save project-specific target preference to global config
+   */
+  async saveProjectTargetPreference(
+    projectHash: string,
+    target: 'claude-code' | 'opencode'
+  ): Promise<void> {
+    const prefsPath = path.join(this.flowHomeDir, 'project-preferences.json');
+    let prefs: any = { projects: {} };
+
+    if (existsSync(prefsPath)) {
       try {
-        const settings = JSON.parse(await fs.readFile(localSettingsPath, 'utf-8'));
-        if (settings.target) {
-          return settings.target;
-        }
+        prefs = JSON.parse(await fs.readFile(prefsPath, 'utf-8'));
       } catch {
-        // Fall through
+        // Use default
       }
     }
 
-    // 2. Check which directories exist
-    const hasOpencode = existsSync(path.join(projectPath, '.opencode'));
-    const hasClaude = existsSync(path.join(projectPath, '.claude'));
+    if (!prefs.projects) {
+      prefs.projects = {};
+    }
 
-    // If only one exists, use that
-    if (hasOpencode && !hasClaude) {
+    prefs.projects[projectHash] = {
+      target,
+      lastUsed: new Date().toISOString(),
+    };
+
+    await fs.writeFile(prefsPath, JSON.stringify(prefs, null, 2));
+  }
+
+  /**
+   * Detect target platform (claude-code or opencode)
+   * New strategy: Detect based on installed commands, not folders
+   * Priority: saved preference > installed commands > global default
+   */
+  async detectTarget(projectPath: string): Promise<'claude-code' | 'opencode'> {
+    const projectHash = this.getProjectHash(projectPath);
+
+    // 1. Check if we already have a saved preference for this project
+    const savedPreference = await this.getProjectTargetPreference(projectHash);
+    if (savedPreference) {
+      // Verify the command is still available
+      const isAvailable =
+        savedPreference === 'claude-code'
+          ? await this.isCommandAvailable('claude')
+          : await this.isCommandAvailable('opencode');
+
+      if (isAvailable) {
+        return savedPreference;
+      }
+      // Command no longer available, fall through to re-detect
+    }
+
+    // 2. Detect which commands are installed
+    const installed = await this.detectInstalledCommands();
+
+    // If only one is installed, use that
+    if (installed.claudeCode && !installed.opencode) {
+      await this.saveProjectTargetPreference(projectHash, 'claude-code');
+      return 'claude-code';
+    }
+    if (installed.opencode && !installed.claudeCode) {
+      await this.saveProjectTargetPreference(projectHash, 'opencode');
       return 'opencode';
     }
-    if (hasClaude && !hasOpencode) {
+
+    // If both are installed, use global default
+    if (installed.claudeCode && installed.opencode) {
+      const globalSettingsPath = path.join(this.flowHomeDir, 'settings.json');
+      if (existsSync(globalSettingsPath)) {
+        try {
+          const settings = JSON.parse(await fs.readFile(globalSettingsPath, 'utf-8'));
+          if (settings.defaultTarget) {
+            await this.saveProjectTargetPreference(projectHash, settings.defaultTarget);
+            return settings.defaultTarget;
+          }
+        } catch {
+          // Fall through
+        }
+      }
+
+      // Both installed, no global default, use claude-code
+      await this.saveProjectTargetPreference(projectHash, 'claude-code');
       return 'claude-code';
     }
 
-    // 3. Check global settings (~/.sylphx-flow/settings.json)
-    const globalSettingsPath = path.join(this.flowHomeDir, 'settings.json');
-    if (existsSync(globalSettingsPath)) {
-      try {
-        const settings = JSON.parse(await fs.readFile(globalSettingsPath, 'utf-8'));
-        if (settings.defaultTarget) {
-          return settings.defaultTarget;
-        }
-      } catch {
-        // Fall through
-      }
-    }
-
-    // 4. Default to claude-code
+    // Neither installed - this will fail later, but return default
     return 'claude-code';
   }
 
