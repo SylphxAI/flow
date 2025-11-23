@@ -8,6 +8,7 @@ import type { FlowOptions } from './flow/types.js';
 import { StateDetector, type ProjectState } from '../core/state-detector.js';
 import { UpgradeManager } from '../core/upgrade-manager.js';
 import { targetManager } from '../core/target-manager.js';
+import { detectPackageManager, getUpgradeCommand } from '../utils/package-manager-detector.js';
 
 /**
  * Step 1: Check for available upgrades
@@ -20,15 +21,18 @@ export async function checkUpgrades(
 
   const upgradeManager = new UpgradeManager();
   const updates = await upgradeManager.checkUpdates();
+  const packageManager = detectPackageManager();
 
   // Check Flow upgrade
   if (updates.flowUpdate && updates.flowVersion) {
+    const upgradeCmd = getUpgradeCommand('@sylphx/flow', packageManager);
     console.log(
       chalk.yellow(
         `📦 Sylphx Flow update available: ${updates.flowVersion.current} → ${updates.flowVersion.latest}`
       )
     );
-    console.log(chalk.dim(`   Run: ${chalk.cyan('sylphx-flow upgrade --auto')}\n`));
+    console.log(chalk.dim(`   Quick upgrade: ${chalk.cyan('sylphx-flow upgrade --auto')}`));
+    console.log(chalk.dim(`   Or run: ${chalk.cyan(upgradeCmd)}\n`));
   }
 
   // Check target upgrade

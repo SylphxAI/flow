@@ -1,6 +1,6 @@
 # Upgrade Guide
 
-Sylphx Flow includes built-in upgrade detection and automatic update capabilities.
+Sylphx Flow includes built-in upgrade detection and automatic update capabilities with **smart package manager detection**.
 
 ## Auto-Detection on Startup
 
@@ -8,8 +8,11 @@ Every time you run Sylphx Flow, it automatically checks for available updates in
 
 ```
 📦 Sylphx Flow update available: 1.8.1 → 1.9.0
-   Run: sylphx-flow upgrade --auto
+   Quick upgrade: sylphx-flow upgrade --auto
+   Or run: bun install -g @sylphx/flow@latest
 ```
+
+The upgrade command is automatically tailored to your detected package manager (npm, bun, pnpm, or yarn).
 
 This check is non-intrusive and won't block your workflow. Use `--quick` mode to skip the check entirely.
 
@@ -62,14 +65,34 @@ sylphx-flow upgrade --target --auto
 - `--target` - Include target platform (Claude Code/OpenCode) upgrade
 - `--verbose` - Show detailed installation output
 
+## Package Manager Detection
+
+Sylphx Flow automatically detects which package manager you're using:
+
+1. **From Environment** (`npm_config_user_agent`): Most reliable when running as npm script
+2. **From Lock Files**: Checks for `bun.lock`, `pnpm-lock.yaml`, `yarn.lock`, or `package-lock.json`
+3. **Default**: Falls back to `npm` if no detection method works
+
+**Priority Order**: bun > pnpm > yarn > npm
+
+### Supported Package Managers
+
+| Package Manager | Global Install Command |
+|----------------|------------------------|
+| npm            | `npm install -g @sylphx/flow@latest` |
+| bun            | `bun install -g @sylphx/flow@latest` |
+| pnpm           | `pnpm install -g @sylphx/flow@latest` |
+| yarn           | `yarn global add @sylphx/flow@latest` |
+
 ## How It Works
 
 1. **Version Detection**: Checks npm registry for latest published versions
 2. **Comparison**: Compares installed version with latest available
-3. **Notification**: Shows update availability with suggested command
-4. **Installation**:
-   - Without `--auto`: Updates config and shows manual install instructions
-   - With `--auto`: Runs `npm install -g @sylphx/flow@latest` automatically
+3. **Package Manager Detection**: Automatically detects npm/bun/pnpm/yarn
+4. **Notification**: Shows update availability with package-manager-specific command
+5. **Installation**:
+   - Without `--auto`: Shows manual install command for your package manager
+   - With `--auto`: Runs the appropriate install command automatically
 
 ## Disabling Auto-Check
 
@@ -83,9 +106,13 @@ sylphx-flow --quick "your prompt here"
 
 ### Auto-Install Fails
 
-If `--auto` installation fails, run the manual command:
+If `--auto` installation fails, the error message will show the exact command to run manually. The command is tailored to your package manager:
 
 ```bash
+# Example for bun users
+bun install -g @sylphx/flow@latest
+
+# Example for npm users
 npm install -g @sylphx/flow@latest
 ```
 
