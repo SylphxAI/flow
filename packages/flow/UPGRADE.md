@@ -1,20 +1,28 @@
 # Upgrade Guide
 
-Sylphx Flow includes built-in upgrade detection and automatic update capabilities with **smart package manager detection**.
+Flow 2.0 includes **automatic upgrade before every session** with smart package manager detection. No more manual version management—Flow keeps itself and your AI CLI tools up to date.
 
-## Auto-Detection on Startup
+## Auto-Upgrade on Every Execution
 
-Every time you run Sylphx Flow, it automatically checks for available updates in the background. If an update is available, you'll see a notification like:
+**Before each Flow session**, Flow automatically:
 
+1. **Checks for Flow updates**: Compares installed version with npm registry
+2. **Checks for AI CLI updates**: Verifies Claude Code, OpenCode, or Cursor versions
+3. **Upgrades automatically**: Installs latest versions if available
+4. **Detects package manager**: Uses npm, bun, pnpm, or yarn based on your environment
+
+Example output:
 ```
-📦 Sylphx Flow update available: 1.8.1 → 1.9.0
-   Quick upgrade: sylphx-flow upgrade --auto
-   Or run: bun install -g @sylphx/flow@latest
+🔄 Checking for updates...
+✓ Flow 2.0.0 → 2.1.0 (latest)
+✓ Claude Code 1.5.0 → 1.6.0 (latest)
+📦 Installing updates...
+✓ All tools upgraded
+
+🚀 Starting Flow session...
 ```
 
-The upgrade command is automatically tailored to your detected package manager (npm, bun, pnpm, or yarn).
-
-This check is non-intrusive and won't block your workflow. Use `--quick` mode to skip the check entirely.
+This happens automatically. No flags needed, no configuration required.
 
 ## Manual Upgrade Check
 
@@ -94,13 +102,16 @@ Sylphx Flow automatically detects which package manager you're using:
    - Without `--auto`: Shows manual install command for your package manager
    - With `--auto`: Runs the appropriate install command automatically
 
-## Disabling Auto-Check
+## Philosophy: Always Latest
 
-Use `--quick` mode to skip automatic update checks:
+Flow 2.0 embraces the principle of **always running the latest stable versions**. This ensures:
 
-```bash
-sylphx-flow --quick "your prompt here"
-```
+- Latest features and improvements
+- Security patches applied immediately
+- Compatibility with newest AI models
+- Bug fixes without manual intervention
+
+Auto-upgrade cannot be disabled—it's core to Flow's philosophy of zero-friction excellence.
 
 ## Troubleshooting
 

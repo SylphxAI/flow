@@ -1,7 +1,7 @@
 {
   "name": "@sylphx/flow",
   "version": "2.0.0",
-  "description": "AI-powered development workflow automation with autonomous loop mode and smart configuration",
+  "description": "One CLI to rule them all. Unified orchestration layer for Claude Code, OpenCode, Cursor and all AI development tools. Auto-detection, auto-installation, auto-upgrade.",
   "type": "module",
   "bin": {
     "sylphx-flow": "./src/index.ts"
@@ -50,12 +50,16 @@
     "ai",
     "automation",
     "workflow",
-    "claude",
+    "claude-code",
     "opencode",
+    "cursor",
     "cli",
-    "autonomous",
-    "loop-mode",
-    "developer-tools"
+    "orchestration",
+    "unified",
+    "meta-layer",
+    "developer-tools",
+    "auto-install",
+    "auto-upgrade"
   ],
   "repository": {
     "type": "git",
