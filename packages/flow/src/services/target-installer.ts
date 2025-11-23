@@ -81,7 +81,9 @@ export class TargetInstaller {
   }
 
   /**
-   * Check if a target is installed
+   * Check if a target CLI is installed
+   * @param targetId - Target ID to check
+   * @returns True if installed, false otherwise
    */
   async isInstalled(targetId: string): Promise<boolean> {
     const installation = TARGET_INSTALLATIONS.find((t) => t.id === targetId);
@@ -98,7 +100,8 @@ export class TargetInstaller {
   }
 
   /**
-   * Detect which targets are installed
+   * Detect which target CLIs are currently installed
+   * @returns Array of installed target IDs
    */
   async detectInstalledTargets(): Promise<string[]> {
     const installed: string[] = [];
@@ -114,6 +117,8 @@ export class TargetInstaller {
 
   /**
    * Prompt user to select a target to install
+   * @returns Selected target ID
+   * @throws {UserCancelledError} If user cancels the prompt
    */
   async promptForTargetSelection(): Promise<string> {
     try {
@@ -141,7 +146,11 @@ export class TargetInstaller {
   }
 
   /**
-   * Install a target CLI
+   * Install a target CLI using detected package manager
+   * @param targetId - Target ID to install
+   * @param autoConfirm - Skip confirmation prompt if true
+   * @returns True if installation successful, false otherwise
+   * @throws {UserCancelledError} If user cancels installation
    */
   async install(targetId: string, autoConfirm: boolean = false): Promise<boolean> {
     const installation = TARGET_INSTALLATIONS.find((t) => t.id === targetId);
@@ -202,7 +211,9 @@ export class TargetInstaller {
   }
 
   /**
-   * Auto-detect and install if no target is found
+   * Auto-detect installed targets or prompt to install one
+   * @returns Target ID if found or installed, null if installation failed
+   * @throws {UserCancelledError} If user cancels selection or installation
    */
   async autoDetectAndInstall(): Promise<string | null> {
     console.log(chalk.cyan('🔍 Detecting installed AI CLIs...\n'));
@@ -233,7 +244,9 @@ export class TargetInstaller {
   }
 
   /**
-   * Get installation info for a target
+   * Get installation metadata for a target
+   * @param targetId - Target ID to get info for
+   * @returns Installation info or undefined if target not found
    */
   getInstallationInfo(targetId: string): TargetInstallation | undefined {
     return TARGET_INSTALLATIONS.find((t) => t.id === targetId);

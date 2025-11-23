@@ -9,6 +9,7 @@ import inquirer from 'inquirer';
 import { GlobalConfigService } from '../services/global-config.js';
 import { UserCancelledError } from '../utils/errors.js';
 import { TargetInstaller } from '../services/target-installer.js';
+import { promptForDefaultTarget, buildAvailableTargets } from '../utils/target-selection.js';
 
 export const settingsCommand = new Command('settings')
   .description('Configure Sylphx Flow settings')
@@ -447,49 +448,7 @@ async function configureTarget(configService: GlobalConfigService): Promise<void
   console.log(chalk.dim('Detecting installed AI CLIs...\n'));
   const installedTargets = await targetInstaller.detectInstalledTargets();
 
-  // Available targets (all of them, regardless of installation status)
-  const availableTargets = [
-    {
-      name: 'Claude Code',
-      value: 'claude-code',
-      installed: installedTargets.includes('claude-code'),
-    },
-    {
-      name: 'OpenCode',
-      value: 'opencode',
-      installed: installedTargets.includes('opencode'),
-    },
-    {
-      name: 'Cursor',
-      value: 'cursor',
-      installed: installedTargets.includes('cursor'),
-    },
-  ];
-
-  const { defaultTarget } = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'defaultTarget',
-      message: 'Select default target platform:',
-      choices: [
-        ...availableTargets.map((target) => {
-          const status = target.installed
-            ? chalk.green(' ✓ installed')
-            : chalk.dim(' (not installed - will auto-install on first use)');
-          return {
-            name: `${target.name}${status}`,
-            value: target.value,
-          };
-        }),
-        new inquirer.Separator(),
-        {
-          name: 'Ask me every time',
-          value: 'ask-every-time',
-        },
-      ],
-      default: settings.defaultTarget || 'ask-every-time',
-    },
-  ]);
+  const defaultTarget = await promptForDefaultTarget(installedTargets, settings.defaultTarget);
 
   settings.defaultTarget = defaultTarget as 'claude-code' | 'opencode' | 'cursor' | 'ask-every-time';
   await configService.saveSettings(settings);
@@ -498,6 +457,7 @@ async function configureTarget(configService: GlobalConfigService): Promise<void
     console.log(chalk.green('\n✓ Target platform saved'));
     console.log(chalk.dim('  Default: Ask every time (auto-detect or prompt)'));
   } else {
+    const availableTargets = buildAvailableTargets(installedTargets);
     const selectedTarget = availableTargets.find((t) => t.value === defaultTarget);
     const installStatus = selectedTarget?.installed
       ? chalk.green('(installed)')

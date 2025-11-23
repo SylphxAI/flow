@@ -18,6 +18,30 @@ import { GlobalConfigService } from '../../services/global-config.js';
 import { UserCancelledError } from '../../utils/errors.js';
 import { TargetInstaller } from '../../services/target-installer.js';
 import { AutoUpgrade } from '../../services/auto-upgrade.js';
+import { promptForTargetSelection, ensureTargetInstalled } from '../../utils/target-selection.js';
+
+/**
+ * Configure provider environment variables
+ */
+function configureProviderEnv(
+  provider: 'kimi' | 'zai',
+  apiKey: string
+): void {
+  const providerConfig = {
+    kimi: {
+      baseUrl: 'https://api.moonshot.cn/v1',
+      name: 'Kimi',
+    },
+    zai: {
+      baseUrl: 'https://api.z.ai/v1',
+      name: 'Z.ai',
+    },
+  };
+
+  const config = providerConfig[provider];
+  process.env.ANTHROPIC_BASE_URL = config.baseUrl;
+  process.env.ANTHROPIC_API_KEY = apiKey;
+}
 
 /**
  * Select and configure provider for Claude Code
@@ -29,60 +53,48 @@ async function selectProvider(
     const providerConfig = await configService.loadProviderConfig();
     const defaultProvider = providerConfig.claudeCode.defaultProvider;
 
-  // If not "ask-every-time", use the default provider
-  if (defaultProvider !== 'ask-every-time') {
-    // Configure environment variables for the selected provider
-    if (defaultProvider === 'kimi' || defaultProvider === 'zai') {
-      const provider = providerConfig.claudeCode.providers[defaultProvider];
-      if (provider?.apiKey) {
-        if (defaultProvider === 'kimi') {
-          process.env.ANTHROPIC_BASE_URL = 'https://api.moonshot.cn/v1';
-          process.env.ANTHROPIC_API_KEY = provider.apiKey;
-        } else if (defaultProvider === 'zai') {
-          process.env.ANTHROPIC_BASE_URL = 'https://api.z.ai/v1';
-          process.env.ANTHROPIC_API_KEY = provider.apiKey;
+    // If not "ask-every-time", use the default provider
+    if (defaultProvider !== 'ask-every-time') {
+      if (defaultProvider === 'kimi' || defaultProvider === 'zai') {
+        const provider = providerConfig.claudeCode.providers[defaultProvider];
+        if (provider?.apiKey) {
+          configureProviderEnv(defaultProvider, provider.apiKey);
         }
       }
-    }
-    return;
-  }
-
-  // Ask user which provider to use for this session
-  const { selectedProvider } = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'selectedProvider',
-      message: 'Select provider for this session:',
-      choices: [
-        { name: 'Default (Claude Code built-in)', value: 'default' },
-        { name: 'Kimi', value: 'kimi' },
-        { name: 'Z.ai', value: 'zai' },
-      ],
-      default: 'default',
-    },
-  ]);
-
-  // Configure environment variables based on selection
-  if (selectedProvider === 'kimi' || selectedProvider === 'zai') {
-    const provider = providerConfig.claudeCode.providers[selectedProvider];
-
-    if (!provider?.apiKey) {
-      console.log(chalk.yellow('⚠ API key not configured. Use: sylphx-flow settings\n'));
       return;
     }
 
-    if (selectedProvider === 'kimi') {
-      process.env.ANTHROPIC_BASE_URL = 'https://api.moonshot.cn/v1';
-      process.env.ANTHROPIC_API_KEY = provider.apiKey;
-      console.log(chalk.green('✓ Using Kimi provider\n'));
-    } else if (selectedProvider === 'zai') {
-      process.env.ANTHROPIC_BASE_URL = 'https://api.z.ai/v1';
-      process.env.ANTHROPIC_API_KEY = provider.apiKey;
-      console.log(chalk.green('✓ Using Z.ai provider\n'));
+    // Ask user which provider to use for this session
+    const { selectedProvider } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'selectedProvider',
+        message: 'Select provider for this session:',
+        choices: [
+          { name: 'Default (Claude Code built-in)', value: 'default' },
+          { name: 'Kimi', value: 'kimi' },
+          { name: 'Z.ai', value: 'zai' },
+        ],
+        default: 'default',
+      },
+    ]);
+
+    // Configure environment variables based on selection
+    if (selectedProvider === 'kimi' || selectedProvider === 'zai') {
+      const provider = providerConfig.claudeCode.providers[selectedProvider];
+
+      if (!provider?.apiKey) {
+        console.log(chalk.yellow('⚠ API key not configured. Use: sylphx-flow settings\n'));
+        return;
+      }
+
+      configureProviderEnv(selectedProvider, provider.apiKey);
+
+      const providerName = selectedProvider === 'kimi' ? 'Kimi' : 'Z.ai';
+      console.log(chalk.green(`✓ Using ${providerName} provider\n`));
+    } else {
+      console.log(chalk.green('✓ Using default Claude Code provider\n'));
     }
-  } else {
-    console.log(chalk.green('✓ Using default Claude Code provider\n'));
-  }
   } catch (error: any) {
     // Handle user cancellation (Ctrl+C)
     if (error.name === 'ExitPromptError' || error.message?.includes('force closed')) {
@@ -153,71 +165,24 @@ export async function executeFlowV2(
       const installation = targetInstaller.getInstallationInfo(selectedTargetId);
       console.log(chalk.green(`✓ Using ${installation?.name} (auto-detected)\n`));
     } else {
-      // 0 or multiple targets - show unified selection (same as settings)
+      // 0 or multiple targets - show unified selection
       console.log(chalk.cyan('🔍 Detecting installed AI CLIs...\n'));
 
-      // Available targets (all of them, regardless of installation status)
-      const availableTargets = [
-        {
-          name: 'Claude Code',
-          value: 'claude-code',
-          installed: installedTargets.includes('claude-code'),
-        },
-        {
-          name: 'OpenCode',
-          value: 'opencode',
-          installed: installedTargets.includes('opencode'),
-        },
-        {
-          name: 'Cursor',
-          value: 'cursor',
-          installed: installedTargets.includes('cursor'),
-        },
-      ];
+      selectedTargetId = await promptForTargetSelection(
+        installedTargets,
+        'Select AI CLI to use:',
+        'execution'
+      );
 
-      try {
-        const { targetId } = await inquirer.prompt([
-          {
-            type: 'list',
-            name: 'targetId',
-            message: 'Select AI CLI to use:',
-            choices: availableTargets.map((target) => {
-              const status = target.installed
-                ? chalk.green(' ✓ installed')
-                : chalk.dim(' (will auto-install)');
-              return {
-                name: `${target.name}${status}`,
-                value: target.value,
-              };
-            }),
-          },
-        ]);
+      const installation = targetInstaller.getInstallationInfo(selectedTargetId);
+      const installed = await ensureTargetInstalled(selectedTargetId, targetInstaller, installedTargets);
 
-        selectedTargetId = targetId;
-        const installation = targetInstaller.getInstallationInfo(selectedTargetId);
+      if (!installed) {
+        process.exit(1);
+      }
 
-        // Check if selected target is installed
-        if (installedTargets.includes(selectedTargetId)) {
-          console.log(chalk.green(`✓ Using ${installation?.name}\n`));
-        } else {
-          // Not installed - install it
-          console.log();
-          const installed = await targetInstaller.install(selectedTargetId, true);
-
-          if (!installed) {
-            console.log(chalk.red(`\n✗ Failed to install ${installation?.name}`));
-            console.log(chalk.yellow('   Please install manually and try again.\n'));
-            process.exit(1);
-          }
-
-          console.log();
-        }
-      } catch (error: any) {
-        // Handle user cancellation (Ctrl+C)
-        if (error.name === 'ExitPromptError' || error.message?.includes('force closed')) {
-          throw new UserCancelledError('Target selection cancelled');
-        }
-        throw error;
+      if (installedTargets.includes(selectedTargetId)) {
+        console.log(chalk.green(`✓ Using ${installation?.name}\n`));
       }
     }
   } else {
