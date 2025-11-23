@@ -7,6 +7,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import chalk from 'chalk';
 import { ProjectManager } from './project-manager.js';
 import type { BackupManifest } from './backup-manager.js';
@@ -50,6 +51,18 @@ export class AttachManager {
   constructor(projectManager: ProjectManager) {
     this.projectManager = projectManager;
     this.configService = new GlobalConfigService();
+  }
+
+  /**
+   * Calculate SHA256 hash of file content
+   */
+  private async calculateFileHash(filePath: string): Promise<string> {
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      return createHash('sha256').update(content).digest('hex');
+    } catch {
+      return '';
+    }
   }
 
   /**
@@ -369,7 +382,7 @@ ${rules}
     // Track in manifest
     manifest.backup.config = {
       path: configPath,
-      hash: '', // TODO: calculate hash
+      hash: await this.calculateFileHash(configPath),
       mcpServersCount: Object.keys(config.mcp.servers).length,
     };
   }

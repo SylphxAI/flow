@@ -39,7 +39,9 @@ export class AutoUpgrade {
   }
 
   /**
-   * Check for available upgrades
+   * Check for available upgrades for Flow and target CLI
+   * @param targetId - Optional target CLI ID to check for upgrades
+   * @returns Upgrade status indicating what needs upgrading
    */
   async checkForUpgrades(targetId?: string): Promise<UpgradeStatus> {
     const [flowVersion, targetVersion] = await Promise.all([
@@ -114,7 +116,8 @@ export class AutoUpgrade {
   }
 
   /**
-   * Upgrade Flow to latest version
+   * Upgrade Flow to latest version using detected package manager
+   * @returns True if upgrade successful, false otherwise
    */
   async upgradeFlow(): Promise<boolean> {
     const packageManager = detectPackageManager(this.projectPath);
@@ -139,6 +142,9 @@ export class AutoUpgrade {
 
   /**
    * Upgrade target CLI to latest version
+   * Tries built-in upgrade command first, falls back to package manager
+   * @param targetId - Target CLI ID to upgrade
+   * @returns True if upgrade successful, false otherwise
    */
   async upgradeTarget(targetId: string): Promise<boolean> {
     const installation = this.targetInstaller.getInstallationInfo(targetId);
@@ -190,7 +196,9 @@ export class AutoUpgrade {
   }
 
   /**
-   * Run auto-upgrade before Flow execution
+   * Run auto-upgrade check and upgrade if needed
+   * Shows upgrade status and performs upgrades automatically
+   * @param targetId - Optional target CLI ID to check and upgrade
    */
   async runAutoUpgrade(targetId?: string): Promise<void> {
     console.log(chalk.cyan('🔄 Checking for updates...\n'));
