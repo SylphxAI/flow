@@ -13,6 +13,8 @@ import { CLIError } from '../../utils/error-handler.js';
 import type { RunCommandOptions } from '../../types.js';
 import type { FlowOptions } from './types.js';
 import { resolvePrompt } from './prompt.js';
+import { FirstRunSetup } from '../../services/first-run-setup.js';
+import { GlobalConfigService } from '../../services/global-config.js';
 
 /**
  * Execute command using target's executeCommand method
@@ -57,6 +59,14 @@ export async function executeFlowV2(
   if (options.quick) {
     options.useDefaults = true;
     console.log(chalk.cyan('⚡ Quick mode enabled\n'));
+  }
+
+  // Step 0: First-run quick setup
+  const firstRunSetup = new FirstRunSetup();
+  const configService = new GlobalConfigService();
+
+  if (await firstRunSetup.shouldRun()) {
+    await firstRunSetup.run();
   }
 
   // Create executor

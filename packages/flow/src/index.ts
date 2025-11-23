@@ -16,6 +16,7 @@ import {
   doctorCommand,
   upgradeCommand,
 } from './commands/flow-command.js';
+import { settingsCommand } from './commands/settings-command.js';
 import { executeFlow } from './commands/flow/execute-v2.js';
 
 // Read version from package.json
@@ -71,6 +72,7 @@ export function createCLI(): Command {
   program.addCommand(doctorCommand);
   program.addCommand(upgradeCommand);
   program.addCommand(hookCommand);
+  program.addCommand(settingsCommand);
 
   return program;
 }
