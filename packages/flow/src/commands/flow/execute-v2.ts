@@ -152,40 +152,72 @@ export async function executeFlowV2(
       selectedTargetId = installedTargets[0];
       const installation = targetInstaller.getInstallationInfo(selectedTargetId);
       console.log(chalk.green(`✓ Using ${installation?.name} (auto-detected)\n`));
-    } else if (installedTargets.length > 1) {
-      // Multiple targets found - prompt user to choose
+    } else {
+      // 0 or multiple targets - show unified selection (same as settings)
+      console.log(chalk.cyan('🔍 Detecting installed AI CLIs...\n'));
+
+      // Available targets (all of them, regardless of installation status)
+      const availableTargets = [
+        {
+          name: 'Claude Code',
+          value: 'claude-code',
+          installed: installedTargets.includes('claude-code'),
+        },
+        {
+          name: 'OpenCode',
+          value: 'opencode',
+          installed: installedTargets.includes('opencode'),
+        },
+        {
+          name: 'Cursor',
+          value: 'cursor',
+          installed: installedTargets.includes('cursor'),
+        },
+      ];
+
       try {
         const { targetId } = await inquirer.prompt([
           {
             type: 'list',
             name: 'targetId',
-            message: 'Multiple AI CLIs detected. Which would you like to use?',
-            choices: installedTargets.map((id) => {
-              const installation = targetInstaller.getInstallationInfo(id);
+            message: 'Select AI CLI to use:',
+            choices: availableTargets.map((target) => {
+              const status = target.installed
+                ? chalk.green(' ✓ installed')
+                : chalk.dim(' (will auto-install)');
               return {
-                name: installation?.name || id,
-                value: id,
+                name: `${target.name}${status}`,
+                value: target.value,
               };
             }),
           },
         ]);
+
         selectedTargetId = targetId;
         const installation = targetInstaller.getInstallationInfo(selectedTargetId);
-        console.log(chalk.green(`✓ Using ${installation?.name}\n`));
+
+        // Check if selected target is installed
+        if (installedTargets.includes(selectedTargetId)) {
+          console.log(chalk.green(`✓ Using ${installation?.name}\n`));
+        } else {
+          // Not installed - install it
+          console.log();
+          const installed = await targetInstaller.install(selectedTargetId, true);
+
+          if (!installed) {
+            console.log(chalk.red(`\n✗ Failed to install ${installation?.name}`));
+            console.log(chalk.yellow('   Please install manually and try again.\n'));
+            process.exit(1);
+          }
+
+          console.log();
+        }
       } catch (error: any) {
         // Handle user cancellation (Ctrl+C)
         if (error.name === 'ExitPromptError' || error.message?.includes('force closed')) {
           throw new UserCancelledError('Target selection cancelled');
         }
         throw error;
-      }
-    } else {
-      // No targets found - prompt user to select and install
-      selectedTargetId = await targetInstaller.autoDetectAndInstall();
-
-      if (!selectedTargetId) {
-        console.log(chalk.red('✗ No AI CLI installed. Please install one manually.\n'));
-        process.exit(1);
       }
     }
   } else {
