@@ -10,7 +10,7 @@ import { existsSync } from 'node:fs';
 
 export interface GlobalSettings {
   version: string;
-  defaultTarget?: 'claude-code' | 'opencode';
+  defaultTarget?: 'claude-code' | 'opencode' | 'cursor' | 'ask-every-time';
   defaultAgent?: string; // Default agent to use (e.g., 'coder', 'writer', 'reviewer', 'orchestrator')
   firstRun: boolean;
   lastUpdated: string;

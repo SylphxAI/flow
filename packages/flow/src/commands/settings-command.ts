@@ -471,29 +471,41 @@ async function configureTarget(configService: GlobalConfigService): Promise<void
       type: 'list',
       name: 'defaultTarget',
       message: 'Select default target platform:',
-      choices: availableTargets.map((target) => {
-        const status = target.installed
-          ? chalk.green(' ✓ installed')
-          : chalk.dim(' (not installed - will auto-install on first use)');
-        return {
-          name: `${target.name}${status}`,
-          value: target.value,
-        };
-      }),
-      default: settings.defaultTarget || 'claude-code',
+      choices: [
+        ...availableTargets.map((target) => {
+          const status = target.installed
+            ? chalk.green(' ✓ installed')
+            : chalk.dim(' (not installed - will auto-install on first use)');
+          return {
+            name: `${target.name}${status}`,
+            value: target.value,
+          };
+        }),
+        new inquirer.Separator(),
+        {
+          name: 'Ask me every time',
+          value: 'ask-every-time',
+        },
+      ],
+      default: settings.defaultTarget || 'ask-every-time',
     },
   ]);
 
-  settings.defaultTarget = defaultTarget as 'claude-code' | 'opencode';
+  settings.defaultTarget = defaultTarget as 'claude-code' | 'opencode' | 'cursor' | 'ask-every-time';
   await configService.saveSettings(settings);
 
-  const selectedTarget = availableTargets.find((t) => t.value === defaultTarget);
-  const installStatus = selectedTarget?.installed
-    ? chalk.green('(installed)')
-    : chalk.yellow('(will be installed on first use)');
+  if (defaultTarget === 'ask-every-time') {
+    console.log(chalk.green('\n✓ Target platform saved'));
+    console.log(chalk.dim('  Default: Ask every time (auto-detect or prompt)'));
+  } else {
+    const selectedTarget = availableTargets.find((t) => t.value === defaultTarget);
+    const installStatus = selectedTarget?.installed
+      ? chalk.green('(installed)')
+      : chalk.yellow('(will be installed on first use)');
 
-  console.log(chalk.green('\n✓ Target platform saved'));
-  console.log(chalk.dim(`  Default: ${defaultTarget} ${installStatus}`));
+    console.log(chalk.green('\n✓ Target platform saved'));
+    console.log(chalk.dim(`  Default: ${defaultTarget} ${installStatus}`));
+  }
 }
 
 /**

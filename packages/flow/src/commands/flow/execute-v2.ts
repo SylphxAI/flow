@@ -142,8 +142,54 @@ export async function executeFlowV2(
 
   let selectedTargetId: string | null = null;
 
-  // If settings has a default target, ALWAYS use it (never fallback to auto-detection)
-  if (settings.defaultTarget) {
+  // Check if user wants to be asked every time or has a specific preference
+  const shouldAskEveryTime = !settings.defaultTarget || settings.defaultTarget === 'ask-every-time';
+
+  if (shouldAskEveryTime) {
+    // Auto-detection mode (default behavior)
+    if (installedTargets.length === 1) {
+      // Exactly 1 target found - use it automatically
+      selectedTargetId = installedTargets[0];
+      const installation = targetInstaller.getInstallationInfo(selectedTargetId);
+      console.log(chalk.green(`✓ Using ${installation?.name} (auto-detected)\n`));
+    } else if (installedTargets.length > 1) {
+      // Multiple targets found - prompt user to choose
+      try {
+        const { targetId } = await inquirer.prompt([
+          {
+            type: 'list',
+            name: 'targetId',
+            message: 'Multiple AI CLIs detected. Which would you like to use?',
+            choices: installedTargets.map((id) => {
+              const installation = targetInstaller.getInstallationInfo(id);
+              return {
+                name: installation?.name || id,
+                value: id,
+              };
+            }),
+          },
+        ]);
+        selectedTargetId = targetId;
+        const installation = targetInstaller.getInstallationInfo(selectedTargetId);
+        console.log(chalk.green(`✓ Using ${installation?.name}\n`));
+      } catch (error: any) {
+        // Handle user cancellation (Ctrl+C)
+        if (error.name === 'ExitPromptError' || error.message?.includes('force closed')) {
+          throw new UserCancelledError('Target selection cancelled');
+        }
+        throw error;
+      }
+    } else {
+      // No targets found - prompt user to select and install
+      selectedTargetId = await targetInstaller.autoDetectAndInstall();
+
+      if (!selectedTargetId) {
+        console.log(chalk.red('✗ No AI CLI installed. Please install one manually.\n'));
+        process.exit(1);
+      }
+    }
+  } else {
+    // User has a specific target preference - ALWAYS use it
     selectedTargetId = settings.defaultTarget;
     const installation = targetInstaller.getInstallationInfo(selectedTargetId);
 
@@ -165,22 +211,6 @@ export async function executeFlowV2(
       }
 
       console.log();
-    }
-  } else {
-    // No settings preference - use auto-detection
-    if (installedTargets.length > 0) {
-      // Auto-detect first installed target
-      selectedTargetId = installedTargets[0];
-      const installation = targetInstaller.getInstallationInfo(selectedTargetId);
-      console.log(chalk.green(`✓ Using ${installation?.name} (auto-detected)\n`));
-    } else {
-      // No target installed - prompt user to select and install
-      selectedTargetId = await targetInstaller.autoDetectAndInstall();
-
-      if (!selectedTargetId) {
-        console.log(chalk.red('✗ No AI CLI installed. Please install one manually.\n'));
-        process.exit(1);
-      }
     }
   }
 
