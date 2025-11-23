@@ -17,6 +17,7 @@ export interface FlowExecutorOptions {
   verbose?: boolean;
   skipBackup?: boolean;
   skipSecrets?: boolean;
+  replace?: boolean; // Replace mode: delete user files before attaching
 }
 
 export class FlowExecutor {
@@ -124,11 +125,17 @@ export class FlowExecutor {
     // Step 6: Register cleanup hooks
     this.cleanupHandler.registerCleanupHooks(projectHash);
 
-    // Step 7: Load templates
+    // Step 7: Replace mode - clear user files before attaching
+    if (options.replace) {
+      console.log(chalk.cyan('🔄 Replace mode: Clearing existing settings...'));
+      await this.clearUserSettings(projectPath, target);
+    }
+
+    // Step 8: Load templates
     console.log(chalk.cyan('📦 Loading Flow templates...'));
     const templates = await this.templateLoader.loadTemplates(target);
 
-    // Step 8: Attach Flow environment
+    // Step 9: Attach Flow environment
     console.log(chalk.cyan('🚀 Attaching Flow environment...'));
     const manifest = await this.backupManager.getManifest(projectHash, session.sessionId);
 
@@ -151,6 +158,74 @@ export class FlowExecutor {
     this.showAttachSummary(attachResult);
 
     console.log(chalk.green('\n✓ Flow environment ready!\n'));
+  }
+
+  /**
+   * Clear user settings in replace mode
+   */
+  private async clearUserSettings(
+    projectPath: string,
+    target: 'claude-code' | 'opencode'
+  ): Promise<void> {
+    const targetDir = this.projectManager.getTargetConfigDir(projectPath, target);
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
+    const { existsSync } = await import('node:fs');
+
+    if (!existsSync(targetDir)) {
+      return;
+    }
+
+    // Get directory names for this target
+    const dirs = target === 'claude-code'
+      ? { agents: 'agents', commands: 'commands' }
+      : { agents: 'agent', commands: 'command' };
+
+    // Clear agents directory
+    const agentsDir = path.join(targetDir, dirs.agents);
+    if (existsSync(agentsDir)) {
+      const files = await fs.readdir(agentsDir);
+      for (const file of files) {
+        await fs.unlink(path.join(agentsDir, file));
+      }
+    }
+
+    // Clear commands directory
+    const commandsDir = path.join(targetDir, dirs.commands);
+    if (existsSync(commandsDir)) {
+      const files = await fs.readdir(commandsDir);
+      for (const file of files) {
+        await fs.unlink(path.join(commandsDir, file));
+      }
+    }
+
+    // Clear MCP configuration
+    const configPath = target === 'claude-code'
+      ? path.join(targetDir, 'settings.json')
+      : path.join(targetDir, '.mcp.json');
+
+    if (existsSync(configPath)) {
+      // Clear MCP servers section only, keep other settings
+      const config = JSON.parse(await fs.readFile(configPath, 'utf-8'));
+      if (target === 'claude-code') {
+        if (config.mcp?.servers) {
+          config.mcp.servers = {};
+          await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+        }
+      } else {
+        // For opencode, clear the entire .mcp.json
+        await fs.writeFile(configPath, JSON.stringify({ servers: {} }, null, 2));
+      }
+    }
+
+    // Clear hooks directory if exists
+    const hooksDir = path.join(targetDir, 'hooks');
+    if (existsSync(hooksDir)) {
+      const files = await fs.readdir(hooksDir);
+      for (const file of files) {
+        await fs.unlink(path.join(hooksDir, file));
+      }
+    }
   }
 
   /**

@@ -34,8 +34,8 @@ export interface FlowOptions {
   print?: boolean;
   continue?: boolean;
 
-  // Cleanup control
-  persist?: boolean; // Skip cleanup, keep all Flow modifications
+  // Attach strategy
+  replace?: boolean; // Replace all settings instead of merging
 
   // Loop mode
   loop?: number;
