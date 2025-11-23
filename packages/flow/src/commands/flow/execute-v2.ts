@@ -16,6 +16,8 @@ import type { FlowOptions } from './types.js';
 import { resolvePrompt } from './prompt.js';
 import { GlobalConfigService } from '../../services/global-config.js';
 import { UserCancelledError } from '../../utils/errors.js';
+import { TargetInstaller } from '../../services/target-installer.js';
+import { AutoUpgrade } from '../../services/auto-upgrade.js';
 
 /**
  * Select and configure provider for Claude Code
@@ -129,6 +131,31 @@ export async function executeFlowV2(
   // Show welcome banner
   showWelcome();
 
+  // Step 1: Auto-detect and install target if not found
+  const targetInstaller = new TargetInstaller(projectPath);
+  const installedTargets = await targetInstaller.detectInstalledTargets();
+
+  let selectedTargetId: string | null = null;
+
+  if (installedTargets.length === 0) {
+    // No target installed - prompt and install
+    selectedTargetId = await targetInstaller.autoDetectAndInstall();
+
+    if (!selectedTargetId) {
+      console.log(chalk.red('✗ No AI CLI installed. Please install one manually.\n'));
+      process.exit(1);
+    }
+  } else {
+    // Use the first detected target (priority order)
+    selectedTargetId = installedTargets[0];
+    const installation = targetInstaller.getInstallationInfo(selectedTargetId);
+    console.log(chalk.green(`✓ Using ${installation?.name}\n`));
+  }
+
+  // Step 2: Auto-upgrade Flow and target CLI
+  const autoUpgrade = new AutoUpgrade(projectPath);
+  await autoUpgrade.runAutoUpgrade(selectedTargetId);
+
   // Mode info
   if (options.merge) {
     console.log(chalk.cyan('🔗 Merge mode: Flow settings will be merged with your existing settings'));
@@ -145,16 +172,6 @@ export async function executeFlowV2(
   // Create executor
   const executor = new FlowExecutor();
   const projectManager = executor.getProjectManager();
-
-  // Step 1: Check for upgrades (non-intrusive)
-  const upgradeManager = new UpgradeManager();
-  const updates = await upgradeManager.checkUpdates();
-
-  if (updates.flowUpdate || updates.targetUpdate) {
-    console.log(
-      chalk.yellow('📦 Updates available! Run: sylphx-flow upgrade --auto\n')
-    );
-  }
 
   // Step 2: Execute attach mode lifecycle
   try {
