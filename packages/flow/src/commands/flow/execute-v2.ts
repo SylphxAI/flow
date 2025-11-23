@@ -24,8 +24,9 @@ async function selectProvider(
   configService: GlobalConfigService,
   useDefaults: boolean
 ): Promise<void> {
-  const providerConfig = await configService.loadProviderConfig();
-  const defaultProvider = providerConfig.claudeCode.defaultProvider;
+  try {
+    const providerConfig = await configService.loadProviderConfig();
+    const defaultProvider = providerConfig.claudeCode.defaultProvider;
 
   // If not "ask-every-time", use the default provider
   if (defaultProvider !== 'ask-every-time') {
@@ -86,6 +87,14 @@ async function selectProvider(
     }
   } else {
     console.log(chalk.green('✓ Using default Claude Code provider\n'));
+  }
+  } catch (error: any) {
+    // Handle user cancellation (Ctrl+C)
+    if (error.name === 'ExitPromptError' || error.message?.includes('force closed')) {
+      console.log(chalk.yellow('\n⚠️  Provider selection cancelled'));
+      process.exit(0);
+    }
+    throw error;
   }
 }
 

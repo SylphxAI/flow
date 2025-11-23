@@ -25,14 +25,15 @@ export class FirstRunSetup {
    * Run quick setup wizard
    */
   async run(useDefaults = false): Promise<QuickSetupResult> {
-    console.log(chalk.cyan.bold('\n╭─────────────────────────────────────────────────╮'));
-    console.log(chalk.cyan.bold('│                                                 │'));
-    console.log(chalk.cyan.bold('│  Welcome to Sylphx Flow!                        │'));
-    console.log(chalk.cyan.bold('│  Let\'s configure your environment               │'));
-    console.log(chalk.cyan.bold('│                                                 │'));
-    console.log(chalk.cyan.bold('╰─────────────────────────────────────────────────╯\n'));
+    try {
+      console.log(chalk.cyan.bold('\n╭─────────────────────────────────────────────────╮'));
+      console.log(chalk.cyan.bold('│                                                 │'));
+      console.log(chalk.cyan.bold('│  Welcome to Sylphx Flow!                        │'));
+      console.log(chalk.cyan.bold('│  Let\'s configure your environment               │'));
+      console.log(chalk.cyan.bold('│                                                 │'));
+      console.log(chalk.cyan.bold('╰─────────────────────────────────────────────────╯\n'));
 
-    let target: 'claude-code' | 'opencode' = 'claude-code';
+      let target: 'claude-code' | 'opencode' = 'claude-code';
 
     // Step 1: Select target platform
     if (useDefaults) {
@@ -177,6 +178,14 @@ export class FirstRunSetup {
       mcpServers,
       apiKeys,
     };
+    } catch (error: any) {
+      // Handle user cancellation (Ctrl+C)
+      if (error.name === 'ExitPromptError' || error.message?.includes('force closed')) {
+        console.log(chalk.yellow('\n\n⚠️  Setup cancelled by user'));
+        process.exit(0);
+      }
+      throw error;
+    }
   }
 
   /**
