@@ -133,14 +133,38 @@ export async function enhanceAgentContent(
 }
 
 /**
+ * Filter rules: intersection of agent's required rules and globally enabled rules
+ * @param agentRules - Rules defined in agent frontmatter
+ * @param enabledRules - Globally enabled rules from user settings
+ * @returns Intersection of both arrays (rules that are both required by agent AND enabled globally)
+ */
+function filterRules(agentRules?: string[], enabledRules?: string[]): string[] | undefined {
+  // If agent doesn't define rules, return undefined (will use default)
+  if (!agentRules || agentRules.length === 0) {
+    return undefined;
+  }
+
+  // If no global filter, use all agent rules
+  if (!enabledRules || enabledRules.length === 0) {
+    return agentRules;
+  }
+
+  // Return intersection: rules that are both in agent's list AND globally enabled
+  const filtered = agentRules.filter(rule => enabledRules.includes(rule));
+  return filtered.length > 0 ? filtered : undefined;
+}
+
+/**
  * Load agent content from various locations
  * @param agentName - Name of the agent (without .md extension)
  * @param agentFilePath - Optional specific file path to load from
+ * @param enabledRules - Globally enabled rules (filtered with agent's frontmatter rules)
  * @param enabledOutputStyles - Optional array of enabled output style names
  */
 export async function loadAgentContent(
   agentName: string,
   agentFilePath?: string,
+  enabledRules?: string[],
   enabledOutputStyles?: string[]
 ): Promise<string> {
   try {
@@ -150,8 +174,10 @@ export async function loadAgentContent(
       // Extract rules from agent frontmatter
       const { metadata } = await yamlUtils.extractFrontMatter(content);
       const agentRules = metadata.rules as string[] | undefined;
-      // Enhance with agent's own rules and enabled output styles
-      return await enhanceAgentContent(content, agentRules, enabledOutputStyles);
+      // Filter: intersection of agent's rules and globally enabled rules
+      const rulesToLoad = filterRules(agentRules, enabledRules);
+      // Enhance with filtered rules and enabled output styles
+      return await enhanceAgentContent(content, rulesToLoad, enabledOutputStyles);
     }
 
     // First try to load from .claude/agents/ directory (processed agents with rules already included)
@@ -170,8 +196,10 @@ export async function loadAgentContent(
         // Extract rules from agent frontmatter
         const { metadata } = await yamlUtils.extractFrontMatter(content);
         const agentRules = metadata.rules as string[] | undefined;
-        // Enhance with agent's own rules and enabled output styles
-        return await enhanceAgentContent(content, agentRules, enabledOutputStyles);
+        // Filter: intersection of agent's rules and globally enabled rules
+        const rulesToLoad = filterRules(agentRules, enabledRules);
+        // Enhance with filtered rules and enabled output styles
+        return await enhanceAgentContent(content, rulesToLoad, enabledOutputStyles);
       } catch (_error2) {
         // Try to load from the package's agents directory
         const packageAgentsDir = getAgentsDir();
@@ -181,8 +209,10 @@ export async function loadAgentContent(
         // Extract rules from agent frontmatter
         const { metadata } = await yamlUtils.extractFrontMatter(content);
         const agentRules = metadata.rules as string[] | undefined;
-        // Enhance with agent's own rules and enabled output styles
-        return await enhanceAgentContent(content, agentRules, enabledOutputStyles);
+        // Filter: intersection of agent's rules and globally enabled rules
+        const rulesToLoad = filterRules(agentRules, enabledRules);
+        // Enhance with filtered rules and enabled output styles
+        return await enhanceAgentContent(content, rulesToLoad, enabledOutputStyles);
       }
     }
   } catch (_error) {
