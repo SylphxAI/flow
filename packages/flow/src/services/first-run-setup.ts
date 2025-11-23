@@ -76,7 +76,7 @@ export class FirstRunSetup {
           {
             type: 'password',
             name: 'apiKey',
-            message: `Enter ${selectedProvider === 'kimi' ? 'Kimi' : 'Z.ai'} API key:`,
+            message: selectedProvider === 'kimi' ? 'Enter Kimi API key:' : 'Enter Z.ai API key:',
             mask: '*',
           },
         ]);
@@ -87,7 +87,7 @@ export class FirstRunSetup {
 
     // Step 3: MCP Servers
     const stepNumber = target === 'claude-code' ? '3/3' : '2/2';
-    console.log(chalk.cyan(`\n🔧 Quick Setup (${stepNumber}) - MCP Servers\n'));
+    console.log(chalk.cyan('\n🔧 Quick Setup (' + stepNumber + ') - MCP Servers\n'));
 
     const { mcpServers } = await inquirer.prompt([
       {
@@ -115,24 +115,26 @@ export class FirstRunSetup {
     for (const serverKey of mcpServers) {
       const requirements = mcpServerRequirements[serverKey];
       if (requirements) {
+        const configMessage = 'Configure ' + requirements[0] + ' for ' + serverKey + '?';
         const { shouldConfigure } = await inquirer.prompt([
           {
             type: 'confirm',
             name: 'shouldConfigure',
-            message: `Configure ${requirements[0]} for ${serverKey}?`,
+            message: configMessage,
             default: true,
           },
         ]);
 
         if (shouldConfigure) {
-          const answers = await inquirer.prompt(
-            requirements.map((key) => ({
-              type: 'password',
+          const questions = requirements.map((key) => {
+            return {
+              type: 'password' as const,
               name: key,
-              message: `Enter ${key}:`,
+              message: 'Enter ' + key + ':',
               mask: '*',
-            }))
-          );
+            };
+          });
+          const answers = await inquirer.prompt(questions);
 
           apiKeys[serverKey] = answers;
         }
