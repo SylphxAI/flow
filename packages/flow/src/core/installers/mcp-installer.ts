@@ -178,36 +178,3 @@ export function createMCPInstaller(target: Target): MCPInstaller {
   };
 }
 
-/**
- * @deprecated Use createMCPInstaller() for new code
- */
-export class MCPInstaller {
-  private installer: ReturnType<typeof createMCPInstaller>;
-
-  constructor(target: Target) {
-    this.installer = createMCPInstaller(target);
-  }
-
-  async selectServers(options: { quiet?: boolean } = {}): Promise<MCPServerID[]> {
-    return this.installer.selectServers(options);
-  }
-
-  async configureServers(
-    selectedServers: MCPServerID[],
-    options: { quiet?: boolean } = {}
-  ): Promise<Record<MCPServerID, Record<string, string>>> {
-    return this.installer.configureServers(selectedServers, options);
-  }
-
-  async installServers(
-    selectedServers: MCPServerID[],
-    serverConfigsMap: Record<MCPServerID, Record<string, string>>,
-    options: { quiet?: boolean } = {}
-  ): Promise<void> {
-    return this.installer.installServers(selectedServers, serverConfigsMap, options);
-  }
-
-  async setupMCP(options: { quiet?: boolean; dryRun?: boolean } = {}): Promise<MCPInstallResult> {
-    return this.installer.setupMCP(options);
-  }
-}

@@ -59,23 +59,16 @@ const PROJECT_CONFIG_FILE = '.sylphx-flow/settings.json';
 const LOCAL_CONFIG_FILE = '.sylphx-flow/settings.local.json';
 
 /**
- * Deprecated config file (for migration)
- */
-const LEGACY_CONFIG_FILE = '.sylphx-flow/ai-config.json';
-
-/**
  * Get AI config file paths in priority order
  */
 export const getAIConfigPaths = (cwd: string = process.cwd()): {
   global: string;
   project: string;
   local: string;
-  legacy: string;
 } => ({
   global: GLOBAL_CONFIG_FILE,
   project: path.join(cwd, PROJECT_CONFIG_FILE),
   local: path.join(cwd, LOCAL_CONFIG_FILE),
-  legacy: path.join(cwd, LEGACY_CONFIG_FILE),
 });
 
 /**
@@ -140,18 +133,12 @@ export const aiConfigExists = async (cwd: string = process.cwd()): Promise<boole
     return true;
   } catch {}
 
-  try {
-    await fs.access(paths.legacy);
-    return true;
-  } catch {}
-
   return false;
 };
 
 /**
  * Load AI configuration
  * Merges global, project, and local configs with priority: local > project > global
- * Automatically migrates legacy config on first load
  */
 export const loadAIConfig = async (cwd: string = process.cwd()): Promise<Result<AIConfig, Error>> => {
   return tryCatchAsync(
@@ -159,39 +146,19 @@ export const loadAIConfig = async (cwd: string = process.cwd()): Promise<Result<
       const paths = getAIConfigPaths(cwd);
 
       // Load all config files
-      const [globalConfig, projectConfig, localConfig, legacyConfig] = await Promise.all([
+      const [globalConfig, projectConfig, localConfig] = await Promise.all([
         loadConfigFile(paths.global),
         loadConfigFile(paths.project),
         loadConfigFile(paths.local),
-        loadConfigFile(paths.legacy),
       ]);
-
-      // Auto-migrate legacy config if it exists and global doesn't
-      if (legacyConfig && !globalConfig) {
-        await migrateLegacyConfig(cwd);
-        // Reload global config after migration
-        const migratedGlobal = await loadConfigFile(paths.global);
-        if (migratedGlobal) {
-          // Start with empty config
-          let merged: AIConfig = {};
-
-          // Merge in priority order: global < project < local
-          merged = mergeConfigs(merged, migratedGlobal);
-          if (projectConfig) merged = mergeConfigs(merged, projectConfig);
-          if (localConfig) merged = mergeConfigs(merged, localConfig);
-
-          return merged;
-        }
-      }
 
       // Start with empty config
       let merged: AIConfig = {};
 
-      // Merge in priority order: global < project < local < legacy (for backwards compat)
+      // Merge in priority order: global < project < local
       if (globalConfig) merged = mergeConfigs(merged, globalConfig);
       if (projectConfig) merged = mergeConfigs(merged, projectConfig);
       if (localConfig) merged = mergeConfigs(merged, localConfig);
-      if (legacyConfig) merged = mergeConfigs(merged, legacyConfig);
 
       return merged;
     },
@@ -340,37 +307,3 @@ export const getConfiguredProviders = async (
   return providers;
 };
 
-/**
- * Migrate legacy ai-config.json to new settings system
- * Automatically called on first load if legacy config exists
- */
-export const migrateLegacyConfig = async (cwd: string = process.cwd()): Promise<Result<void, Error>> => {
-  return tryCatchAsync(
-    async () => {
-      const paths = getAIConfigPaths(cwd);
-
-      // Check if legacy config exists
-      const legacyConfig = await loadConfigFile(paths.legacy);
-      if (!legacyConfig) {
-        return; // No legacy config to migrate
-      }
-
-      // Check if global config already exists
-      const globalConfig = await loadConfigFile(paths.global);
-      if (globalConfig) {
-        // Global config exists, don't overwrite it
-        console.log('Legacy config found but global config already exists. Skipping migration.');
-        console.log(`You can manually delete ${paths.legacy} if migration is complete.`);
-        return;
-      }
-
-      // Migrate to global config
-      await fs.mkdir(path.dirname(paths.global), { recursive: true });
-      await fs.writeFile(paths.global, JSON.stringify(legacyConfig, null, 2) + '\n', 'utf8');
-
-      console.log(`✓ Migrated configuration from ${paths.legacy} to ${paths.global}`);
-      console.log(`  You can now safely delete the legacy file: ${paths.legacy}`);
-    },
-    (error: any) => new Error(`Failed to migrate legacy config: ${error.message}`)
-  );
-};
