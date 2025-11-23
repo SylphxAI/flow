@@ -211,12 +211,9 @@ export async function executeFlowV2(
       merge: options.merge || false,
     });
 
-    // Step 3: Detect target and load agent
-    const projectHash = projectManager.getProjectHash(projectPath);
-    const target = await projectManager.detectTarget(projectPath);
-
-    // Map target to targetManager's target IDs
-    const targetId = target === 'claude-code' ? 'claude-code' : 'opencode';
+    // Step 3: Use the target we already selected (don't re-detect)
+    // selectedTargetId was determined earlier based on settings/auto-detect/prompt
+    const targetId = selectedTargetId;
 
     // Step 3.5: Provider selection (Claude Code only)
     if (targetId === 'claude-code') {
