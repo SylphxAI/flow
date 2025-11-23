@@ -4,6 +4,7 @@
  */
 
 import chalk from 'chalk';
+import inquirer from 'inquirer';
 import { FlowExecutor } from '../../core/flow-executor.js';
 import { targetManager } from '../../core/target-manager.js';
 import { UpgradeManager } from '../../core/upgrade-manager.js';
@@ -15,6 +16,78 @@ import type { FlowOptions } from './types.js';
 import { resolvePrompt } from './prompt.js';
 import { FirstRunSetup } from '../../services/first-run-setup.js';
 import { GlobalConfigService } from '../../services/global-config.js';
+
+/**
+ * Select and configure provider for Claude Code
+ */
+async function selectProvider(
+  configService: GlobalConfigService,
+  useDefaults: boolean
+): Promise<void> {
+  const providerConfig = await configService.loadProviderConfig();
+  const defaultProvider = providerConfig.claudeCode.defaultProvider;
+
+  // If not "ask-every-time", use the default provider
+  if (defaultProvider !== 'ask-every-time') {
+    // Configure environment variables for the selected provider
+    if (defaultProvider === 'kimi' || defaultProvider === 'zai') {
+      const provider = providerConfig.claudeCode.providers[defaultProvider];
+      if (provider?.apiKey) {
+        if (defaultProvider === 'kimi') {
+          process.env.ANTHROPIC_BASE_URL = 'https://api.moonshot.cn/v1';
+          process.env.ANTHROPIC_API_KEY = provider.apiKey;
+        } else if (defaultProvider === 'zai') {
+          process.env.ANTHROPIC_BASE_URL = 'https://api.z.ai/v1';
+          process.env.ANTHROPIC_API_KEY = provider.apiKey;
+        }
+      }
+    }
+    return;
+  }
+
+  // Quick mode or useDefaults: use default provider
+  if (useDefaults) {
+    console.log(chalk.dim('Using default Claude Code provider\n'));
+    return;
+  }
+
+  // Ask user which provider to use
+  const { selectedProvider } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'selectedProvider',
+      message: 'Select provider for this session:',
+      choices: [
+        { name: 'Default (Claude Code built-in)', value: 'default' },
+        { name: 'Kimi', value: 'kimi' },
+        { name: 'Z.ai', value: 'zai' },
+      ],
+      default: 'default',
+    },
+  ]);
+
+  // Configure environment variables based on selection
+  if (selectedProvider === 'kimi' || selectedProvider === 'zai') {
+    const provider = providerConfig.claudeCode.providers[selectedProvider];
+
+    if (!provider?.apiKey) {
+      console.log(chalk.yellow('⚠ API key not configured. Use: sylphx-flow settings\n'));
+      return;
+    }
+
+    if (selectedProvider === 'kimi') {
+      process.env.ANTHROPIC_BASE_URL = 'https://api.moonshot.cn/v1';
+      process.env.ANTHROPIC_API_KEY = provider.apiKey;
+      console.log(chalk.green('✓ Using Kimi provider\n'));
+    } else if (selectedProvider === 'zai') {
+      process.env.ANTHROPIC_BASE_URL = 'https://api.z.ai/v1';
+      process.env.ANTHROPIC_API_KEY = provider.apiKey;
+      console.log(chalk.green('✓ Using Z.ai provider\n'));
+    }
+  } else {
+    console.log(chalk.green('✓ Using default Claude Code provider\n'));
+  }
+}
 
 /**
  * Execute command using target's executeCommand method
@@ -100,6 +173,11 @@ export async function executeFlowV2(
 
     // Map target to targetManager's target IDs
     const targetId = target === 'claude-code' ? 'claude-code' : 'opencode';
+
+    // Step 3.5: Provider selection (Claude Code only)
+    if (targetId === 'claude-code') {
+      await selectProvider(configService, options.useDefaults || false);
+    }
 
     const agent = options.agent || 'coder';
 
