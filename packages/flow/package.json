@@ -1,6 +1,6 @@
 {
   "name": "@sylphx/flow",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "One CLI to rule them all. Unified orchestration layer for Claude Code, OpenCode, Cursor and all AI development tools. Auto-detection, auto-installation, auto-upgrade.",
   "type": "module",
   "bin": {
