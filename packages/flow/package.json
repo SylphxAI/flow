@@ -43,6 +43,7 @@
     "README.md",
     "CHANGELOG.md",
     "LOOP_MODE.md",
+    "UPGRADE.md",
     "package.json"
   ],
   "keywords": [

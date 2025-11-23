@@ -124,26 +124,9 @@ export async function executeFlowOnce(prompt: string | undefined, options: FlowO
       await showStatus(state);
     }
 
-    // Step 1: Check for upgrades
+    // Step 1: Check for upgrades (non-intrusive notification)
     if (!options.quick) {
       await checkUpgrades(state, options);
-    }
-
-    // Step 1: Upgrade (if requested)
-    if (options.upgrade && state.outdated && state.latestVersion) {
-      console.log(chalk.cyan.bold('━━━ 📦 Upgrading Flow\n'));
-      await upgradeManager.upgradeFlow(state);
-      console.log(chalk.green('✓ Upgrade complete\n'));
-      // Re-detect after upgrade
-      state.version = state.latestVersion;
-      state.outdated = false;
-    }
-
-    // Step 2: Upgrade target (if requested)
-    if (options.upgradeTarget && state.target) {
-      console.log(chalk.cyan.bold(`━━━ 🎯 Upgrading ${state.target}\n`));
-      await upgradeManager.upgradeTarget(state);
-      console.log(chalk.green('✓ Target upgrade complete\n'));
     }
 
     // Step 2.5: Check component integrity (only if we have valid state)

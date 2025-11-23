@@ -18,71 +18,30 @@ export async function checkUpgrades(
 ): Promise<void> {
   if (options.initOnly || options.runOnly) return;
 
+  const upgradeManager = new UpgradeManager();
+  const updates = await upgradeManager.checkUpdates();
+
   // Check Flow upgrade
-  if (await UpgradeManager.isUpgradeAvailable()) {
+  if (updates.flowUpdate && updates.flowVersion) {
     console.log(
       chalk.yellow(
-        `📦 Sylphx Flow update available: ${state.version} → ${state.latestVersion}\n`
+        `📦 Sylphx Flow update available: ${updates.flowVersion.current} → ${updates.flowVersion.latest}`
       )
     );
-    const { default: inquirer } = await import('inquirer');
-    const { upgrade } = await inquirer.prompt([
-      {
-        type: 'confirm',
-        name: 'upgrade',
-        message: 'Upgrade Sylphx Flow now?',
-        default: true,
-      },
-    ]);
-    if (upgrade) {
-      options.upgrade = true;
-    }
+    console.log(chalk.dim(`   Run: ${chalk.cyan('sylphx-flow upgrade --auto')}\n`));
   }
 
-  // Check target upgrade (if target exists and outdated)
-  if (state.target && state.targetVersion && state.targetLatestVersion &&
-      state.targetVersion !== state.targetLatestVersion) {
-    // Simple version comparison
-    const isOutdated = compareVersions(state.targetVersion, state.targetLatestVersion) < 0;
-
-    if (isOutdated) {
-      console.log(
-        chalk.yellow(
-          `📦 ${state.target} update available: ${state.targetVersion} → ${state.targetLatestVersion}\n`
-        )
-      );
-      const { default: inquirer } = await import('inquirer');
-      const { upgradeTarget } = await inquirer.prompt([
-        {
-          type: 'confirm',
-          name: 'upgradeTarget',
-          message: `Upgrade ${state.target} now?`,
-          default: true,
-        },
-      ]);
-      if (upgradeTarget) {
-        options.upgradeTarget = true;
-      }
-    }
+  // Check target upgrade
+  if (updates.targetUpdate && updates.targetVersion) {
+    console.log(
+      chalk.yellow(
+        `📦 Target update available: ${updates.targetVersion.current} → ${updates.targetVersion.latest}`
+      )
+    );
+    console.log(chalk.dim(`   Run: ${chalk.cyan('sylphx-flow upgrade --target --auto')}\n`));
   }
 }
 
-/**
- * Compare two version strings
- */
-function compareVersions(v1: string, v2: string): number {
-  const parts1 = v1.split('.').map(Number);
-  const parts2 = v2.split('.').map(Number);
-
-  for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
-    const p1 = parts1[i] || 0;
-    const p2 = parts2[i] || 0;
-    if (p1 !== p2) {
-      return p1 - p2;
-    }
-  }
-  return 0;
-}
 
 /**
  * Step 2: Check component integrity and prompt for repair
