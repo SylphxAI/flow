@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 /**
- * Sylphx Flow - Legacy CLI
- * Project initialization and development flow management
+ * Sylphx Flow CLI
+ * AI-powered development flow management
  */
 
 import { readFileSync } from 'node:fs';

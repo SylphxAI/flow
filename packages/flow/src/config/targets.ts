@@ -113,14 +113,3 @@ export const isTargetImplemented = (id: string): boolean => {
  * Utility type for target IDs
  */
 export type TargetID = ReturnType<typeof getAllTargetIDs>[number];
-
-/**
- * Legacy aliases for backward compatibility
- * @deprecated Use getAllTargets() instead
- */
-export const ALL_TARGETS = getAllTargets;
-
-/**
- * @deprecated Use getImplementedTargets() instead
- */
-export const IMPLEMENTED_TARGETS = getImplementedTargets;
