@@ -10,6 +10,8 @@ import { existsSync } from 'node:fs';
 import chalk from 'chalk';
 import { ProjectManager } from './project-manager.js';
 import type { BackupManifest } from './backup-manager.js';
+import { GlobalConfigService } from '../services/global-config.js';
+import { MCP_SERVER_REGISTRY } from '../config/servers.js';
 
 export interface AttachResult {
   agentsAdded: string[];
@@ -43,9 +45,11 @@ export interface FlowTemplates {
 
 export class AttachManager {
   private projectManager: ProjectManager;
+  private configService: GlobalConfigService;
 
   constructor(projectManager: ProjectManager) {
     this.projectManager = projectManager;
+    this.configService = new GlobalConfigService();
   }
 
   /**
@@ -58,6 +62,45 @@ export class AttachManager {
     return target === 'claude-code'
       ? { agents: 'agents', commands: 'commands' }
       : { agents: 'agent', commands: 'command' };
+  }
+
+  /**
+   * Load global MCP servers from ~/.sylphx-flow/mcp-config.json
+   */
+  private async loadGlobalMCPServers(
+    target: 'claude-code' | 'opencode'
+  ): Promise<Array<{ name: string; config: any }>> {
+    try {
+      const enabledServers = await this.configService.getEnabledMCPServers();
+      const servers: Array<{ name: string; config: any }> = [];
+
+      for (const [serverKey, serverConfig] of Object.entries(enabledServers)) {
+        // Lookup server definition in registry
+        const serverDef = MCP_SERVER_REGISTRY[serverKey];
+
+        if (!serverDef) {
+          console.warn(`MCP server '${serverKey}' not found in registry, skipping`);
+          continue;
+        }
+
+        // Clone the server config from registry
+        let config: any = { ...serverDef.config };
+
+        // Merge environment variables from global config
+        if (serverConfig.env && Object.keys(serverConfig.env).length > 0) {
+          if (config.type === 'stdio' || config.type === 'local') {
+            config.env = { ...config.env, ...serverConfig.env };
+          }
+        }
+
+        servers.push({ name: serverDef.name, config });
+      }
+
+      return servers;
+    } catch (error) {
+      // If global config doesn't exist or fails to load, return empty array
+      return [];
+    }
   }
 
   /**
@@ -101,12 +144,15 @@ export class AttachManager {
       await this.attachRules(targetDir, target, templates.rules, result, manifest);
     }
 
-    // 4. Attach MCP servers
-    if (templates.mcpServers.length > 0) {
+    // 4. Attach MCP servers (merge global + template servers)
+    const globalMCPServers = await this.loadGlobalMCPServers(target);
+    const allMCPServers = [...globalMCPServers, ...templates.mcpServers];
+
+    if (allMCPServers.length > 0) {
       await this.attachMCPServers(
         targetDir,
         target,
-        templates.mcpServers,
+        allMCPServers,
         result,
         manifest
       );
