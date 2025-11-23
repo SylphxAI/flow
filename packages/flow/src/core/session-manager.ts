@@ -19,6 +19,11 @@ export interface Session {
   status: 'active' | 'completed' | 'crashed';
   target: 'claude-code' | 'opencode';
   cleanupRequired: boolean;
+  // Multi-session support
+  isOriginal: boolean;        // First session that created backup
+  sharedBackupId: string;     // Shared backup ID for all sessions
+  refCount: number;           // Number of active sessions
+  activePids: number[];       // All active PIDs sharing this session
 }
 
 export class SessionManager {
@@ -29,16 +34,36 @@ export class SessionManager {
   }
 
   /**
-   * Start a new session for a project
+   * Start a new session for a project (with multi-session support)
    */
   async startSession(
     projectPath: string,
     projectHash: string,
     target: 'claude-code' | 'opencode',
     backupPath: string
-  ): Promise<Session> {
+  ): Promise<{ session: Session; isFirstSession: boolean }> {
     const paths = this.projectManager.getProjectPaths(projectHash);
 
+    // Ensure sessions directory exists
+    await fs.mkdir(path.dirname(paths.sessionFile), { recursive: true });
+
+    // Check for existing session
+    const existingSession = await this.getActiveSession(projectHash);
+
+    if (existingSession) {
+      // Join existing session (don't create new backup)
+      existingSession.refCount++;
+      existingSession.activePids.push(process.pid);
+
+      await fs.writeFile(paths.sessionFile, JSON.stringify(existingSession, null, 2));
+
+      return {
+        session: existingSession,
+        isFirstSession: false,
+      };
+    }
+
+    // First session - create new
     const session: Session = {
       projectHash,
       projectPath,
@@ -49,40 +74,67 @@ export class SessionManager {
       status: 'active',
       target,
       cleanupRequired: true,
+      isOriginal: true,
+      sharedBackupId: `session-${Date.now()}`,
+      refCount: 1,
+      activePids: [process.pid],
     };
-
-    // Ensure sessions directory exists
-    await fs.mkdir(path.dirname(paths.sessionFile), { recursive: true });
 
     await fs.writeFile(paths.sessionFile, JSON.stringify(session, null, 2));
 
-    return session;
+    return {
+      session,
+      isFirstSession: true,
+    };
   }
 
   /**
-   * Mark session as completed
+   * Mark session as completed (with reference counting)
    */
-  async endSession(projectHash: string, sessionId: string): Promise<void> {
+  async endSession(projectHash: string): Promise<{ shouldRestore: boolean; session: Session | null }> {
     try {
       const session = await this.getActiveSession(projectHash);
 
-      if (session && session.sessionId === sessionId) {
+      if (!session) {
+        return { shouldRestore: false, session: null };
+      }
+
+      const paths = this.projectManager.getProjectPaths(projectHash);
+
+      // Remove current PID from active PIDs
+      session.activePids = session.activePids.filter(pid => pid !== process.pid);
+      session.refCount = session.activePids.length;
+
+      if (session.refCount === 0) {
+        // Last session - mark completed and cleanup
         session.status = 'completed';
         session.cleanupRequired = false;
 
-        const paths = this.projectManager.getProjectPaths(projectHash);
         const flowHome = this.projectManager.getFlowHomeDir();
 
         // Archive to history
-        const historyPath = path.join(flowHome, 'sessions', 'history', `${sessionId}.json`);
+        const historyPath = path.join(
+          flowHome,
+          'sessions',
+          'history',
+          `${session.sessionId}.json`
+        );
         await fs.mkdir(path.dirname(historyPath), { recursive: true });
         await fs.writeFile(historyPath, JSON.stringify(session, null, 2));
 
-        // Remove active session
+        // Remove active session file
         await fs.unlink(paths.sessionFile);
+
+        return { shouldRestore: true, session };
+      } else {
+        // Still have active sessions, update session file
+        await fs.writeFile(paths.sessionFile, JSON.stringify(session, null, 2));
+
+        return { shouldRestore: false, session };
       }
     } catch (error) {
-      // Session file might not exist, that's ok
+      // Session file might not exist
+      return { shouldRestore: false, session: null };
     }
   }
 
@@ -101,6 +153,7 @@ export class SessionManager {
 
   /**
    * Detect orphaned sessions (from crashes) across all projects
+   * Handles multi-session by checking all PIDs
    */
   async detectOrphanedSessions(): Promise<Map<string, Session>> {
     const orphaned = new Map<string, Session>();
@@ -115,11 +168,25 @@ export class SessionManager {
         continue;
       }
 
-      // Check if PID is still running
-      const isRunning = await this.checkPIDRunning(session.pid);
+      // Check all active PIDs
+      const stillRunning = [];
+      for (const pid of session.activePids) {
+        if (await this.checkPIDRunning(pid)) {
+          stillRunning.push(pid);
+        }
+      }
 
-      if (!isRunning && session.cleanupRequired) {
+      // Update active PIDs and refCount
+      session.activePids = stillRunning;
+      session.refCount = stillRunning.length;
+
+      if (session.refCount === 0 && session.cleanupRequired) {
+        // All sessions crashed
         orphaned.set(hash, session);
+      } else if (session.refCount !== session.activePids.length) {
+        // Some PIDs crashed, update session file
+        const paths = this.projectManager.getProjectPaths(hash);
+        await fs.writeFile(paths.sessionFile, JSON.stringify(session, null, 2));
       }
     }
 
