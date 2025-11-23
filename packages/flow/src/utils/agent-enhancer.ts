@@ -136,21 +136,22 @@ export async function enhanceAgentContent(
  * Load agent content from various locations
  * @param agentName - Name of the agent (without .md extension)
  * @param agentFilePath - Optional specific file path to load from
- * @param enabledRules - Optional array of enabled rule names
  * @param enabledOutputStyles - Optional array of enabled output style names
  */
 export async function loadAgentContent(
   agentName: string,
   agentFilePath?: string,
-  enabledRules?: string[],
   enabledOutputStyles?: string[]
 ): Promise<string> {
   try {
     // If specific file path provided, load from there
     if (agentFilePath) {
       const content = await fs.readFile(path.resolve(agentFilePath), 'utf-8');
-      // Enhance with enabled rules and styles
-      return await enhanceAgentContent(content, enabledRules, enabledOutputStyles);
+      // Extract rules from agent frontmatter
+      const { metadata } = await yamlUtils.extractFrontMatter(content);
+      const agentRules = metadata.rules as string[] | undefined;
+      // Enhance with agent's own rules and enabled output styles
+      return await enhanceAgentContent(content, agentRules, enabledOutputStyles);
     }
 
     // First try to load from .claude/agents/ directory (processed agents with rules already included)
@@ -166,16 +167,22 @@ export async function loadAgentContent(
 
       try {
         const content = await fs.readFile(localAgentPath, 'utf-8');
-        // Enhance user-defined agents with enabled rules and styles
-        return await enhanceAgentContent(content, enabledRules, enabledOutputStyles);
+        // Extract rules from agent frontmatter
+        const { metadata } = await yamlUtils.extractFrontMatter(content);
+        const agentRules = metadata.rules as string[] | undefined;
+        // Enhance with agent's own rules and enabled output styles
+        return await enhanceAgentContent(content, agentRules, enabledOutputStyles);
       } catch (_error2) {
         // Try to load from the package's agents directory
         const packageAgentsDir = getAgentsDir();
         const packageAgentPath = path.join(packageAgentsDir, `${agentName}.md`);
 
         const content = await fs.readFile(packageAgentPath, 'utf-8');
-        // Enhance package agents with enabled rules and styles
-        return await enhanceAgentContent(content, enabledRules, enabledOutputStyles);
+        // Extract rules from agent frontmatter
+        const { metadata } = await yamlUtils.extractFrontMatter(content);
+        const agentRules = metadata.rules as string[] | undefined;
+        // Enhance with agent's own rules and enabled output styles
+        return await enhanceAgentContent(content, agentRules, enabledOutputStyles);
       }
     }
   } catch (_error) {

@@ -292,18 +292,15 @@ export async function executeFlowV2(
 
     console.log(chalk.cyan(`🤖 Running agent: ${agent}\n`));
 
-    // Load enabled rules and output styles from config
-    const enabledRules = await configService.getEnabledRules();
+    // Load enabled output styles from config
     const enabledOutputStyles = await configService.getEnabledOutputStyles();
 
-    console.log(chalk.dim(`   Enabled rules: ${enabledRules.join(', ')}`));
     console.log(chalk.dim(`   Enabled output styles: ${enabledOutputStyles.join(', ')}\n`));
 
-    // Load agent content with only enabled rules and styles
+    // Load agent content with enabled output styles (rules are defined in agent frontmatter)
     const agentContent = await loadAgentContent(
       agent,
       options.agentFile,
-      enabledRules,
       enabledOutputStyles
     );
     const agentInstructions = extractAgentInstructions(agentContent);
