@@ -2,9 +2,9 @@
 
 # Sylphx Flow
 
-**Stop writing prompts. Start building software.**
+**One CLI to rule them all.**
 
-The first AI development platform where you just say what you want, and it happens. Built on MEP (Minimal Effective Prompt) architecture with StarCoder2 tokenization for true code understanding.
+The unified AI development platform that transcends boundaries. No more juggling between Claude Code, OpenCode, Cursor, or any other AI CLI. Flow orchestrates them all, intelligently adapting to your environment while delivering unparalleled power.
 
 [![npm version](https://img.shields.io/npm/v/@sylphx/flow.svg)](https://www.npmjs.com/package/@sylphx/flow)
 [![GitHub Stars](https://img.shields.io/github/stars/sylphxltd/flow?style=social)](https://github.com/sylphxltd/flow)
@@ -12,367 +12,684 @@ The first AI development platform where you just say what you want, and it happe
 [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
 [![Twitter Follow](https://img.shields.io/twitter/follow/SylphxAI?style=social)](https://x.com/SylphxAI)
 
-[Quick Start](#-installation) • [Documentation](https://flow.sylphx.ai) • [npm](https://www.npmjs.com/package/@sylphx/flow) • [Twitter](https://x.com/SylphxAI)
+[Get Started](#-installation) • [Documentation](https://flow.sylphx.ai) • [npm](https://www.npmjs.com/package/@sylphx/flow) • [Twitter](https://x.com/SylphxAI)
 
 </div>
 
 ---
 
-## The Problem With AI Coding Today
+## The Paradigm Shift
 
-**Traditional AI coding tools make you work too hard:**
+### Before Flow: Fragmentation
 
-```typescript
-// What you have to type today ❌
-User: "I'm using TypeScript + React + Next.js 14 App Router,
-      project structure is src/app for routes,
-      src/components for components,
-      using shadcn/ui for UI, Tailwind for styling,
-      Zod for validation, tRPC for API,
-      current time is 2025-10-30,
-      system is macOS on Apple Silicon,
-
-      I want to implement user authentication with:
-      - JWT tokens with 1hr expiry
-      - Refresh token mechanism
-      - Secure httpOnly cookies
-      - RBAC with roles: user, admin
-      - Rate limiting on login endpoint
-      - Password hashing with bcrypt
-      - Email verification flow
-
-      Please follow our existing code patterns,
-      make it type-safe with TypeScript,
-      add comprehensive error handling,
-      include unit tests with Vitest,
-      and document the API endpoints..."
-
-// You get: Maybe correct code, maybe not 🤷
+```bash
+# Install Claude Code... or wait, should I use OpenCode?
+# Or maybe Cursor? Or that other AI CLI?
+# Which one supports my workflow?
+# Do I need to install multiple tools?
+# How do I switch between them?
+# 😵 The cognitive overhead is real
 ```
 
-**This is insane. You spend more time writing prompts than code.**
+### With Flow: Unification
+
+```bash
+# Install once
+npm install -g @sylphx/flow
+
+# Use everywhere
+sylphx-flow "build the future"
+
+# Flow handles everything:
+✅ Auto-detects your environment (Claude Code/OpenCode/Cursor)
+✅ Auto-installs missing dependencies
+✅ Auto-upgrades before each session
+✅ One CLI, infinite possibilities
+```
 
 ---
 
-## The Sylphx Flow Solution
+## Philosophy: Transcendent Simplicity
 
-```bash
-# What you type with Sylphx Flow ✅
-sylphx-flow "implement authentication"
+**Flow is not just another AI CLI. It's the meta-layer that unifies them all.**
 
-# You get: Production-ready code that:
-✅ Uses YOUR tech stack (auto-detected)
-✅ Follows YOUR patterns (from codebase)
-✅ Applies best practices (from knowledge base)
-✅ Knows current time and environment
-✅ Is properly tested and documented
+Traditional AI CLIs make you choose. Flow makes you powerful.
+
 ```
+┌─────────────────────────────────────────────────────────┐
+│                    Traditional World                    │
+├─────────────────────────────────────────────────────────┤
+│  Claude Code  →  For Anthropic users                    │
+│  OpenCode     →  For open source fans                   │
+│  Cursor       →  For IDE integration                    │
+│  ...          →  Fragmented experience                  │
+└─────────────────────────────────────────────────────────┘
 
-**90% less prompt. 100% better code.**
+┌─────────────────────────────────────────────────────────┐
+│                      Flow's World                        │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│                   Sylphx Flow                            │
+│                       ↓                                  │
+│        ┌──────────────┼──────────────┐                  │
+│        ↓              ↓              ↓                   │
+│   Claude Code    OpenCode       Cursor                  │
+│                                                          │
+│  → Unified interface, adaptive execution                │
+│  → Automatic detection and orchestration                │
+│  → Zero configuration, infinite power                    │
+└─────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## 🚀 Installation
 
-### Install globally
+### The Sacred Ritual (30 seconds)
 
 ```bash
-# Using npm
+# Install the omnipotent CLI
 npm install -g @sylphx/flow
 
-# Using bun (recommended)
-bun install -g @sylphx/flow
+# That's it. Seriously.
 ```
 
-### Start using immediately
+### First Invocation
 
 ```bash
-# Setup happens automatically on first use!
-sylphx-flow "your first task"
+# Your first command
+sylphx-flow "build me something amazing"
+
+# Flow automatically:
+✅ Detects your environment
+✅ Installs Claude Code/OpenCode if missing
+✅ Configures optimal settings
+✅ Updates to latest version
+✅ And executes your will
 ```
 
-**That's it.** No configuration needed. Works with Claude Code and OpenCode.
-
-### Usage
-
-```bash
-# Direct prompt
-sylphx-flow "add password reset"
-sylphx-flow "review for security" --agent reviewer
-sylphx-flow "write API docs" --agent writer
-
-# Loop Mode - Autonomous Continuous Execution (Claude Code only)
-sylphx-flow "process all github issues" --loop --target claude-code
-sylphx-flow "check for new commits" --loop 300 --max-runs 20
-
-# File Input - Load prompts from files
-sylphx-flow "@task.txt"
-sylphx-flow "@complex-prompt.md"
-
-```
-
-**That's literally it.** No configuration files. No prompt engineering. No context management.
+**No setup. No configuration. No friction. Pure transcendence.**
 
 ---
 
-## 🌟 Core Innovations
+## 🌟 Core Principles
 
-### 1. Loop Mode - Autonomous Continuous Execution
+### 1. **Universal Orchestration**
 
-**Revolutionary autonomous AI that keeps working until you stop it.**
+**One CLI for every AI development tool.**
+
+Flow doesn't replace your favorite tools—it orchestrates them. Whether you prefer Claude Code, OpenCode, or any future AI CLI, Flow adapts seamlessly.
 
 ```bash
-# Continuous autonomous work (zero wait time)
-# Note: Currently supported with Claude Code only
-sylphx-flow "process all github issues" --loop --target claude-code
+# Flow automatically detects and uses the best available tool
+sylphx-flow "implement authentication"
 
-# With wait time for polling scenarios
-sylphx-flow "check for new commits" --loop 300 --max-runs 20 --target claude-code
+# Detected Claude Code → Uses Claude Code
+# Detected OpenCode → Uses OpenCode
+# Detected both → Asks your preference
+# Detected neither → Installs and configures for you
 ```
 
-**How it works:**
-- **First iteration**: Fresh start
-- **2nd+ iterations**: Auto-continue with context preservation
-- **Stop**: Ctrl+C (graceful) or `--max-runs` limit
-- **Zero wait default**: Task execution time is the natural interval
-- **Smart configuration**: Saves provider/agent preferences automatically
+### 2. **Zero-Friction Experience**
 
-**Platform Support:**
-- ✅ **Claude Code**: Full loop mode support with headless execution
-- ⏳ **OpenCode**: Coming soon (OpenCode `run` command has known issues with background execution)
+**AI should adapt to you, not the other way around.**
 
-**Perfect for:**
-- 🔄 Continuous task processing (GitHub issues, PRs, etc.)
-- 📊 Periodic monitoring and auto-fixing
-- 🧹 Incremental refactoring
-- 🧪 Test fixing loops
-- 📝 Documentation updates
+```bash
+# Traditional AI CLIs
+❌ Install tool A for feature X
+❌ Install tool B for feature Y
+❌ Learn different commands
+❌ Manage different configs
+❌ Update each tool separately
 
-See [LOOP_MODE.md](./packages/flow/LOOP_MODE.md) for complete documentation.
+# With Flow
+✅ Install once: npm install -g @sylphx/flow
+✅ Use everywhere: sylphx-flow "your intent"
+✅ Everything automatic: detection, installation, updates
+```
+
+### 3. **Intelligent Automation**
+
+**Flow thinks ahead so you don't have to.**
+
+#### Auto-Detection
+```bash
+# Flow scans your system:
+→ Claude Code installed? Use it.
+→ OpenCode installed? Use it.
+→ Nothing installed? Ask user preference, then install.
+→ Both installed? Use smart defaults or ask.
+```
+
+#### Auto-Installation
+```bash
+# User doesn't have Claude Code
+$ sylphx-flow "task"
+
+> No AI CLI detected. Which would you like to use?
+  1. Claude Code (Anthropic, recommended)
+  2. OpenCode (open source)
+
+> You selected: Claude Code
+> Installing Claude Code...
+> ✓ Installation complete
+> ✓ Configuration optimized
+> Executing your task...
+```
+
+#### Auto-Upgrade
+```bash
+# Every session starts fresh
+$ sylphx-flow "task"
+
+> Checking for updates...
+> ✓ Flow 2.0.0 → 2.1.0 (latest)
+> ✓ Claude Code 1.5.0 → 1.6.0 (latest)
+> Executing your task with latest capabilities...
+```
+
+### 4. **Settings-Driven Excellence**
+
+**Configure once, perfect forever.**
+
+Flow introduces a revolutionary settings system that puts you in complete control:
+
+```bash
+# Access the settings nexus
+sylphx-flow settings
+
+# Configure everything:
+→ 🤖 Agents: Enable/disable agents (coder, writer, reviewer, orchestrator)
+→ 📋 Rules: Control which best practices apply
+→ 🎨 Output Styles: Customize AI behavior
+→ 📡 MCP Servers: Extend capabilities
+→ 🔑 Providers: Manage API keys (Anthropic, Kimi, Z.AI)
+→ 🎯 Platform: Set default target (Claude Code/OpenCode)
+```
+
+**Settings are stored globally** (`~/.sylphx-flow/`), ensuring consistency across all your projects.
+
+### 5. **Git-Aware Intelligence**
+
+**Flow understands version control is sacred.**
+
+When Flow modifies settings files (`.claude/`, `.opencode/`), it uses `git update-index --skip-worktree` to hide changes from git status. This means:
+
+- ✅ LLMs won't accidentally commit Flow's temporary changes
+- ✅ Your version-controlled settings remain pristine
+- ✅ Automatic restore after each session
+- ✅ Seamless collaboration with your team
+
+### 6. **Graceful Interruption**
+
+**Ctrl+C now means "restore and exit," not "crash and burn."**
+
+Press Ctrl+C at any time:
+```bash
+$ sylphx-flow "long task"
+# ... working ...
+^C
+
+> ⚠️  Operation cancelled by user
+> ✓ Settings restored
+> ✓ Git tracking restored
+> ✓ Environment clean
+
+# No crashed sessions. No manual recovery.
+```
 
 ---
 
-### 2. File Input Support
+## 🎭 The Flow Experience
 
-**Load prompts from files for complex, reusable instructions.**
+### Minimal Input, Maximum Output
 
-```bash
-# Basic file input
-sylphx-flow "@task.txt"
-
-# Absolute path
-sylphx-flow "@/path/to/prompt.md"
-
-# Combined with loop mode
-sylphx-flow "@complex-task.txt" --loop --max-runs 10
-```
-
-**Benefits:**
-- 📝 **No shell escaping** - write natural language prompts
-- 🔄 **Reusable** - version control your prompts alongside code
-- 🔀 **Complex instructions** - no character limits
-- 🚀 **Seamless integration** - works with all CLI flags
-
----
-
-### 3. MEP (Minimal Effective Prompt) Architecture
-
-**The Philosophy:** AI should adapt to you, not the other way around.
+**Flow implements MEP (Minimal Effective Prompt) architecture.**
 
 <table>
 <tr>
-<td width="50%">
+<th width="50%">Traditional AI CLIs</th>
+<th width="50%">Sylphx Flow</th>
+</tr>
+<tr>
+<td>
 
-**Traditional Approach** ❌
-```
-You: [500 words of context]
-AI: [50% accurate code]
-You: [200 words of corrections]
-AI: [70% accurate code]
-You: [100 words more...]
+```typescript
+// 5 minutes of typing...
+"I'm using TypeScript + React + Next.js 14,
+project structure is src/app for routes,
+src/components for components,
+using shadcn/ui, Tailwind for styling,
+Zod for validation, tRPC for API,
+current time is 2025-11-23,
+system is macOS Apple Silicon,
+
+I want to implement user authentication:
+- JWT tokens with 1hr expiry
+- Refresh token mechanism
+- Secure httpOnly cookies
+- RBAC with roles: user, admin
+- Rate limiting on login endpoint
+- Password hashing with bcrypt
+- Email verification flow
+
+Follow our existing code patterns,
+make it type-safe,
+add comprehensive error handling,
+include unit tests with Vitest,
+and document the API endpoints..."
+
+// Maybe correct, maybe not 🤷
 ```
 
 </td>
-<td width="50%">
+<td>
 
-**MEP Approach** ✅
+```bash
+sylphx-flow "implement authentication"
 ```
-You: "implement feature X"
-AI: [Gets all context automatically]
-AI: [95% accurate code]
-You: [Ship it]
-```
+
+**10 seconds.**
+
+Flow automatically knows:
+- Your tech stack (auto-detected)
+- Your patterns (from codebase)
+- Best practices (built-in)
+- Current time (system hook)
+- Your environment (OS, Node version)
+
+**Result: Production-ready code**
+- ✅ Type-safe
+- ✅ Tested
+- ✅ Documented
+- ✅ Secure
+- ✅ Following YOUR style
 
 </td>
 </tr>
 </table>
 
-**How?** AI automatically accesses:
-- 🔍 Your codebase patterns (via semantic search)
-- 📚 Best practices (via curated knowledge)
-- 🖥️ Your environment (via system hooks)
-- ⏰ Current time and context (automatic)
+---
 
-### 4. StarCoder2 Tokenization - 70+ Languages
+## 🎛️ Settings Management
 
-**First production platform to use StarCoder2 tokenization for code search.**
+**Flow 2.0 introduces the settings nexus—your command center for AI orchestration.**
+
+### Access Settings
 
 ```bash
-# Search in ANY language, find code in ANY language
-$ flow codebase search "user authentication logic"  # English
-$ flow codebase search "處理用戶登入嘅邏輯"         # Chinese
-$ flow codebase search "ユーザーログイン処理"       # Japanese
-
-# All return the SAME results:
-✅ authenticateUser() in TypeScript
-✅ authenticate_user() in Python
-✅ AuthenticateUser() in Go
-✅ Even with totally different naming!
+sylphx-flow settings
 ```
 
-**Why this matters:**
-- Find code by what it **does**, not what it's **called**
-- Works across 70+ programming languages
-- Understands natural language in any human language
-- Semantic tokenization, not keyword matching
-- TF-IDF search powered by world-class tokenization
+### What You Can Configure
 
-### 5. Curated Knowledge Base (No Maintenance)
-
-**We don't let you add custom knowledge. Here's why:**
-
-| Curated (Sylphx Flow) | Custom (Others) |
-|----------------------|-----------------|
-| ✅ Professionally maintained | ❌ You maintain it |
-| ✅ Always up-to-date | ❌ Gets outdated |
-| ✅ Quality guaranteed | ❌ Quality varies |
-| ✅ <100ms search | ❌ Slower, variable |
-| ✅ Zero cognitive load | ❌ "Which guide to use?" |
-
-**"But I need project-specific patterns!"**
-→ Use codebase search. Your patterns are already in your code.
-
-### 6. Functional Architecture
-
-**Built with pure functional programming principles:**
-
-- 🧩 **Composition over Inheritance** - Tools compose naturally
-- 🎯 **Pure Functions** - Predictable, testable, parallel
-- 🔒 **Immutable Data** - No side effects, easier debugging
-- 🌊 **Pipeline Architecture** - Natural data flow
-
-```typescript
-// Agents compose like functions
-const result = await pipe(
-  knowledge_search("auth patterns"),
-  codebase_search("auth implementation"),
-  synthesize
-)("implement OAuth");
+#### 🤖 Agents & Default Agent
 ```
+→ Select which agents are enabled
+  ✓ Coder (feature implementation, bug fixes)
+  ✓ Writer (documentation, technical writing)
+  ✓ Reviewer (code review, security analysis)
+  ✓ Orchestrator (complex multi-step tasks)
+
+→ Set default agent for quick access
+  Default: coder
+```
+
+#### 📋 Rules
+```
+→ Enable/disable coding standards
+  ✓ Core (identity, personality, execution)
+  ✓ Code Standards (quality, patterns, anti-patterns)
+  ✓ Workspace (documentation management)
+```
+
+#### 🎨 Output Styles
+```
+→ Customize AI behavior
+  ✓ Silent (execution without narration)
+  ⬚ Verbose (detailed explanations) [coming soon]
+  ⬚ Tutorial (learning-focused) [coming soon]
+```
+
+#### 📡 MCP Servers
+```
+→ Extend Flow's capabilities
+  ✓ GitHub Code Search (grep.app)
+  ✓ Context7 Docs
+  ✓ Playwright Browser Control
+  ⬚ GitHub (requires GITHUB_TOKEN)
+  ⬚ Notion (requires NOTION_API_KEY)
+```
+
+#### 🔑 Provider & API Keys
+```
+→ Manage AI providers (Claude Code only)
+  • Default (Claude Code built-in)
+  • Kimi (requires API key)
+  • Z.AI (requires API key)
+  • Ask me every time
+
+→ Configure provider API keys securely
+```
+
+#### 🎯 Target Platform
+```
+→ Set default AI CLI
+  • Claude Code
+  • OpenCode
+```
+
+### Settings Architecture
+
+All settings are stored in `~/.sylphx-flow/`:
+
+```
+~/.sylphx-flow/
+├── settings.json        # General settings (default agent, target)
+├── flow-config.json     # Agents, rules, output styles
+├── provider-config.json # Provider settings (Anthropic, Kimi, Z.AI)
+└── mcp-config.json      # MCP server configurations
+```
+
+**Settings are global**, ensuring consistency across all your projects. Configure once, execute everywhere.
 
 ---
 
-## 📚 Complete Feature Breakdown
+## 🤖 Specialized Agents
 
-### 🤖 AI Agents - Specialized Experts
+**Flow includes four transcendent agents, each a master of their domain:**
 
-Sylphx Flow includes production-ready AI agents, each an expert in their domain:
-
-**Available Agents:**
-
-| Agent | Purpose | Use When |
-|-------|---------|----------|
-| **Coder** | Feature implementation, bug fixes | Building new features, fixing bugs |
-| **Reviewer** | Code review, security analysis | Before merging, security audits |
-| **Writer** | Documentation, technical writing | API docs, README updates |
-| **Orchestrator** | Complex multi-step tasks | Architecture changes, large refactors |
+| Agent | Sacred Purpose | Invoke When |
+|-------|----------------|-------------|
+| **Coder** | Feature implementation, bug annihilation | Building new features, fixing bugs |
+| **Writer** | Documentation, technical prose | API docs, README updates, guides |
+| **Reviewer** | Code review, security sanctification | Pre-merge reviews, security audits |
+| **Orchestrator** | Complex multi-step orchestration | Architecture changes, large refactors |
 
 ```bash
-# Use specific agent
-sylphx-flow "review security vulnerabilities" --agent reviewer
-sylphx-flow "document API endpoints" --agent writer
+# Invoke the coder (default)
+sylphx-flow "implement user dashboard"
+
+# Summon the reviewer
+sylphx-flow "review for security vulnerabilities" --agent reviewer
+
+# Call upon the writer
+sylphx-flow "document the API endpoints" --agent writer
+
+# Unleash the orchestrator
 sylphx-flow "refactor authentication system" --agent orchestrator
 ```
 
-**Why different agents?**
-- Each has specialized knowledge and prompting
-- Better results than generic "do everything" AI
-- Clear separation of concerns
-- Optimized for specific workflows
-
----
-
-### 📜 Rules System - Best Practices Built-In
-
-Every agent follows industry best practices automatically:
-
-**Core Rules Include:**
-- **Code Quality**: SOLID principles, DRY, KISS, clean code
-- **Security**: Input validation, SQL injection prevention, XSS protection
-- **Testing**: TDD approach, comprehensive test coverage
-- **Error Handling**: Proper error boundaries, graceful degradation
-- **Performance**: Optimization patterns, caching strategies
-- **Documentation**: Inline comments, API documentation standards
-
+**Configure enabled agents:**
 ```bash
-# Rules are automatic - AI always follows them
-sylphx-flow "implement login"
-# ✅ Automatically applies: security rules, validation rules, testing rules
-```
-
-**Sync rules with latest updates:**
-```bash
-sylphx-flow --sync
+sylphx-flow settings
+→ Select: Agents & Default Agent
 ```
 
 ---
 
-### 🔌 MCP Server Integration - Extended Capabilities
+## ⚡ Quick Start
 
-Model Context Protocol (MCP) servers give agents superpowers:
-
-**Pre-configured MCP Servers:**
-- **Web Search** - Real-time information from the internet
-- **Code Indexing** - Semantic code understanding
-- **File Operations** - Advanced file manipulation
-- **Git Operations** - Repository management
-- **API Integrations** - External service connections
+### The Path to Enlightenment
 
 ```bash
-# MCP servers are auto-installed during setup
-sylphx-flow --init-only
+# 1. Install the meta-CLI
+npm install -g @sylphx/flow
 
-# Configure additional MCP servers
-# Flow automatically discovers and configures MCP servers
+# 2. First invocation (auto-setup)
+sylphx-flow "create a REST API"
+
+# Flow's first-time ritual:
+→ Detects environment
+→ Checks for Claude Code/OpenCode
+→ Installs missing dependencies (with your permission)
+→ Configures optimal settings
+→ Upgrades to latest versions
+→ Executes your command
+
+# 3. Subsequent invocations
+sylphx-flow "build something amazing"
+
+# Flow's ongoing ritual:
+→ Auto-checks for updates
+→ Auto-upgrades if needed
+→ Executes with latest capabilities
 ```
 
-**How MCP Works:**
-1. **Setup**: Auto-installed during initialization
-2. **Discovery**: Flow detects available MCP servers
-3. **Integration**: Agents access MCP capabilities automatically
-4. **Execution**: MCP servers handle specialized tasks
+### Daily Usage
+
+```bash
+# Simple tasks (MEP in action)
+sylphx-flow "add password reset"
+sylphx-flow "fix the login bug"
+sylphx-flow "optimize database queries"
+
+# Specialized agents
+sylphx-flow "review for security" --agent reviewer
+sylphx-flow "write API documentation" --agent writer
+sylphx-flow "refactor user service" --agent orchestrator
+
+# File input for complex prompts
+sylphx-flow "@detailed-requirements.md"
+
+# Settings management
+sylphx-flow settings
+```
 
 ---
 
-### 🔍 Codebase Semantic Search - Find Code by Meaning
+## 🎯 Core Features
 
-Search your codebase by **what code does**, not what it's called:
+### 1. Universal CLI Orchestration
 
-**Features:**
-- **Semantic Understanding**: StarCoder2 tokenization
-- **70+ Languages**: Works across all major languages
-- **Natural Language Queries**: Search in plain English (or any language)
-- **Fast**: <100ms search response
-- **Context-Aware**: Understands code relationships
+**One interface. All tools. Zero friction.**
+
+Flow intelligently detects and orchestrates:
+- **Claude Code** - Anthropic's official CLI
+- **OpenCode** - Open source alternative
+- **Future tools** - Built for extensibility
+
+```bash
+# Same command, different environments
+# Flow adapts automatically
+
+# On machine with Claude Code
+$ sylphx-flow "task" → Uses Claude Code
+
+# On machine with OpenCode
+$ sylphx-flow "task" → Uses OpenCode
+
+# On machine with both
+$ sylphx-flow "task" → Uses your preferred default
+```
+
+### 2. Automatic Installation
+
+**Missing tools? Flow installs them for you.**
+
+```bash
+# First time on a new machine
+$ sylphx-flow "build something"
+
+> No AI CLI detected.
+> Which platform would you like to use?
+  1. Claude Code (Anthropic, recommended)
+  2. OpenCode (open source alternative)
+
+> Your choice: 1
+
+> Installing Claude Code...
+> ✓ Downloaded latest version
+> ✓ Configured settings
+> ✓ Installed MCP servers
+> ✓ Ready to execute
+
+> Executing your command...
+```
+
+### 3. Automatic Upgrades
+
+**Every session uses the latest capabilities.**
+
+Flow checks for updates before each execution:
+
+```bash
+$ sylphx-flow "task"
+
+> Checking for updates...
+> Updates found:
+  • Flow: 2.0.0 → 2.1.0
+  • Claude Code: 1.5.0 → 1.6.0
+
+> Upgrading...
+> ✓ Flow updated (new features available)
+> ✓ Claude Code updated (performance improved)
+
+> Executing with latest versions...
+```
+
+**Customize update behavior:**
+```bash
+# Check updates without executing
+sylphx-flow upgrade
+
+# Auto-upgrade and execute
+sylphx-flow upgrade --auto
+```
+
+### 4. MEP Architecture
+
+**Minimal Effective Prompt: AI that truly understands context.**
+
+Flow automatically enriches every prompt with:
+- 🔍 Your codebase patterns (via semantic search)
+- 📚 Best practices (via curated knowledge base)
+- 🖥️ Your environment (OS, Node version, git status)
+- ⏰ Current time and date
+- 🎯 Your preferred coding style
+
+```bash
+# You type 3 words
+sylphx-flow "implement authentication"
+
+# Flow expands to full context:
+→ Tech stack: TypeScript + React + Next.js (detected)
+→ Patterns: Your existing auth patterns (searched)
+→ Best practices: JWT, bcrypt, RBAC (knowledge base)
+→ Environment: macOS, Node 20, git clean (hooks)
+→ Time: 2025-11-23 (system)
+
+# Result: Perfect, production-ready code
+```
+
+### 5. Settings-Driven Execution
+
+**Configure once. Perfect forever.**
+
+```bash
+# Access settings nexus
+sylphx-flow settings
+
+# Configure:
+→ Agents (coder, writer, reviewer, orchestrator)
+→ Rules (core, code-standards, workspace)
+→ Output styles (silent, verbose, tutorial)
+→ MCP servers (grep, context7, playwright, github, notion)
+→ Providers (Anthropic, Kimi, Z.AI)
+→ Target platform (Claude Code, OpenCode)
+
+# Settings apply to ALL subsequent executions
+```
+
+### 6. Git-Aware Operations
+
+**Flow respects your version control.**
+
+When Flow operates, it uses `git update-index --skip-worktree` to hide temporary changes:
+
+```bash
+# Before Flow execution
+$ git status
+→ clean working directory
+
+# During Flow execution (modifying .claude/config.json)
+$ git status
+→ clean working directory  # Changes hidden!
+
+# After Flow execution
+$ git status
+→ clean working directory  # Restored automatically
+```
+
+This ensures:
+- LLMs won't see or commit Flow's temporary settings
+- Your version-controlled configs remain pristine
+- Team collaboration stays clean
+
+---
+
+## 🏗️ Advanced Features
+
+### Loop Mode - Autonomous Execution
+
+**Set it and forget it. Flow works while you sleep.**
+
+```bash
+# Continuous autonomous work
+sylphx-flow "process all GitHub issues" --loop
+
+# With polling interval
+sylphx-flow "monitor and fix bugs" --loop 300 --max-runs 20
+# Checks every 5 minutes, max 20 iterations
+
+# How it works:
+→ Iteration 1: Fresh start
+→ Iteration 2+: Auto-continue with context
+→ Stop: Ctrl+C (graceful) or max runs reached
+```
+
+**Perfect for:**
+- 🔄 Processing backlogs (issues, PRs, tickets)
+- 📊 Periodic monitoring and auto-fixing
+- 🧹 Incremental refactoring
+- 🧪 Continuous test fixing
+- 📝 Documentation maintenance
+
+### File Input Support
+
+**Complex prompts deserve better than shell escaping.**
+
+```bash
+# Load prompt from file
+sylphx-flow "@task.txt"
+
+# Absolute paths supported
+sylphx-flow "@/path/to/detailed-requirements.md"
+
+# Combine with other flags
+sylphx-flow "@refactor-plan.md" --agent orchestrator --loop
+```
+
+**Benefits:**
+- 📝 Write natural language (no shell escaping)
+- 🔄 Version control your prompts
+- 🔀 Reusable task definitions
+- 🚀 No character limits
+
+### Codebase Search - Semantic Understanding
+
+**Find code by what it does, not what it's called.**
 
 ```bash
 # Search by functionality
 sylphx-flow codebase search "user authentication logic"
 
-# Find similar patterns
-sylphx-flow codebase search "payment processing workflow"
+# Works across languages
+→ Finds: authenticateUser() in TypeScript
+→ Finds: authenticate_user() in Python
+→ Finds: AuthenticateUser() in Go
 
-# Multilingual support
+# Multilingual queries
 sylphx-flow codebase search "處理用戶登入嘅邏輯"  # Chinese
 sylphx-flow codebase search "ユーザーログイン処理"  # Japanese
 
@@ -380,546 +697,156 @@ sylphx-flow codebase search "ユーザーログイン処理"  # Japanese
 sylphx-flow codebase reindex
 ```
 
-**Why it's revolutionary:**
-- Find code you didn't know existed
-- Discover similar patterns across codebase
-- Works even when variable names differ
-- True semantic understanding, not keyword matching
+**Powered by StarCoder2 tokenization** - 70+ languages supported.
 
----
+### Knowledge Base - Curated Best Practices
 
-### 📖 Knowledge Semantic Search - Best Practices at Your Fingertips
-
-Access curated knowledge base with industry best practices:
-
-**Knowledge Categories:**
-- **Architecture Patterns**: Microservices, Event-driven, CQRS, etc.
-- **Security Best Practices**: OWASP Top 10, secure coding
-- **Framework Guides**: React, Vue, Angular, Next.js, etc.
-- **Language Idioms**: JavaScript, TypeScript, Python, Go, Rust
-- **Testing Strategies**: Unit, Integration, E2E testing
-- **DevOps Practices**: CI/CD, Docker, Kubernetes
+**Professional knowledge, zero maintenance.**
 
 ```bash
-# Search knowledge base
+# Search best practices
 sylphx-flow knowledge search "react performance optimization"
 sylphx-flow knowledge search "secure password hashing"
-sylphx-flow knowledge search "microservices communication patterns"
+sylphx-flow knowledge search "microservices patterns"
 
-# List all available knowledge
+# List all knowledge
 sylphx-flow knowledge list
 
-# Update knowledge base
+# Update to latest
 sylphx-flow knowledge update
 ```
 
-**Curated vs Custom Knowledge:**
-- **Curated** (Flow): Professionally maintained, always current
-- **Custom** (Other tools): You maintain, gets outdated
-- **Zero Maintenance**: We update best practices for you
-- **Quality Guaranteed**: Every guide is verified
-
----
-
-### 🎛️ Smart Configuration - Learns Your Preferences
-
-Flow remembers your choices so you don't repeat yourself:
-
-**Auto-Saved Settings:**
-- **Default Target**: Claude Code vs OpenCode
-- **Preferred Agent**: coder, reviewer, writer, orchestrator
-- **Default Provider**: Anthropic, Z.AI, Kimi AI
-- **Loop Settings**: Wait time, max runs
-
-```bash
-# First time - Flow asks for your preferences
-sylphx-flow "task" --target claude-code --agent coder
-# ✅ Saves: target=claude-code, agent=coder
-
-# Next time - uses saved defaults
-sylphx-flow "another task"
-# ✅ Uses: claude-code + coder automatically
-
-# Override when needed
-sylphx-flow "review code" --agent reviewer
-# ✅ Uses: claude-code (saved) + reviewer (override)
-
-# Reset to defaults
-sylphx-flow --select-agent  # Prompt to choose agent this time
-sylphx-flow --select-provider  # Prompt to choose provider
-```
-
-**Configuration File:**
-```json
-// .sylphx-flow/settings.json
-{
-  "defaultTarget": "claude-code",
-  "defaultAgent": "coder",
-  "defaultProvider": "anthropic"
-}
-```
-
----
-
-### ⚙️ System Hooks - Environment Awareness
-
-Flow integrates with your development environment:
-
-**Auto-Detected Information:**
-- **Current Time**: Always knows the current date/time
-- **Operating System**: macOS, Linux, Windows
-- **Git Status**: Current branch, uncommitted changes
-- **Node Version**: Detects Node.js/Bun version
-- **Environment Variables**: Accesses necessary env vars
-
-```bash
-# Hooks work automatically - no configuration needed
-sylphx-flow "create deployment script"
-# ✅ Knows: OS, current time, git branch, etc.
-```
-
-**Why This Matters:**
-- No need to tell AI "it's 2025" or "I'm on macOS"
-- AI writes OS-appropriate commands automatically
-- Time-sensitive operations work correctly
-- Environment-specific configurations handled
-
----
-
-### 🔄 Template Synchronization - Stay Up-to-Date
-
-Keep your setup synchronized with the latest Flow templates:
-
-```bash
-# Sync all templates (agents, rules, slash commands, output styles)
-sylphx-flow --sync
-
-# Sync for specific platform
-sylphx-flow --sync --target claude-code
-sylphx-flow --sync --target opencode
-```
-
-**What Gets Synced:**
-- **Agents**: Latest agent definitions and capabilities
-- **Rules**: Updated best practices and coding standards
-- **Slash Commands**: New command templates
-- **Output Styles**: Improved response formatting
-
-**Safe Sync:**
-- Doesn't overwrite user customizations
-- Creates backups before sync
-- Notifies of conflicts
-- Can rollback if needed
-
----
-
-## ⚡ Quick Start
-
-### Install & Setup
-
-```bash
-# 1. Install globally
-npm install -g @sylphx/flow
-# or: bun install -g @sylphx/flow
-
-# 2. Start using (auto-initializes on first use)
-sylphx-flow "your first task"
-
-# Setup is automatic! But you can also run setup explicitly:
-# sylphx-flow --init-only
-```
-
-### Start Building
-
-```bash
-# Direct command (most common)
-sylphx-flow "implement user registration"
-
-# With specific agent
-sylphx-flow "review security" --agent reviewer
-
-# Loop mode for continuous work
-sylphx-flow "process github issues" --loop
-```
-
-**That's it. Start building.**
-
----
-
-## 🎯 Real-World Examples
-
-### Example 1: Implement Feature (90% Less Typing)
-
-<table>
-<tr><th>Traditional</th><th>Sylphx Flow</th></tr>
-<tr>
-<td>
-
-```bash
-# 5 minutes of typing...
-"I need a user profile page
-with Next.js 14 App Router,
-using TypeScript, shadcn/ui,
-Tailwind CSS, tRPC for API,
-Zod for validation...
-
-Display user info, allow editing,
-validate forms, show loading states,
-handle errors, use server components
-where possible, client components
-when needed, follow our patterns
-in src/app/(dashboard)/settings..."
-
-# 😫 Still probably missing something
-```
-
-</td>
-<td>
-
-```bash
-sylphx-flow "user profile page"
-```
-
-**10 seconds.**
-AI already knows:
-- Your tech stack
-- Your patterns
-- Your structure
-- Best practices
-
-</td>
-</tr>
-</table>
-
-### Example 2: Code Review (Smart & Fast)
-
-<table>
-<tr><th>Traditional</th><th>Sylphx Flow</th></tr>
-<tr>
-<td>
-
-```bash
-"Review this auth code for:
-- SQL injection
-- XSS vulnerabilities
-- CSRF protection
-- Rate limiting
-- Password security
-- Token expiry
-- Error handling
-- Type safety
-- Performance issues
-- Best practices
-- Code style
-- Test coverage..."
-
-# 😵 Did I forget anything?
-```
-
-</td>
-<td>
-
-```bash
-sylphx-flow "review for security" \
-  --agent reviewer
-```
-
-Reviewer agent automatically checks:
-- All security vulnerabilities
-- Performance issues
-- Best practices
-- Your code style
-- Everything
-
-</td>
-</tr>
-</table>
-
-### Example 3: Multi-Language Codebase
-
-```bash
-# Your team uses multiple languages
-# TypeScript frontend + Python backend + Go services
-
-# Traditional tools: Struggle with context switching
-# Sylphx Flow: Understands ALL of them
-
-$ flow codebase search "authentication middleware"
-
-# Finds authentication code in:
-✅ TypeScript Express middleware
-✅ Python FastAPI middleware
-✅ Go HTTP handlers
-✅ All semantically related!
-```
-
----
-
-## 🏗️ How It Works
-
-### The Magic Behind The Simplicity
-
-```
-┌─────────────────────────────────────────────────────────┐
-│  You: "implement authentication"                        │
-└─────────────────────────────────────────────────────────┘
-                         ↓
-┌─────────────────────────────────────────────────────────┐
-│  AI Orchestrator (Automatic)                            │
-├─────────────────────────────────────────────────────────┤
-│  1. System Info      → "macOS, Node 20, TypeScript"     │
-│  2. Current Time     → "2025-10-30 20:05:30"            │
-│  3. Knowledge Search → "JWT best practices, RBAC..."    │
-│  4. Codebase Search  → "Existing auth patterns..."      │
-│  5. Synthesize       → "Generate perfect code"          │
-└─────────────────────────────────────────────────────────┘
-                         ↓
-┌─────────────────────────────────────────────────────────┐
-│  Result: Production-ready code that:                    │
-│  ✅ Uses your tech stack (detected)                     │
-│  ✅ Follows your patterns (learned)                     │
-│  ✅ Applies best practices (built-in)                   │
-│  ✅ Is properly tested (automatic)                      │
-└─────────────────────────────────────────────────────────┘
-```
-
-### Powered By
-
-- **🌟 StarCoder2** - World-class code tokenization (70+ languages)
-- **🧠 TF-IDF Search** - Statistical relevance with semantic tokenization
-- **📚 Curated Knowledge** - Professional best practices
-- **🤖 Agent Orchestration** - Specialized AI agents working together
-- **🔌 MCP Protocol** - Standard AI tool integration
-
----
-
-## 💡 Why Sylphx Flow?
-
-### Developer Experience
-
-| Metric | Traditional | Sylphx Flow | Improvement |
-|--------|-------------|-------------|-------------|
-| **Time to prompt** | 5+ minutes | 10 seconds | **30x faster** |
-| **Prompt length** | 500+ words | 3-10 words | **50x shorter** |
-| **Context accuracy** | 70% | 95% | **+25%** |
-| **Cognitive load** | High | Minimal | **-80%** |
-| **Maintenance** | Constant | Zero | **Eliminated** |
-| **Onboarding time** | Weeks | Days | **5x faster** |
-
-### Key Benefits
-
-**For Individual Developers:**
-- ⚡ **2+ hours saved daily** - No more prompt engineering
-- 🎯 **Higher accuracy** - AI knows your context
-- 🧠 **Less mental load** - Just describe what you want
-- 📚 **Always learning** - Automatically improves
-
-**For Teams:**
-- 🤝 **Consistent quality** - Same context for everyone
-- 🚀 **Faster onboarding** - New devs productive immediately
-- 📖 **Shared knowledge** - Built-in best practices
-- 🔄 **Continuous improvement** - Learns from your codebase
-
-**For Projects:**
-- 🏗️ **Better architecture** - Follows best practices automatically
-- 🔒 **More secure** - Security guidelines built-in
-- 🧪 **Better tested** - Testing patterns included
-- 📝 **Better documented** - Documentation agents available
+**Why curated?**
+- ✅ Professionally maintained
+- ✅ Always up-to-date
+- ✅ Quality guaranteed
+- ✅ <100ms search
+- ✅ Zero cognitive load
 
 ---
 
 ## 🎯 Use Cases
 
-### Perfect For
-
-✅ **Rapid Prototyping** - Build MVPs 10x faster
-✅ **Feature Development** - Implement features with minimal prompting
-✅ **Code Review** - Automated security and quality checks
-✅ **Refactoring** - AI understands your codebase patterns
-✅ **Documentation** - Generate docs that match your style
-✅ **Multi-language Projects** - Works across 70+ languages
-✅ **Learning** - Best practices built-in
-✅ **Team Projects** - Consistent AI assistance for everyone
-
-### Testimonials
-
-> "I used to spend 30% of my time writing prompts for AI. Now I just tell Sylphx Flow what I want and it happens. Game changer."
-> — Developer at Tech Startup
-
-> "The fact that it searches my existing codebase to follow my patterns is incredible. It's like having a senior developer who knows my entire project."
-> — Solo Developer
-
-> "Setup took 30 seconds. Been using it for 2 weeks. Can't go back to traditional AI tools."
-> — Full-Stack Engineer
-
----
-
-## 🛠️ Available Commands
-
-### Core Commands
+### For Individual Developers
 
 ```bash
-# Run AI agents (auto-initializes on first use)
-sylphx-flow "your task"                            # Use default agent (coder)
-sylphx-flow "review code" --agent reviewer         # Use reviewer agent
-sylphx-flow "write docs" --agent writer            # Use writer agent
-sylphx-flow "complex task" --agent orchestrator    # Use orchestrator
+# Rapid prototyping
+sylphx-flow "create a blog with markdown support"
 
-# Choose platform (auto-detects by default)
-sylphx-flow "task" --target claude-code            # Use Claude Code
-sylphx-flow "task" --target opencode               # Use OpenCode
+# Feature development
+sylphx-flow "add OAuth login with GitHub"
 
-# Loop mode for continuous work (Claude Code only)
-sylphx-flow "process issues" --loop --target claude-code  # Continuous execution
-sylphx-flow "monitor and fix" --loop 300 --max-runs 20    # With 5min wait time
+# Bug fixing
+sylphx-flow "fix the memory leak in user service"
 
-# File input for complex prompts
-sylphx-flow "@detailed-task.txt"
-sylphx-flow "@prompt.md" --agent reviewer
-
-# Synchronize templates with latest Flow updates
-sylphx-flow --sync --target opencode               # Sync OpenCode setup
-sylphx-flow --sync --target claude-code            # Sync Claude Code setup
-
-# Manual initialization (optional, happens automatically)
-sylphx-flow --init-only                            # Setup without running
-sylphx-flow --init-only --target opencode          # Setup for specific platform
-
-# Search knowledge base
-sylphx-flow knowledge search "react patterns"
-sylphx-flow knowledge get "/stacks/react-app"
-
-# Search your codebase
-sylphx-flow codebase search "authentication logic"
-sylphx-flow codebase reindex  # After major code changes
+# Refactoring
+sylphx-flow "refactor to use dependency injection" --agent orchestrator
 ```
 
-### Specialized Agents
+### For Teams
 
-- **🎯 Coder** - Implements features with tests (default)
-- **🔄 Orchestrator** - Coordinates complex multi-step tasks
-- **🔍 Reviewer** - Reviews code for security, performance, quality
-- **📝 Writer** - Creates documentation and technical writing
+```bash
+# Code review automation
+sylphx-flow "review PR #123 for security" --agent reviewer
+
+# Documentation
+sylphx-flow "document all API endpoints" --agent writer
+
+# Consistency enforcement
+# (Settings ensure everyone uses same rules/agents)
+sylphx-flow settings
+→ Team admin configures standards
+→ All developers inherit settings
+```
+
+### For Projects
+
+```bash
+# Architecture changes
+sylphx-flow "migrate from REST to GraphQL" --agent orchestrator
+
+# Security audits
+sylphx-flow "audit for OWASP Top 10" --agent reviewer
+
+# Performance optimization
+sylphx-flow "optimize database queries" --loop
+
+# Continuous maintenance
+sylphx-flow "process GitHub issues" --loop 600 --max-runs 100
+```
 
 ---
 
 ## 📚 Documentation
 
-### Quick Links
+### Essential Reading
 
 - **[Installation & Setup](https://github.com/sylphxltd/flow/wiki/Installation-&-Setup)** - Complete setup guide
-- **[MEP Design Philosophy](https://github.com/sylphxltd/flow/wiki/MEP-Design-Philosophy)** - Why MEP changes everything
-- **[Technical Architecture](https://github.com/sylphxltd/flow/wiki/Technical-Architecture)** - How StarCoder2 tokenization works
+- **[Settings Guide](https://github.com/sylphxltd/flow/wiki/Settings-Guide)** - Master the settings nexus
+- **[MEP Design Philosophy](https://github.com/sylphxltd/flow/wiki/MEP-Design-Philosophy)** - Understand the paradigm shift
+- **[Technical Architecture](https://github.com/sylphxltd/flow/wiki/Technical-Architecture)** - Deep dive into Flow's internals
 - **[CLI Commands](https://github.com/sylphxltd/flow/wiki/CLI-Commands)** - Full command reference
-- **[Knowledge Base](https://github.com/sylphxltd/flow/wiki/Knowledge-Base)** - Curated guidelines system
-- **[Codebase Search](https://github.com/sylphxltd/flow/wiki/Codebase-Search)** - Semantic search deep dive
 - **[Agent Framework](https://github.com/sylphxltd/flow/wiki/Agent-Framework)** - How agents work
-
-### Project Documentation Structure
-
-```
-📁 Project Root
-  ├── README.md          # This file - project overview
-  ├── CHANGELOG.md       # Version history
-  └── AGENTS.md          # AI agent system prompt
-
-📁 docs/
-  ├── reports/                               # Code analysis & optimization reports
-  │   ├── ANALYSIS_RESULTS.md                # Automated code analysis
-  │   ├── CIRCULAR_DEPENDENCY_ELIMINATION.md # Circular dependency fixes
-  │   └── SYSTEMATIC_OPTIMIZATION_PLAN.md    # Optimization strategy
-  ├── claude-code-session-management.md      # Session management guide
-  ├── tool-display-guide.md                  # Tool UI guide
-  └── ...                                    # Technical documentation
-
-📁 wiki-pages/
-  ├── Installation-&-Setup.md                # Setup guide
-  ├── MEP-Design-Philosophy.md               # MEP concepts
-  └── ...                                    # Feature documentation
-
-📁 .github/
-  └── workflows/                             # GitHub Actions only
-
-📁 .archive/
-  └── refactoring-history/                   # Historical documentation
-```
-
-**Navigation Tips:**
-- **Getting Started**: Start with this README and `wiki-pages/Installation-&-Setup.md`
-- **Understanding MEP**: Read `wiki-pages/MEP-Design-Philosophy.md`
-- **Technical Details**: Check `docs/` folder
-- **Code Quality Reports**: See `docs/reports/` for analysis
-- **Historical Context**: View `.archive/` for refactoring history
+- **[Loop Mode Guide](./packages/flow/LOOP_MODE.md)** - Autonomous execution mastery
 
 ---
 
-## 🔧 Integration
+## 🌐 Platform Support
 
-### Works With
+### Current Support
 
-- **🤖 Claude Code** - Native integration with full loop mode support
-- **🔷 OpenCode** - Full support (loop mode coming soon)
-- **💻 Cursor** - Full MCP support
-- **⚡ Any MCP-compatible tool** - Standard protocol
-
-### Setup for Claude Code
-
-```bash
-# 1. Install globally
-npm install -g @sylphx/flow
-
-# 2. Initialize
-sylphx-flow init
-
-# 3. (Optional) Add OpenAI-compatible key to .claude/mcp.json
-# Enhances search quality with vector embeddings
-# Works without API key using TF-IDF
-
-# 4. Restart Claude Code
-# Done! All tools available.
-```
-
----
-
-## 🚀 What's Next?
+| Platform | Status | Auto-Install | Loop Mode |
+|----------|--------|--------------|-----------|
+| **Claude Code** | ✅ Full | ✅ Yes | ✅ Yes |
+| **OpenCode** | ✅ Full | ✅ Yes | ⏳ Coming Soon |
+| **Cursor** | ✅ MCP | Manual | ⏳ Coming Soon |
 
 ### Roadmap
 
-- [ ] **More Knowledge Domains** - Expand beyond web development
-- [ ] **Offline Mode** - Run StarCoder2 tokenization locally (no API needed)
-- [ ] **Team Collaboration** - Share knowledge across team
+- [ ] **IDE Plugins** - VSCode, IntelliJ, Vim
+- [ ] **CI/CD Integration** - GitHub Actions, GitLab CI
+- [ ] **Cloud Execution** - Remote AI orchestration
+- [ ] **Team Collaboration** - Shared settings and knowledge
 - [ ] **Custom Agents** - Create your own specialized agents
-- [ ] **IDE Plugins** - Direct integration with VSCode, IntelliJ
-- [ ] **Real-time Learning** - AI learns from your commits
-
-### Contributing
-
-We welcome contributions! Check out:
-- [Contributing Guide](https://github.com/sylphxltd/flow/wiki/Contributing)
-- [Good First Issues](https://github.com/sylphxltd/flow/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
-- [Discord Community](#) (coming soon)
 
 ---
 
-## 📊 Project Stats
+## 💡 Why Flow?
 
-<div align="center">
+### The Transcendent Difference
 
-![GitHub Stars](https://img.shields.io/github/stars/sylphxltd/flow?style=for-the-badge)
-![GitHub Forks](https://img.shields.io/github/forks/sylphxltd/flow?style=for-the-badge)
-![GitHub Issues](https://img.shields.io/github/issues/sylphxltd/flow?style=for-the-badge)
-![License](https://img.shields.io/github/license/sylphxltd/flow?style=for-the-badge)
+| Feature | Traditional AI CLIs | Sylphx Flow |
+|---------|---------------------|-------------|
+| **CLI Count** | Multiple (1 per tool) | **One (rules them all)** |
+| **Installation** | Manual, fragmented | **Automatic, unified** |
+| **Updates** | Manual per tool | **Automatic per session** |
+| **Settings** | Per-project, scattered | **Global, centralized** |
+| **Context Awareness** | Manual prompting | **Automatic enrichment** |
+| **Prompt Length** | 500+ words | **3-10 words (MEP)** |
+| **Git Integration** | Accidental commits | **Skip-worktree protection** |
+| **Ctrl+C Handling** | Crashes, manual recovery | **Graceful restore** |
+| **Agent System** | Generic AI | **Specialized experts** |
+| **Knowledge Base** | DIY or none | **Professionally curated** |
 
-</div>
+### Quantified Impact
+
+- ⚡ **30x faster** - Time to prompt (10s vs 5min)
+- 📝 **50x shorter** - Prompt length (10 words vs 500)
+- 🎯 **+25%** - Context accuracy (95% vs 70%)
+- 🧠 **-80%** - Cognitive load (minimal vs high)
+- 🔄 **Zero** - Maintenance overhead (vs constant)
+- 🚀 **5x faster** - Team onboarding (days vs weeks)
 
 ---
 
 ## 🙏 Acknowledgments
 
-Built with:
-- **[StarCoder2](https://huggingface.co/bigcode/starcoder2)** - Code tokenization
-- **[MCP Protocol](https://modelcontextprotocol.io)** - AI tool integration
-- **[Anthropic Claude](https://claude.ai)** - AI foundation
+Flow stands on the shoulders of giants:
+
+- **[StarCoder2](https://huggingface.co/bigcode/starcoder2)** - Revolutionary code tokenization
+- **[MCP Protocol](https://modelcontextprotocol.io)** - Standard AI tool integration
+- **[Anthropic Claude](https://claude.ai)** - Foundation model
+- **[OpenCode](https://github.com/openmcp/opencode)** - Open source alternative
 - Open source community ❤️
 
 ---
@@ -934,9 +861,8 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 **[⭐ Star us on GitHub](https://github.com/sylphxltd/flow)** • **[📖 Read the Docs](https://github.com/sylphxltd/flow/wiki)** • **[🐛 Report Issues](https://github.com/sylphxltd/flow/issues)**
 
-**Stop writing prompts. Start building software.**
+**One CLI to rule them all.**
 
 Made with ❤️ by [Sylphx Ltd](https://github.com/sylphxltd)
 
 </div>
-
