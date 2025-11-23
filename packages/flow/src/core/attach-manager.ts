@@ -49,6 +49,18 @@ export class AttachManager {
   }
 
   /**
+   * Get target-specific directory names
+   */
+  private getTargetDirs(target: 'claude-code' | 'opencode'): {
+    agents: string;
+    commands: string;
+  } {
+    return target === 'claude-code'
+      ? { agents: 'agents', commands: 'commands' }
+      : { agents: 'agent', commands: 'command' };
+  }
+
+  /**
    * Attach Flow templates to project
    * Strategy: Override with warning, backup handles restoration
    */
@@ -79,10 +91,10 @@ export class AttachManager {
     await fs.mkdir(targetDir, { recursive: true });
 
     // 1. Attach agents
-    await this.attachAgents(targetDir, templates.agents, result, manifest);
+    await this.attachAgents(targetDir, target, templates.agents, result, manifest);
 
     // 2. Attach commands
-    await this.attachCommands(targetDir, templates.commands, result, manifest);
+    await this.attachCommands(targetDir, target, templates.commands, result, manifest);
 
     // 3. Attach rules (if applicable)
     if (templates.rules) {
@@ -121,11 +133,13 @@ export class AttachManager {
    */
   private async attachAgents(
     targetDir: string,
+    target: 'claude-code' | 'opencode',
     agents: Array<{ name: string; content: string }>,
     result: AttachResult,
     manifest: BackupManifest
   ): Promise<void> {
-    const agentsDir = path.join(targetDir, 'agents');
+    const dirs = this.getTargetDirs(target);
+    const agentsDir = path.join(targetDir, dirs.agents);
     await fs.mkdir(agentsDir, { recursive: true });
 
     for (const agent of agents) {
@@ -161,11 +175,13 @@ export class AttachManager {
    */
   private async attachCommands(
     targetDir: string,
+    target: 'claude-code' | 'opencode',
     commands: Array<{ name: string; content: string }>,
     result: AttachResult,
     manifest: BackupManifest
   ): Promise<void> {
-    const commandsDir = path.join(targetDir, 'commands');
+    const dirs = this.getTargetDirs(target);
+    const commandsDir = path.join(targetDir, dirs.commands);
     await fs.mkdir(commandsDir, { recursive: true });
 
     for (const command of commands) {
@@ -208,9 +224,10 @@ export class AttachManager {
   ): Promise<void> {
     // Claude Code: .claude/agents/AGENTS.md
     // OpenCode: .opencode/AGENTS.md
+    const dirs = this.getTargetDirs(target);
     const rulesPath =
       target === 'claude-code'
-        ? path.join(targetDir, 'agents', 'AGENTS.md')
+        ? path.join(targetDir, dirs.agents, 'AGENTS.md')
         : path.join(targetDir, 'AGENTS.md');
 
     if (existsSync(rulesPath)) {

@@ -40,7 +40,8 @@ export class SessionManager {
     projectPath: string,
     projectHash: string,
     target: 'claude-code' | 'opencode',
-    backupPath: string
+    backupPath: string,
+    sessionId?: string
   ): Promise<{ session: Session; isFirstSession: boolean }> {
     const paths = this.projectManager.getProjectPaths(projectHash);
 
@@ -63,11 +64,12 @@ export class SessionManager {
       };
     }
 
-    // First session - create new
+    // First session - create new (use provided sessionId or generate one)
+    const newSessionId = sessionId || `session-${Date.now()}`;
     const session: Session = {
       projectHash,
       projectPath,
-      sessionId: `session-${Date.now()}`,
+      sessionId: newSessionId,
       pid: process.pid,
       startTime: new Date().toISOString(),
       backupPath,
@@ -75,7 +77,7 @@ export class SessionManager {
       target,
       cleanupRequired: true,
       isOriginal: true,
-      sharedBackupId: `session-${Date.now()}`,
+      sharedBackupId: newSessionId,
       refCount: 1,
       activePids: [process.pid],
     };

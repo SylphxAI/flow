@@ -112,12 +112,13 @@ export class FlowExecutor {
       }
     }
 
-    // Step 5: Start session
+    // Step 5: Start session (use backup's sessionId to ensure consistency)
     const { session, isFirstSession } = await this.sessionManager.startSession(
       projectPath,
       projectHash,
       target,
-      backup.backupPath
+      backup.backupPath,
+      backup.sessionId
     );
 
     // Step 6: Register cleanup hooks
