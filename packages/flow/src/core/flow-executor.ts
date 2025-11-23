@@ -12,6 +12,7 @@ import { AttachManager } from './attach-manager.js';
 import { SecretsManager } from './secrets-manager.js';
 import { CleanupHandler } from './cleanup-handler.js';
 import { TemplateLoader } from './template-loader.js';
+import { GitStashManager } from './git-stash-manager.js';
 
 export interface FlowExecutorOptions {
   verbose?: boolean;
@@ -28,6 +29,7 @@ export class FlowExecutor {
   private secretsManager: SecretsManager;
   private cleanupHandler: CleanupHandler;
   private templateLoader: TemplateLoader;
+  private gitStashManager: GitStashManager;
 
   constructor() {
     this.projectManager = new ProjectManager();
@@ -41,6 +43,7 @@ export class FlowExecutor {
       this.backupManager
     );
     this.templateLoader = new TemplateLoader();
+    this.gitStashManager = new GitStashManager();
   }
 
   /**
@@ -88,7 +91,11 @@ export class FlowExecutor {
       return;
     }
 
-    // First session - create backup and attach
+    // First session - stash settings changes, then create backup and attach
+    // Step 3: Stash git changes to hide Flow's modifications from git status
+    console.log(chalk.cyan('🔍 Checking git status...'));
+    await this.gitStashManager.stashSettingsChanges(projectPath);
+
     console.log(chalk.cyan('💾 Creating backup...'));
     const backup = await this.backupManager.createBackup(
       projectPath,
@@ -237,6 +244,9 @@ export class FlowExecutor {
     console.log(chalk.cyan('\n🧹 Cleaning up...'));
 
     await this.cleanupHandler.cleanup(projectHash);
+
+    // Restore stashed git changes
+    await this.gitStashManager.popSettingsChanges(projectPath);
 
     console.log(chalk.green('   ✓ Environment restored'));
     console.log(chalk.green('   ✓ Secrets preserved for next run\n'));

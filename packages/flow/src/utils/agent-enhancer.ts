@@ -18,17 +18,20 @@ import { yamlUtils } from './config/target-utils.js';
 /**
  * Load and combine rules and output styles
  */
-export async function loadRulesAndStyles(ruleNames?: string[]): Promise<string> {
+export async function loadRulesAndStyles(
+  ruleNames?: string[],
+  outputStyleNames?: string[]
+): Promise<string> {
   const sections: string[] = [];
 
-  // Load rules (either specified rules or default to 'core')
+  // Load rules (either specified rules or default to all)
   const rulesContent = await loadRules(ruleNames);
   if (rulesContent) {
     sections.push(rulesContent);
   }
 
-  // Load output styles
-  const stylesContent = await loadOutputStyles();
+  // Load output styles (either specified or all)
+  const stylesContent = await loadOutputStyles(outputStyleNames);
   if (stylesContent) {
     sections.push(stylesContent);
   }
@@ -69,26 +72,36 @@ async function loadRules(ruleNames?: string[]): Promise<string> {
 
 /**
  * Load output styles from assets/output-styles/
+ * @param styleNames - Array of style file names (without .md extension). If not provided, loads all styles.
  */
-async function loadOutputStyles(): Promise<string> {
+async function loadOutputStyles(styleNames?: string[]): Promise<string> {
   try {
     const outputStylesDir = getOutputStylesDir();
-    const files = await fs.readdir(outputStylesDir);
-    const mdFiles = files.filter((f) => f.endsWith('.md'));
-
-    if (mdFiles.length === 0) {
-      return '';
-    }
-
     const sections: string[] = [];
 
-    for (const file of mdFiles) {
-      const filePath = path.join(outputStylesDir, file);
-      const content = await fs.readFile(filePath, 'utf8');
+    // If specific styles are requested, load only those
+    if (styleNames && styleNames.length > 0) {
+      for (const styleName of styleNames) {
+        const filePath = path.join(outputStylesDir, `${styleName}.md`);
+        try {
+          const content = await fs.readFile(filePath, 'utf8');
+          const stripped = await yamlUtils.stripFrontMatter(content);
+          sections.push(stripped);
+        } catch (error) {
+          console.warn(`Warning: Output style file not found: ${styleName}.md`);
+        }
+      }
+    } else {
+      // Load all styles
+      const files = await fs.readdir(outputStylesDir);
+      const mdFiles = files.filter((f) => f.endsWith('.md'));
 
-      // Strip YAML front matter
-      const stripped = await yamlUtils.stripFrontMatter(content);
-      sections.push(stripped);
+      for (const file of mdFiles) {
+        const filePath = path.join(outputStylesDir, file);
+        const content = await fs.readFile(filePath, 'utf8');
+        const stripped = await yamlUtils.stripFrontMatter(content);
+        sections.push(stripped);
+      }
     }
 
     return sections.join('\n\n');
@@ -101,10 +114,15 @@ async function loadOutputStyles(): Promise<string> {
 /**
  * Enhance agent content by appending rules and output styles
  * @param agentContent - The agent markdown content
- * @param ruleNames - Optional array of rule file names to include (defaults to ['core'])
+ * @param ruleNames - Optional array of rule file names to include
+ * @param outputStyleNames - Optional array of output style file names to include
  */
-export async function enhanceAgentContent(agentContent: string, ruleNames?: string[]): Promise<string> {
-  const rulesAndStyles = await loadRulesAndStyles(ruleNames);
+export async function enhanceAgentContent(
+  agentContent: string,
+  ruleNames?: string[],
+  outputStyleNames?: string[]
+): Promise<string> {
+  const rulesAndStyles = await loadRulesAndStyles(ruleNames, outputStyleNames);
 
   if (!rulesAndStyles) {
     return agentContent;
