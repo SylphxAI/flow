@@ -89,15 +89,13 @@ async function configureMCP(configService: GlobalConfigService): Promise<void> {
   const mcpConfig = await configService.loadMCPConfig();
   const currentServers = mcpConfig.servers || {};
 
-  // Available MCP servers
+  // Available MCP servers (from MCP_SERVER_REGISTRY)
   const availableServers = {
+    'grep': { name: 'GitHub Code Search (grep.app)', requiresEnv: [] },
+    'context7': { name: 'Context7 Docs', requiresEnv: [] },
+    'playwright': { name: 'Playwright Browser Control', requiresEnv: [] },
     'github': { name: 'GitHub', requiresEnv: ['GITHUB_TOKEN'] },
     'notion': { name: 'Notion', requiresEnv: ['NOTION_API_KEY'] },
-    'web-search-prime': { name: 'Web Search', requiresEnv: [] },
-    'context7': { name: 'Context7', requiresEnv: [] },
-    'playwright': { name: 'Playwright Browser Control', requiresEnv: [] },
-    'grep': { name: 'GitHub Code Search', requiresEnv: [] },
-    'zai-mcp-server': { name: 'Z.ai Vision & Video Analysis', requiresEnv: [] },
   };
 
   // Get current enabled servers

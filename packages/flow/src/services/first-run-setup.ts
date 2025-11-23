@@ -113,13 +113,11 @@ export class FirstRunSetup {
           name: 'mcpServers',
           message: 'Select MCP servers to enable:',
           choices: [
+            { name: 'GitHub Code Search (grep.app)', value: 'grep', checked: true },
+            { name: 'Context7 Docs', value: 'context7', checked: true },
+            { name: 'Playwright Browser Control', value: 'playwright', checked: true },
             { name: 'GitHub (requires GITHUB_TOKEN)', value: 'github' },
-            { name: 'Web Search', value: 'web-search-prime', checked: true },
-            { name: 'GitHub Code Search', value: 'grep', checked: true },
-            { name: 'Playwright Browser Control', value: 'playwright' },
-            { name: 'Z.ai Vision & Video', value: 'zai-mcp-server' },
-            { name: 'Context7 Docs', value: 'context7' },
-            { name: 'Notion', value: 'notion' },
+            { name: 'Notion (requires NOTION_API_KEY)', value: 'notion' },
           ],
         },
       ]);
