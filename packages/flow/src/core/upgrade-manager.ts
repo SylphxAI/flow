@@ -276,11 +276,21 @@ export class UpgradeManager {
 
   private async getCurrentFlowVersion(): Promise<string | null> {
     try {
-      const configPath = path.join(this.projectPath, getProjectSettingsFile());
-      const config = JSON.parse(await fs.readFile(configPath, 'utf-8'));
-      return config.version || null;
-    } catch {
-      return null;
+      // Read version from the running CLI's package.json
+      // __dirname points to dist/ or src/, so go up to package root
+      const packagePath = path.join(__dirname, '..', '..', 'package.json');
+      const packageJson = JSON.parse(await fs.readFile(packagePath, 'utf-8'));
+      return packageJson.version || null;
+    } catch (error) {
+      // Fallback: try to get version from globally installed package
+      try {
+        const { stdout } = await execAsync('npm list -g @sylphx/flow --depth=0 --json');
+        const result = JSON.parse(stdout);
+        const flowPackage = result.dependencies?.['@sylphx/flow'];
+        return flowPackage?.version || null;
+      } catch {
+        return null;
+      }
     }
   }
 
