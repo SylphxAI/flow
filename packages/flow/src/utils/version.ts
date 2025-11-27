@@ -34,9 +34,11 @@ export function isVersionOutdated(current: string, latest: string): boolean {
 /**
  * Parse version string into components
  */
-export function parseVersion(version: string): { major: number; minor: number; patch: number } | null {
+export function parseVersion(
+  version: string
+): { major: number; minor: number; patch: number } | null {
   const parts = version.split('.').map(Number);
-  if (parts.length < 3 || parts.some(isNaN)) {
+  if (parts.length < 3 || parts.some(Number.isNaN)) {
     return null;
   }
   return {

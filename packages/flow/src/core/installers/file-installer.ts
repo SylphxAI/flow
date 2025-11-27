@@ -256,4 +256,3 @@ export async function installFile(
     console.log(`${action} file: ${targetFile.replace(`${process.cwd()}/`, '')}`);
   }
 }
-

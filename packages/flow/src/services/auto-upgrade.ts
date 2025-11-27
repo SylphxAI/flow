@@ -4,9 +4,9 @@
  */
 
 import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { promisify } from 'node:util';
 import chalk from 'chalk';
 import ora from 'ora';
 import { detectPackageManager, getUpgradeCommand } from '../utils/package-manager-detector.js';

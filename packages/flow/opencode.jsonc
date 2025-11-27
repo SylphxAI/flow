@@ -6,11 +6,7 @@
   "mcp": {
     "sylphx-flow": {
       "type": "local",
-      "command": [
-        "sylphx-flow",
-        "mcp",
-        "start"
-      ],
+      "command": ["sylphx-flow", "mcp", "start"],
       "environment": {
         "OPENAI_API_KEY": "",
         "OPENAI_BASE_URL": "https://api.openai.com/v1",

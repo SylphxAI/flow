@@ -28,16 +28,14 @@ export interface ByteFormatOptions {
 export function formatBytes(bytes: number, options: ByteFormatOptions = {}): string {
   const { decimals = 2, shortUnits = false } = options;
 
-  const units = shortUnits
-    ? ['B', 'KB', 'MB', 'GB', 'TB']
-    : ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const units = shortUnits ? ['B', 'KB', 'MB', 'GB', 'TB'] : ['Bytes', 'KB', 'MB', 'GB', 'TB'];
 
   if (bytes === 0) {
     return `0 ${units[0]}`;
   }
 
   const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
-  const value = bytes / Math.pow(1024, i);
+  const value = bytes / 1024 ** i;
 
   // Format with specified decimal places
   const formatted = value.toFixed(decimals);

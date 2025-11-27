@@ -4,12 +4,10 @@
  * Stores secrets in ~/.sylphx-flow/secrets/{project-hash}/
  */
 
+import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { existsSync } from 'node:fs';
-import crypto from 'node:crypto';
-import os from 'node:os';
-import { ProjectManager } from './project-manager.js';
+import type { ProjectManager } from './project-manager.js';
 
 export interface MCPSecrets {
   version: string;
@@ -35,7 +33,7 @@ export class SecretsManager {
    */
   async extractMCPSecrets(
     projectPath: string,
-    projectHash: string,
+    _projectHash: string,
     target: 'claude-code' | 'opencode'
   ): Promise<MCPSecrets> {
     const targetDir = this.projectManager.getTargetConfigDir(projectPath, target);
@@ -58,7 +56,7 @@ export class SecretsManager {
       const config = JSON.parse(await fs.readFile(configPath, 'utf-8'));
 
       // Extract MCP server secrets
-      if (config.mcp && config.mcp.servers) {
+      if (config.mcp?.servers) {
         for (const [serverName, serverConfig] of Object.entries(config.mcp.servers)) {
           const server = serverConfig as any;
 
@@ -78,7 +76,7 @@ export class SecretsManager {
           }
         }
       }
-    } catch (error) {
+    } catch (_error) {
       // Config file exists but cannot be parsed, skip
     }
 
@@ -123,7 +121,7 @@ export class SecretsManager {
    */
   async restoreSecrets(
     projectPath: string,
-    projectHash: string,
+    _projectHash: string,
     target: 'claude-code' | 'opencode',
     secrets: MCPSecrets
   ): Promise<void> {
@@ -145,7 +143,7 @@ export class SecretsManager {
       const config = JSON.parse(await fs.readFile(configPath, 'utf-8'));
 
       // Restore secrets to MCP servers
-      if (config.mcp && config.mcp.servers) {
+      if (config.mcp?.servers) {
         for (const [serverName, serverSecrets] of Object.entries(secrets.servers)) {
           if (config.mcp.servers[serverName]) {
             // Restore env vars
@@ -163,47 +161,9 @@ export class SecretsManager {
 
       // Write updated config
       await fs.writeFile(configPath, JSON.stringify(config, null, 2));
-    } catch (error) {
+    } catch (_error) {
       // Config restore failed, skip
     }
-  }
-
-  /**
-   * Encrypt secrets (optional - for enhanced security)
-   */
-  private async encrypt(data: string): Promise<string> {
-    // Use machine ID + user HOME as stable key source
-    const keySource = `${os.homedir()}-${os.hostname()}`;
-    const key = crypto.scryptSync(keySource, 'sylphx-flow-salt', 32);
-    const iv = crypto.randomBytes(16);
-
-    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
-    let encrypted = cipher.update(data, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-
-    const authTag = cipher.getAuthTag();
-
-    return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted}`;
-  }
-
-  /**
-   * Decrypt secrets (optional)
-   */
-  private async decrypt(encrypted: string): Promise<string> {
-    const [ivHex, authTagHex, encryptedData] = encrypted.split(':');
-
-    const keySource = `${os.homedir()}-${os.hostname()}`;
-    const key = crypto.scryptSync(keySource, 'sylphx-flow-salt', 32);
-    const iv = Buffer.from(ivHex, 'hex');
-    const authTag = Buffer.from(authTagHex, 'hex');
-
-    const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
-    decipher.setAuthTag(authTag);
-
-    let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-
-    return decrypted;
   }
 
   /**

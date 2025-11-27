@@ -5,10 +5,10 @@
  */
 
 import crypto from 'node:crypto';
-import path from 'node:path';
-import os from 'node:os';
 import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 
 export interface ProjectPaths {
   sessionFile: string;
@@ -31,11 +31,7 @@ export class ProjectManager {
    */
   getProjectHash(projectPath: string): string {
     const absolutePath = path.resolve(projectPath);
-    return crypto
-      .createHash('sha256')
-      .update(absolutePath)
-      .digest('hex')
-      .substring(0, 16);
+    return crypto.createHash('sha256').update(absolutePath).digest('hex').substring(0, 16);
   }
 
   /**
@@ -133,7 +129,7 @@ export class ProjectManager {
     target: 'claude-code' | 'opencode'
   ): Promise<void> {
     const prefsPath = path.join(this.flowHomeDir, 'project-preferences.json');
-    let prefs: any = { projects: {} };
+    let prefs: { projects: Record<string, { target?: string }> } = { projects: {} };
 
     if (existsSync(prefsPath)) {
       try {

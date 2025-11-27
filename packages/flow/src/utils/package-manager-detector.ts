@@ -27,10 +27,18 @@ export function detectPackageManagerFromUserAgent(): PackageManager | null {
     return null;
   }
 
-  if (userAgent.includes('bun')) return 'bun';
-  if (userAgent.includes('pnpm')) return 'pnpm';
-  if (userAgent.includes('yarn')) return 'yarn';
-  if (userAgent.includes('npm')) return 'npm';
+  if (userAgent.includes('bun')) {
+    return 'bun';
+  }
+  if (userAgent.includes('pnpm')) {
+    return 'pnpm';
+  }
+  if (userAgent.includes('yarn')) {
+    return 'yarn';
+  }
+  if (userAgent.includes('npm')) {
+    return 'npm';
+  }
 
   return null;
 }
@@ -38,7 +46,9 @@ export function detectPackageManagerFromUserAgent(): PackageManager | null {
 /**
  * Detect package manager from lock files in directory
  */
-export function detectPackageManagerFromLockFiles(dir: string = process.cwd()): PackageManager | null {
+export function detectPackageManagerFromLockFiles(
+  dir: string = process.cwd()
+): PackageManager | null {
   const lockFiles: Record<PackageManager, string[]> = {
     bun: ['bun.lockb', 'bun.lock'],
     pnpm: ['pnpm-lock.yaml'],

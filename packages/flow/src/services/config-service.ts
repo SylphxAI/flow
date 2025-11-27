@@ -5,12 +5,11 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import os from 'node:os';
 import {
   CONFIG_DIR,
-  USER_SETTINGS_FILE,
+  getProjectLocalSettingsFile,
   getProjectSettingsFile,
-  getProjectLocalSettingsFile
+  USER_SETTINGS_FILE,
 } from '../config/constants.js';
 
 /**
@@ -27,8 +26,8 @@ export interface UserSettings {
 
   // API keys for providers
   apiKeys?: {
-    kimi?: string;     // Kimi provider
-    'z.ai'?: string;   // Z.ai proxy
+    kimi?: string; // Kimi provider
+    'z.ai'?: string; // Z.ai proxy
   };
 
   // User preferences (can be changed anytime)
@@ -45,7 +44,7 @@ export interface UserSettings {
 export interface ProjectSettings {
   target?: string;
   version?: string;
-  defaultAgent?: string;  // Can override user default per project
+  defaultAgent?: string; // Can override user default per project
 
   [key: string]: unknown;
 }
@@ -55,9 +54,9 @@ export interface ProjectSettings {
  * These are selected each run but can be overridden by CLI flags
  */
 export interface RuntimeChoices {
-  provider?: string;  // Selected for this run
-  agent?: string;     // Selected for this run
-  prompt?: string;    // User prompt for this run
+  provider?: string; // Selected for this run
+  agent?: string; // Selected for this run
+  prompt?: string; // User prompt for this run
 
   [key: string]: unknown;
 }
@@ -71,9 +70,9 @@ export class ConfigService {
     project: ProjectSettings;
     choices: RuntimeChoices;
   }> {
-    const userSettings = await this.loadHomeSettings();
-    const projectSettings = await this.loadProjectSettings(cwd);
-    const localSettings = await this.loadLocalSettings(cwd);
+    const userSettings = await ConfigService.loadHomeSettings();
+    const projectSettings = await ConfigService.loadProjectSettings(cwd);
+    const localSettings = await ConfigService.loadLocalSettings(cwd);
 
     // Runtime choices merge: local > project > user defaults
     const choices: RuntimeChoices = {
@@ -92,7 +91,7 @@ export class ConfigService {
    * Legacy method for backward compatibility
    */
   static async loadSettings(cwd: string = process.cwd()): Promise<any> {
-    const config = await this.loadConfiguration(cwd);
+    const config = await ConfigService.loadConfiguration(cwd);
     return {
       ...config.user,
       ...config.project,
@@ -120,18 +119,21 @@ export class ConfigService {
     await fs.mkdir(USER_SETTINGS_FILE.replace('/settings.json', ''), { recursive: true });
 
     // Merge with existing settings and save
-    const existing = await this.loadHomeSettings();
+    const existing = await ConfigService.loadHomeSettings();
     const merged = { ...existing, ...settings };
-    await fs.writeFile(USER_SETTINGS_FILE, JSON.stringify(merged, null, 2) + '\n');
+    await fs.writeFile(USER_SETTINGS_FILE, `${JSON.stringify(merged, null, 2)}\n`);
   }
 
   /**
    * Check if user has completed initial setup (API keys configured)
    */
   static async hasInitialSetup(): Promise<boolean> {
-    const userSettings = await this.loadHomeSettings();
+    const userSettings = await ConfigService.loadHomeSettings();
     // Check if user has completed setup (either has API keys OR has explicitly chosen default)
-    return !!(userSettings.hasCompletedSetup || (userSettings.apiKeys && Object.keys(userSettings.apiKeys).length > 0));
+    return !!(
+      userSettings.hasCompletedSetup ||
+      (userSettings.apiKeys && Object.keys(userSettings.apiKeys).length > 0)
+    );
   }
 
   /**
@@ -140,8 +142,12 @@ export class ConfigService {
    */
   static getAvailableProviders(userSettings: UserSettings): string[] {
     const providers: string[] = ['default']; // Always available
-    if (userSettings.apiKeys?.kimi) providers.push('kimi');
-    if (userSettings.apiKeys?.['z.ai']) providers.push('z.ai');
+    if (userSettings.apiKeys?.kimi) {
+      providers.push('kimi');
+    }
+    if (userSettings.apiKeys?.['z.ai']) {
+      providers.push('z.ai');
+    }
     return providers;
   }
 
@@ -161,17 +167,20 @@ export class ConfigService {
   /**
    * Save project-level settings
    */
-  static async saveProjectSettings(settings: ProjectSettings, cwd: string = process.cwd()): Promise<void> {
+  static async saveProjectSettings(
+    settings: ProjectSettings,
+    cwd: string = process.cwd()
+  ): Promise<void> {
     // Ensure directory exists
     const configDir = path.join(cwd, CONFIG_DIR);
     await fs.mkdir(configDir, { recursive: true });
 
     // Merge with existing settings and save
-    const existing = await this.loadProjectSettings(cwd);
+    const existing = await ConfigService.loadProjectSettings(cwd);
     const merged = { ...existing, ...settings };
 
     const configPath = getProjectSettingsFile(cwd);
-    await fs.writeFile(configPath, JSON.stringify(merged, null, 2) + '\n');
+    await fs.writeFile(configPath, `${JSON.stringify(merged, null, 2)}\n`);
   }
 
   /**
@@ -190,13 +199,16 @@ export class ConfigService {
   /**
    * Save project-local settings
    */
-  static async saveLocalSettings(settings: RuntimeChoices, cwd: string = process.cwd()): Promise<void> {
+  static async saveLocalSettings(
+    settings: RuntimeChoices,
+    cwd: string = process.cwd()
+  ): Promise<void> {
     // Ensure directory exists
     const configDir = path.join(cwd, CONFIG_DIR);
     await fs.mkdir(configDir, { recursive: true });
 
     const configPath = getProjectLocalSettingsFile(cwd);
-    await fs.writeFile(configPath, JSON.stringify(settings, null, 2) + '\n');
+    await fs.writeFile(configPath, `${JSON.stringify(settings, null, 2)}\n`);
   }
 
   /**
@@ -209,14 +221,14 @@ export class ConfigService {
   ): Promise<void> {
     // Save API keys to home directory
     if (userConfig.claudeApiKey || userConfig.claudeProvider || userConfig.claudeProviderConfig) {
-      await this.saveHomeSettings(userConfig);
+      await ConfigService.saveHomeSettings(userConfig);
     }
 
     // Save other settings to project
-    await this.saveProjectSettings(projectConfig, cwd);
+    await ConfigService.saveProjectSettings(projectConfig, cwd);
 
     // Create .gitignore pattern file if it doesn't exist (excluding .local.json)
-    await this.addGitignore(cwd);
+    await ConfigService.addGitignore(cwd);
   }
 
   /**
@@ -235,11 +247,11 @@ export class ConfigService {
 
       // Check if pattern already exists
       if (!content.includes('.sylphx-flow/*.local.json')) {
-        await fs.appendFile(gitignorePath, patterns.join('\n') + '\n');
+        await fs.appendFile(gitignorePath, `${patterns.join('\n')}\n`);
       }
     } catch {
       // .gitignore doesn't exist - create it
-      await fs.writeFile(gitignorePath, patterns.join('\n').trim() + '\n');
+      await fs.writeFile(gitignorePath, `${patterns.join('\n').trim()}\n`);
     }
   }
 

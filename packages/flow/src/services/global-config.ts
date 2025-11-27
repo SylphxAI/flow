@@ -3,10 +3,10 @@
  * Manages all Flow settings in ~/.sylphx-flow/
  */
 
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import os from 'node:os';
 import { existsSync } from 'node:fs';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 
 export interface GlobalSettings {
   version: string;

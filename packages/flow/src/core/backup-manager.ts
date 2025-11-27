@@ -4,11 +4,11 @@
  * Supports multi-project isolation in ~/.sylphx-flow/backups/
  */
 
+import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { existsSync } from 'node:fs';
 import ora from 'ora';
-import { ProjectManager } from './project-manager.js';
+import type { ProjectManager } from './project-manager.js';
 
 export interface BackupInfo {
   sessionId: string;
@@ -113,10 +113,7 @@ export class BackupManager {
         },
       };
 
-      await fs.writeFile(
-        path.join(backupPath, 'manifest.json'),
-        JSON.stringify(manifest, null, 2)
-      );
+      await fs.writeFile(path.join(backupPath, 'manifest.json'), JSON.stringify(manifest, null, 2));
 
       // Create symlink to latest
       const latestLink = paths.latestBackup;
@@ -156,9 +153,7 @@ export class BackupManager {
     try {
       // Read manifest
       const manifestPath = path.join(backupPath, 'manifest.json');
-      const manifest: BackupManifest = JSON.parse(
-        await fs.readFile(manifestPath, 'utf-8')
-      );
+      const manifest: BackupManifest = JSON.parse(await fs.readFile(manifestPath, 'utf-8'));
 
       const projectPath = manifest.projectPath;
       const target = manifest.target;
@@ -232,7 +227,7 @@ export class BackupManager {
       .filter((e) => e.isDirectory() && e.name.startsWith('session-'))
       .map((e) => ({
         name: e.name,
-        timestamp: parseInt(e.name.replace('session-', '')),
+        timestamp: parseInt(e.name.replace('session-', ''), 10),
       }))
       .sort((a, b) => b.timestamp - a.timestamp);
 
@@ -290,9 +285,7 @@ export class BackupManager {
 
       const manifestPath = path.join(paths.backupsDir, entry.name, 'manifest.json');
       if (existsSync(manifestPath)) {
-        const manifest: BackupManifest = JSON.parse(
-          await fs.readFile(manifestPath, 'utf-8')
-        );
+        const manifest: BackupManifest = JSON.parse(await fs.readFile(manifestPath, 'utf-8'));
         backups.push({
           sessionId: manifest.sessionId,
           timestamp: manifest.timestamp,

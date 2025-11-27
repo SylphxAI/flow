@@ -3,10 +3,10 @@
  * Entry point for all flow-related CLI commands
  */
 
-import { Command } from 'commander';
-import chalk from 'chalk';
-import path from 'node:path';
 import fs from 'node:fs/promises';
+import path from 'node:path';
+import chalk from 'chalk';
+import { Command } from 'commander';
 import { StateDetector } from '../core/state-detector.js';
 import { UpgradeManager } from '../core/upgrade-manager.js';
 import { showWelcome } from '../utils/display/banner.js';
@@ -30,7 +30,10 @@ export const flowCommand = new Command('flow')
   .option('--merge', 'Merge Flow settings with existing settings (default: replace all)')
 
   // Prompt argument
-  .argument('[prompt]', 'Prompt to execute with agent (optional, supports @file.txt for file input)')
+  .argument(
+    '[prompt]',
+    'Prompt to execute with agent (optional, supports @file.txt for file input)'
+  )
 
   .action(async (prompt, options: FlowOptions) => {
     await executeFlow(prompt, options);
@@ -41,7 +44,7 @@ export const flowCommand = new Command('flow')
  */
 export const setupCommand = new Command('setup')
   .description('[DEPRECATED] No longer needed - Flow uses automatic attach mode')
-  .action(async () => {
+  .action(() => {
     console.log(chalk.yellow('⚠️  The "setup" command is deprecated.\n'));
     console.log(chalk.cyan('Flow now uses automatic attach mode:'));
     console.log(chalk.dim('   • No installation needed'));
@@ -118,23 +121,23 @@ export const doctorCommand = new Command('doctor')
         await executeFlow(undefined, { sync: true } as FlowOptions);
         console.log(chalk.green('  ✓ 已修复'));
       }
-    } else if (!state.initialized) {
+    } else if (state.initialized) {
+      console.log(chalk.green('  ✓ 配置正常'));
+    } else {
       console.log(chalk.yellow('  ⚠ 项目未初始化'));
       issuesFound = true;
-    } else {
-      console.log(chalk.green('  ✓ 配置正常'));
     }
 
     // Check 3: Components
     console.log('\n检查组件...');
     Object.entries(state.components).forEach(([name, component]) => {
       const status = component.installed ? chalk.green('✓') : chalk.red('✗');
-      const count = ('count' in component && component.count) ? ` (${component.count})` : '';
+      const count = 'count' in component && component.count ? ` (${component.count})` : '';
       console.log(`  ${status} ${name}${count}`);
     });
 
     // Summary
-    console.log('\n' + chalk.bold('结果:'));
+    console.log(`\n${chalk.bold('结果:')}`);
     if (!issuesFound) {
       console.log(chalk.green('✓ 所有检查通过'));
     } else if (options.fix) {
@@ -168,16 +171,20 @@ export const upgradeCommand = new Command('upgrade')
     }
 
     if (updates.flowVersion) {
-      console.log(`Sylphx Flow: ${updates.flowVersion.current} → ${chalk.green(updates.flowVersion.latest)}`);
+      console.log(
+        `Sylphx Flow: ${updates.flowVersion.current} → ${chalk.green(updates.flowVersion.latest)}`
+      );
     }
 
     if (updates.targetVersion) {
-      console.log(`${updates.targetVersion.current ? 'claude-code' : 'target'}: ${updates.targetVersion.current} → ${chalk.green(updates.targetVersion.latest)}`);
+      console.log(
+        `${updates.targetVersion.current ? 'claude-code' : 'target'}: ${updates.targetVersion.current} → ${chalk.green(updates.targetVersion.latest)}`
+      );
     }
 
     // Check only
     if (options.check) {
-      console.log('\n' + chalk.dim('Run without --check to upgrade'));
+      console.log(`\n${chalk.dim('Run without --check to upgrade')}`);
       return;
     }
 

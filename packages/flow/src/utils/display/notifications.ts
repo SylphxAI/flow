@@ -6,10 +6,14 @@
 import { playNotificationSound } from './audio-player.js';
 
 // Terminal notification with sound
-export function sendTerminalNotification(title: string, message: string, options?: {
-  sound?: boolean;
-  duration?: number;
-}) {
+export function sendTerminalNotification(
+  _title: string,
+  _message: string,
+  options?: {
+    sound?: boolean;
+    duration?: number;
+  }
+) {
   const { sound = true, duration = 3000 } = options || {};
 
   // Play system sound using cross-platform audio player
@@ -30,40 +34,45 @@ export function sendTerminalNotification(title: string, message: string, options
 }
 
 // OS-level notification using system APIs
-export async function sendOSNotification(title: string, message: string, options?: {
-  icon?: string;
-  urgency?: 'low' | 'normal' | 'critical';
-  sound?: boolean;
-  timeout?: number;
-}) {
+export async function sendOSNotification(
+  title: string,
+  message: string,
+  options?: {
+    icon?: string;
+    urgency?: 'low' | 'normal' | 'critical';
+    sound?: boolean;
+    timeout?: number;
+  }
+) {
   const {
     icon = '🌀', // Flow-themed spiral emoji for Sylphx Flow notifications
     urgency = 'normal',
     sound = true,
-    timeout = 5000
+    timeout = 5000,
   } = options || {};
-  
+
   try {
     if (process.platform === 'darwin') {
       // macOS: use osascript with simplified approach
-      const { spawn } = require('child_process');
-      
+      const { spawn } = require('node:child_process');
+
       await new Promise<void>((resolve, reject) => {
         // Simple notification without complex escaping
         const args = [
-          '-e', `display notification "${message.replace(/"/g, '\\"')}" with title "${title.replace(/"/g, '\\"')}"`
+          '-e',
+          `display notification "${message.replace(/"/g, '\\"')}" with title "${title.replace(/"/g, '\\"')}"`,
         ];
-        
-        const proc = spawn('osascript', args, { 
+
+        const proc = spawn('osascript', args, {
           stdio: 'pipe',
-          env: { ...process.env, PATH: '/usr/bin:/bin:/usr/sbin:/sbin' }
+          env: { ...process.env, PATH: '/usr/bin:/bin:/usr/sbin:/sbin' },
         });
-        
+
         let stderr = '';
         proc.stderr?.on('data', (data) => {
           stderr += data.toString();
         });
-        
+
         proc.on('exit', (code) => {
           if (code === 0) {
             // Play sound separately if needed using cross-platform audio player
@@ -79,28 +88,32 @@ export async function sendOSNotification(title: string, message: string, options
         });
         proc.on('error', reject);
       });
-      
     } else if (process.platform === 'linux') {
       // Linux: use notify-send
-      const { spawn } = require('child_process');
+      const { spawn } = require('node:child_process');
       await new Promise<void>((resolve, reject) => {
         const proc = spawn('notify-send', [
-          '--urgency', urgency,
-          '--icon', icon,
-          '--expire-time', timeout.toString(),
+          '--urgency',
+          urgency,
+          '--icon',
+          icon,
+          '--expire-time',
+          timeout.toString(),
           title,
-          message
+          message,
         ]);
         proc.on('exit', (code) => {
-          if (code === 0) resolve();
-          else reject(new Error(`notify-send failed with code ${code}`));
+          if (code === 0) {
+            resolve();
+          } else {
+            reject(new Error(`notify-send failed with code ${code}`));
+          }
         });
         proc.on('error', reject);
       });
-
     } else if (process.platform === 'win32') {
       // Windows: use PowerShell toast notifications
-      const { spawn } = require('child_process');
+      const { spawn } = require('node:child_process');
       const powershellScript = `
         Add-Type -AssemblyName System.Windows.Forms
         $notification = New-Object System.Windows.Forms.NotifyIcon
@@ -113,12 +126,15 @@ export async function sendOSNotification(title: string, message: string, options
         Start-Sleep -Milliseconds ${timeout + 1000}
         $notification.Dispose()
       `;
-      
+
       await new Promise<void>((resolve, reject) => {
         const proc = spawn('powershell', ['-Command', powershellScript]);
         proc.on('exit', (code) => {
-          if (code === 0) resolve();
-          else reject(new Error(`PowerShell failed with code ${code}`));
+          if (code === 0) {
+            resolve();
+          } else {
+            reject(new Error(`PowerShell failed with code ${code}`));
+          }
         });
         proc.on('error', reject);
       });
@@ -132,24 +148,20 @@ export async function sendOSNotification(title: string, message: string, options
 
 // Combined notification - sends both terminal and OS notifications
 export function sendNotification(
-  title: string, 
-  message: string, 
+  title: string,
+  message: string,
   options?: {
     osNotification?: boolean;
     terminalNotification?: boolean;
     sound?: boolean;
   }
 ) {
-  const {
-    osNotification = true,
-    terminalNotification = true,
-    sound = true
-  } = options || {};
-  
+  const { osNotification = true, terminalNotification = true, sound = true } = options || {};
+
   if (terminalNotification) {
     sendTerminalNotification(title, message, { sound });
   }
-  
+
   if (osNotification) {
     sendOSNotification(title, message, { sound });
   }
@@ -163,7 +175,8 @@ export async function checkNotificationSupport(): Promise<{
 }> {
   return {
     terminalSupported: true, // Always supported
-    osSupported: process.platform === 'darwin' || process.platform === 'linux' || process.platform === 'win32',
-    platform: process.platform
+    osSupported:
+      process.platform === 'darwin' || process.platform === 'linux' || process.platform === 'win32',
+    platform: process.platform,
   };
 }

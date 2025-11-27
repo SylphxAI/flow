@@ -5,12 +5,11 @@
  */
 
 import chalk from 'chalk';
-import { ProjectManager } from './project-manager.js';
-import { SessionManager } from './session-manager.js';
-import { BackupManager } from './backup-manager.js';
+import type { BackupManager } from './backup-manager.js';
+import type { ProjectManager } from './project-manager.js';
+import type { SessionManager } from './session-manager.js';
 
 export class CleanupHandler {
-  private projectManager: ProjectManager;
   private sessionManager: SessionManager;
   private backupManager: BackupManager;
   private registered = false;
@@ -82,14 +81,16 @@ export class CleanupHandler {
     }
 
     try {
-      const { shouldRestore, session } = await this.sessionManager.endSession(this.currentProjectHash);
+      const { shouldRestore, session } = await this.sessionManager.endSession(
+        this.currentProjectHash
+      );
 
       if (shouldRestore && session) {
         // Last session - restore backup silently on normal exit
         await this.backupManager.restoreBackup(this.currentProjectHash, session.sessionId);
         await this.backupManager.cleanupOldBackups(this.currentProjectHash, 3);
       }
-    } catch (error) {
+    } catch (_error) {
       // Silent fail on exit
     }
   }
@@ -97,7 +98,7 @@ export class CleanupHandler {
   /**
    * Signal-based cleanup (SIGINT, SIGTERM, etc.) with multi-session support
    */
-  private async onSignal(signal: string): Promise<void> {
+  private async onSignal(_signal: string): Promise<void> {
     if (!this.currentProjectHash) {
       return;
     }
@@ -105,7 +106,9 @@ export class CleanupHandler {
     try {
       console.log(chalk.cyan('🧹 Cleaning up...'));
 
-      const { shouldRestore, session } = await this.sessionManager.endSession(this.currentProjectHash);
+      const { shouldRestore, session } = await this.sessionManager.endSession(
+        this.currentProjectHash
+      );
 
       if (shouldRestore && session) {
         // Last session - restore environment

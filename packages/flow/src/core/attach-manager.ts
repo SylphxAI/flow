@@ -4,15 +4,15 @@
  * Strategy: Direct override with backup, restore on cleanup
  */
 
+import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { existsSync } from 'node:fs';
-import { createHash } from 'node:crypto';
 import chalk from 'chalk';
-import { ProjectManager } from './project-manager.js';
-import type { BackupManifest } from './backup-manager.js';
-import { GlobalConfigService } from '../services/global-config.js';
 import { MCP_SERVER_REGISTRY } from '../config/servers.js';
+import { GlobalConfigService } from '../services/global-config.js';
+import type { BackupManifest } from './backup-manager.js';
+import type { ProjectManager } from './project-manager.js';
 
 export interface AttachResult {
   agentsAdded: string[];
@@ -39,7 +39,7 @@ export interface FlowTemplates {
   agents: Array<{ name: string; content: string }>;
   commands: Array<{ name: string; content: string }>;
   rules?: string;
-  mcpServers: Array<{ name: string; config: any }>;
+  mcpServers: Array<{ name: string; config: Record<string, unknown> }>;
   hooks: Array<{ name: string; content: string }>;
   singleFiles: Array<{ path: string; content: string }>;
 }
@@ -81,11 +81,11 @@ export class AttachManager {
    * Load global MCP servers from ~/.sylphx-flow/mcp-config.json
    */
   private async loadGlobalMCPServers(
-    target: 'claude-code' | 'opencode'
-  ): Promise<Array<{ name: string; config: any }>> {
+    _target: 'claude-code' | 'opencode'
+  ): Promise<Array<{ name: string; config: Record<string, unknown> }>> {
     try {
       const enabledServers = await this.configService.getEnabledMCPServers();
-      const servers: Array<{ name: string; config: any }> = [];
+      const servers: Array<{ name: string; config: Record<string, unknown> }> = [];
 
       for (const [serverKey, serverConfig] of Object.entries(enabledServers)) {
         // Lookup server definition in registry
@@ -97,7 +97,7 @@ export class AttachManager {
         }
 
         // Clone the server config from registry
-        let config: any = { ...serverDef.config };
+        const config: Record<string, unknown> = { ...serverDef.config };
 
         // Merge environment variables from global config
         if (serverConfig.env && Object.keys(serverConfig.env).length > 0) {
@@ -110,7 +110,7 @@ export class AttachManager {
       }
 
       return servers;
-    } catch (error) {
+    } catch (_error) {
       // If global config doesn't exist or fails to load, return empty array
       return [];
     }
@@ -122,7 +122,7 @@ export class AttachManager {
    */
   async attach(
     projectPath: string,
-    projectHash: string,
+    _projectHash: string,
     target: 'claude-code' | 'opencode',
     templates: FlowTemplates,
     manifest: BackupManifest
@@ -162,13 +162,7 @@ export class AttachManager {
     const allMCPServers = [...globalMCPServers, ...templates.mcpServers];
 
     if (allMCPServers.length > 0) {
-      await this.attachMCPServers(
-        targetDir,
-        target,
-        allMCPServers,
-        result,
-        manifest
-      );
+      await this.attachMCPServers(targetDir, target, allMCPServers, result, manifest);
     }
 
     // 5. Attach hooks
@@ -336,7 +330,7 @@ ${rules}
   private async attachMCPServers(
     targetDir: string,
     target: 'claude-code' | 'opencode',
-    mcpServers: Array<{ name: string; config: any }>,
+    mcpServers: Array<{ name: string; config: Record<string, unknown> }>,
     result: AttachResult,
     manifest: BackupManifest
   ): Promise<void> {
@@ -347,15 +341,19 @@ ${rules}
         ? path.join(targetDir, 'settings.json')
         : path.join(targetDir, '.mcp.json');
 
-    let config: any = {};
+    let config: Record<string, unknown> = {};
 
     if (existsSync(configPath)) {
       config = JSON.parse(await fs.readFile(configPath, 'utf-8'));
     }
 
     // Ensure mcp.servers exists
-    if (!config.mcp) config.mcp = {};
-    if (!config.mcp.servers) config.mcp.servers = {};
+    if (!config.mcp) {
+      config.mcp = {};
+    }
+    if (!config.mcp.servers) {
+      config.mcp.servers = {};
+    }
 
     // Add Flow MCP servers
     for (const server of mcpServers) {
@@ -394,7 +392,7 @@ ${rules}
     targetDir: string,
     hooks: Array<{ name: string; content: string }>,
     result: AttachResult,
-    manifest: BackupManifest
+    _manifest: BackupManifest
   ): Promise<void> {
     const hooksDir = path.join(targetDir, 'hooks');
     await fs.mkdir(hooksDir, { recursive: true });
@@ -474,13 +472,9 @@ ${rules}
     console.log(chalk.yellow('\n⚠️  Conflicts detected:\n'));
 
     for (const conflict of result.conflicts) {
-      console.log(
-        chalk.yellow(`   • ${conflict.type}: ${conflict.name} - ${conflict.action}`)
-      );
+      console.log(chalk.yellow(`   • ${conflict.type}: ${conflict.name} - ${conflict.action}`));
     }
 
-    console.log(
-      chalk.dim('\n   Don\'t worry! All overridden content will be restored on exit.\n')
-    );
+    console.log(chalk.dim("\n   Don't worry! All overridden content will be restored on exit.\n"));
   }
 }

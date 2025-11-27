@@ -2,8 +2,6 @@
  * Flow Command Types
  */
 
-import type { RunCommandOptions } from '../../types.js';
-
 export interface FlowOptions {
   target?: string;
   verbose?: boolean;

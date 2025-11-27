@@ -82,6 +82,6 @@ export interface RunCommandOptions {
   agent?: string;
   agentFile?: string;
   prompt?: string;
-  print?: boolean;      // Headless print mode
-  continue?: boolean;   // Continue previous conversation
+  print?: boolean; // Headless print mode
+  continue?: boolean; // Continue previous conversation
 }

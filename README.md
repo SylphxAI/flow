@@ -851,6 +851,16 @@ Flow stands on the shoulders of giants:
 
 ---
 
+## 🔧 Powered by Sylphx
+
+This project uses the following [@sylphx](https://github.com/SylphxAI) packages:
+
+- **[@sylphx/biome-config](https://www.npmjs.com/package/@sylphx/biome-config)** - Shared Biome configuration
+- **[@sylphx/bump](https://www.npmjs.com/package/@sylphx/bump)** - Version management and releases
+- **[@sylphx/doctor](https://www.npmjs.com/package/@sylphx/doctor)** - Project health checks and auto-fixes
+
+---
+
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) file for details.

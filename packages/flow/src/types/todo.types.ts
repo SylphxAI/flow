@@ -10,7 +10,7 @@ export interface Todo {
   content: string;
   status: TodoStatus;
   activeForm: string; // Present continuous form (e.g., "Building feature X")
-  ordering: number;   // For custom ordering (higher = earlier in list)
+  ordering: number; // For custom ordering (higher = earlier in list)
 }
 
 export interface TodoUpdate {

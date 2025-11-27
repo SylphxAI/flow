@@ -4,7 +4,7 @@
  */
 
 import type { CommonOptions, SetupResult } from './common.types.js';
-import type { MCPServerConfigFlags, MCPServerConfigUnion } from './mcp.types.js';
+import type { MCPServerConfigUnion } from './mcp.types.js';
 
 /**
  * Target-specific configuration

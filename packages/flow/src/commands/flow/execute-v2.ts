@@ -7,26 +7,22 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { FlowExecutor } from '../../core/flow-executor.js';
 import { targetManager } from '../../core/target-manager.js';
-import { UpgradeManager } from '../../core/upgrade-manager.js';
-import { showWelcome } from '../../utils/display/banner.js';
-import { loadAgentContent, extractAgentInstructions } from '../../utils/agent-enhancer.js';
-import { CLIError } from '../../utils/error-handler.js';
-import type { RunCommandOptions } from '../../types.js';
-import type { FlowOptions } from './types.js';
-import { resolvePrompt } from './prompt.js';
-import { GlobalConfigService } from '../../services/global-config.js';
-import { UserCancelledError } from '../../utils/errors.js';
-import { TargetInstaller } from '../../services/target-installer.js';
 import { AutoUpgrade } from '../../services/auto-upgrade.js';
-import { promptForTargetSelection, ensureTargetInstalled } from '../../utils/target-selection.js';
+import { GlobalConfigService } from '../../services/global-config.js';
+import { TargetInstaller } from '../../services/target-installer.js';
+import type { RunCommandOptions } from '../../types.js';
+import { extractAgentInstructions, loadAgentContent } from '../../utils/agent-enhancer.js';
+import { showWelcome } from '../../utils/display/banner.js';
+import { CLIError } from '../../utils/error-handler.js';
+import { UserCancelledError } from '../../utils/errors.js';
+import { ensureTargetInstalled, promptForTargetSelection } from '../../utils/target-selection.js';
+import { resolvePrompt } from './prompt.js';
+import type { FlowOptions } from './types.js';
 
 /**
  * Configure provider environment variables
  */
-function configureProviderEnv(
-  provider: 'kimi' | 'zai',
-  apiKey: string
-): void {
+function configureProviderEnv(provider: 'kimi' | 'zai', apiKey: string): void {
   const providerConfig = {
     kimi: {
       baseUrl: 'https://api.moonshot.cn/v1',
@@ -46,9 +42,7 @@ function configureProviderEnv(
 /**
  * Select and configure provider for Claude Code
  */
-async function selectProvider(
-  configService: GlobalConfigService
-): Promise<void> {
+async function selectProvider(configService: GlobalConfigService): Promise<void> {
   try {
     const providerConfig = await configService.loadProviderConfig();
     const defaultProvider = providerConfig.claudeCode.defaultProvider;
@@ -95,9 +89,10 @@ async function selectProvider(
     } else {
       console.log(chalk.green('✓ Using default Claude Code provider\n'));
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle user cancellation (Ctrl+C)
-    if (error.name === 'ExitPromptError' || error.message?.includes('force closed')) {
+    const err = error as Error & { name?: string };
+    if (err.name === 'ExitPromptError' || err.message?.includes('force closed')) {
       throw new UserCancelledError('Provider selection cancelled');
     }
     throw error;
@@ -107,7 +102,7 @@ async function selectProvider(
 /**
  * Execute command using target's executeCommand method
  */
-async function executeTargetCommand(
+function executeTargetCommand(
   targetId: string,
   systemPrompt: string,
   userPrompt: string,
@@ -173,7 +168,11 @@ export async function executeFlowV2(
     );
 
     const installation = targetInstaller.getInstallationInfo(selectedTargetId);
-    const installed = await ensureTargetInstalled(selectedTargetId, targetInstaller, installedTargets);
+    const installed = await ensureTargetInstalled(
+      selectedTargetId,
+      targetInstaller,
+      installedTargets
+    );
 
     if (!installed) {
       process.exit(1);
@@ -200,7 +199,11 @@ export async function executeFlowV2(
       );
 
       const installation = targetInstaller.getInstallationInfo(selectedTargetId);
-      const installed = await ensureTargetInstalled(selectedTargetId, targetInstaller, installedTargets);
+      const installed = await ensureTargetInstalled(
+        selectedTargetId,
+        targetInstaller,
+        installedTargets
+      );
 
       if (!installed) {
         process.exit(1);
@@ -225,7 +228,11 @@ export async function executeFlowV2(
 
       if (!installed) {
         // Installation failed - show error and exit
-        console.log(chalk.red(`\n✗ Cannot proceed: ${installation?.name} is not installed and auto-install failed`));
+        console.log(
+          chalk.red(
+            `\n✗ Cannot proceed: ${installation?.name} is not installed and auto-install failed`
+          )
+        );
         console.log(chalk.yellow('   Please either:'));
         console.log(chalk.cyan('   1. Install manually (see instructions above)'));
         console.log(chalk.cyan('   2. Change default target: sylphx-flow settings\n'));
@@ -242,16 +249,20 @@ export async function executeFlowV2(
 
   // Mode info
   if (options.merge) {
-    console.log(chalk.cyan('🔗 Merge mode: Flow settings will be merged with your existing settings'));
+    console.log(
+      chalk.cyan('🔗 Merge mode: Flow settings will be merged with your existing settings')
+    );
     console.log(chalk.dim('   Settings will be restored after execution\n'));
   } else {
-    console.log(chalk.yellow('🔄 Replace mode (default): All settings will use Flow configuration'));
+    console.log(
+      chalk.yellow('🔄 Replace mode (default): All settings will use Flow configuration')
+    );
     console.log(chalk.dim('   Use --merge to keep your existing settings\n'));
   }
 
   // Create executor
   const executor = new FlowExecutor();
-  const projectManager = executor.getProjectManager();
+  const _projectManager = executor.getProjectManager();
 
   // Step 2: Execute attach mode lifecycle
   try {
@@ -361,10 +372,7 @@ export async function executeFlowV2(
 /**
  * Main flow execution entry point
  */
-export async function executeFlow(
-  prompt: string | undefined,
-  options: FlowOptions
-): Promise<void> {
+export async function executeFlow(prompt: string | undefined, options: FlowOptions): Promise<void> {
   // Resolve prompt (handle file input)
   const resolvedPrompt = await resolvePrompt(prompt);
 

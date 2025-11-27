@@ -5,8 +5,8 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { pathSecurity } from '../security/security.js';
 import { formatFileSize as formatFileSizeCore } from '../../core/formatting/bytes.js';
+import { pathSecurity } from '../security/security.js';
 
 export interface FileReadOptions {
   encoding?: BufferEncoding;

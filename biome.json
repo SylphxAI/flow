@@ -1,5 +1,6 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.2/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
+  "extends": ["@sylphx/biome-config"],
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -120,5 +121,30 @@
     "formatter": {
       "trailingCommas": "none"
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["packages/flow/src/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "off",
+            "useAwait": "off",
+            "noControlCharactersInRegex": "off",
+            "noEmptyBlockStatements": "off",
+            "noUnsafeDeclarationMerging": "off"
+          },
+          "style": {
+            "noNonNullAssertion": "off"
+          },
+          "complexity": {
+            "noStaticOnlyClass": "off"
+          },
+          "correctness": {
+            "noUnusedVariables": "off"
+          }
+        }
+      }
+    }
+  ]
 }

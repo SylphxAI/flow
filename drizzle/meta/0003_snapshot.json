@@ -60,16 +60,12 @@
       "indexes": {
         "idx_codebase_files_mtime": {
           "name": "idx_codebase_files_mtime",
-          "columns": [
-            "mtime"
-          ],
+          "columns": ["mtime"],
           "isUnique": false
         },
         "idx_codebase_files_hash": {
           "name": "idx_codebase_files_hash",
-          "columns": [
-            "hash"
-          ],
+          "columns": ["hash"],
           "isUnique": false
         }
       },
@@ -152,33 +148,24 @@
       "indexes": {
         "idx_memory_namespace": {
           "name": "idx_memory_namespace",
-          "columns": [
-            "namespace"
-          ],
+          "columns": ["namespace"],
           "isUnique": false
         },
         "idx_memory_timestamp": {
           "name": "idx_memory_timestamp",
-          "columns": [
-            "timestamp"
-          ],
+          "columns": ["timestamp"],
           "isUnique": false
         },
         "idx_memory_key": {
           "name": "idx_memory_key",
-          "columns": [
-            "key"
-          ],
+          "columns": ["key"],
           "isUnique": false
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "memory_key_namespace_pk": {
-          "columns": [
-            "key",
-            "namespace"
-          ],
+          "columns": ["key", "namespace"],
           "name": "memory_key_namespace_pk"
         }
       },
@@ -227,16 +214,12 @@
       "indexes": {
         "idx_message_attachments_message": {
           "name": "idx_message_attachments_message",
-          "columns": [
-            "message_id"
-          ],
+          "columns": ["message_id"],
           "isUnique": false
         },
         "idx_message_attachments_path": {
           "name": "idx_message_attachments_path",
-          "columns": [
-            "path"
-          ],
+          "columns": ["path"],
           "isUnique": false
         }
       },
@@ -245,12 +228,8 @@
           "name": "message_attachments_message_id_messages_id_fk",
           "tableFrom": "message_attachments",
           "tableTo": "messages",
-          "columnsFrom": [
-            "message_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["message_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -301,24 +280,17 @@
       "indexes": {
         "idx_message_parts_message": {
           "name": "idx_message_parts_message",
-          "columns": [
-            "message_id"
-          ],
+          "columns": ["message_id"],
           "isUnique": false
         },
         "idx_message_parts_ordering": {
           "name": "idx_message_parts_ordering",
-          "columns": [
-            "message_id",
-            "ordering"
-          ],
+          "columns": ["message_id", "ordering"],
           "isUnique": false
         },
         "idx_message_parts_type": {
           "name": "idx_message_parts_type",
-          "columns": [
-            "type"
-          ],
+          "columns": ["type"],
           "isUnique": false
         }
       },
@@ -327,12 +299,8 @@
           "name": "message_parts_message_id_messages_id_fk",
           "tableFrom": "message_parts",
           "tableTo": "messages",
-          "columnsFrom": [
-            "message_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["message_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -397,9 +365,7 @@
       "indexes": {
         "idx_message_todo_snapshots_message": {
           "name": "idx_message_todo_snapshots_message",
-          "columns": [
-            "message_id"
-          ],
+          "columns": ["message_id"],
           "isUnique": false
         }
       },
@@ -408,12 +374,8 @@
           "name": "message_todo_snapshots_message_id_messages_id_fk",
           "tableFrom": "message_todo_snapshots",
           "tableTo": "messages",
-          "columnsFrom": [
-            "message_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["message_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -460,12 +422,8 @@
           "name": "message_usage_message_id_messages_id_fk",
           "tableFrom": "message_usage",
           "tableTo": "messages",
-          "columnsFrom": [
-            "message_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["message_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -537,31 +495,22 @@
       "indexes": {
         "idx_messages_session": {
           "name": "idx_messages_session",
-          "columns": [
-            "session_id"
-          ],
+          "columns": ["session_id"],
           "isUnique": false
         },
         "idx_messages_ordering": {
           "name": "idx_messages_ordering",
-          "columns": [
-            "session_id",
-            "ordering"
-          ],
+          "columns": ["session_id", "ordering"],
           "isUnique": false
         },
         "idx_messages_timestamp": {
           "name": "idx_messages_timestamp",
-          "columns": [
-            "timestamp"
-          ],
+          "columns": ["timestamp"],
           "isUnique": false
         },
         "idx_messages_is_streaming": {
           "name": "idx_messages_is_streaming",
-          "columns": [
-            "is_streaming"
-          ],
+          "columns": ["is_streaming"],
           "isUnique": false
         }
       },
@@ -570,12 +519,8 @@
           "name": "messages_session_id_sessions_id_fk",
           "tableFrom": "messages",
           "tableTo": "sessions",
-          "columnsFrom": [
-            "session_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["session_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -641,30 +586,22 @@
       "indexes": {
         "idx_sessions_updated": {
           "name": "idx_sessions_updated",
-          "columns": [
-            "updated"
-          ],
+          "columns": ["updated"],
           "isUnique": false
         },
         "idx_sessions_created": {
           "name": "idx_sessions_created",
-          "columns": [
-            "created"
-          ],
+          "columns": ["created"],
           "isUnique": false
         },
         "idx_sessions_provider": {
           "name": "idx_sessions_provider",
-          "columns": [
-            "provider"
-          ],
+          "columns": ["provider"],
           "isUnique": false
         },
         "idx_sessions_title": {
           "name": "idx_sessions_title",
-          "columns": [
-            "title"
-          ],
+          "columns": ["title"],
           "isUnique": false
         }
       },
@@ -711,12 +648,8 @@
           "name": "tfidf_documents_file_path_codebase_files_path_fk",
           "tableFrom": "tfidf_documents",
           "tableTo": "codebase_files",
-          "columnsFrom": [
-            "file_path"
-          ],
-          "columnsTo": [
-            "path"
-          ],
+          "columnsFrom": ["file_path"],
+          "columnsTo": ["path"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -777,16 +710,12 @@
       "indexes": {
         "idx_tfidf_terms_term": {
           "name": "idx_tfidf_terms_term",
-          "columns": [
-            "term"
-          ],
+          "columns": ["term"],
           "isUnique": false
         },
         "idx_tfidf_terms_file": {
           "name": "idx_tfidf_terms_file",
-          "columns": [
-            "file_path"
-          ],
+          "columns": ["file_path"],
           "isUnique": false
         }
       },
@@ -795,12 +724,8 @@
           "name": "tfidf_terms_file_path_codebase_files_path_fk",
           "tableFrom": "tfidf_terms",
           "tableTo": "codebase_files",
-          "columnsFrom": [
-            "file_path"
-          ],
-          "columnsTo": [
-            "path"
-          ],
+          "columnsFrom": ["file_path"],
+          "columnsTo": ["path"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -858,24 +783,17 @@
       "indexes": {
         "idx_todos_session": {
           "name": "idx_todos_session",
-          "columns": [
-            "session_id"
-          ],
+          "columns": ["session_id"],
           "isUnique": false
         },
         "idx_todos_status": {
           "name": "idx_todos_status",
-          "columns": [
-            "status"
-          ],
+          "columns": ["status"],
           "isUnique": false
         },
         "idx_todos_ordering": {
           "name": "idx_todos_ordering",
-          "columns": [
-            "session_id",
-            "ordering"
-          ],
+          "columns": ["session_id", "ordering"],
           "isUnique": false
         }
       },
@@ -884,22 +802,15 @@
           "name": "todos_session_id_sessions_id_fk",
           "tableFrom": "todos",
           "tableTo": "sessions",
-          "columnsFrom": [
-            "session_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["session_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "todos_session_id_id_pk": {
-          "columns": [
-            "session_id",
-            "id"
-          ],
+          "columns": ["session_id", "id"],
           "name": "todos_session_id_id_pk"
         }
       },

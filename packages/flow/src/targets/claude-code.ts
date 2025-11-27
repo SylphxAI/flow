@@ -7,10 +7,10 @@ import { installToDirectory } from '../core/installers/file-installer.js';
 import { createMCPInstaller } from '../core/installers/mcp-installer.js';
 import type { AgentMetadata } from '../types/target-config.types.js';
 import type { CommonOptions, MCPServerConfigUnion, SetupResult, Target } from '../types.js';
-import { CLIError } from '../utils/error-handler.js';
 import { getAgentsDir, getSlashCommandsDir } from '../utils/config/paths.js';
-import { sanitize } from '../utils/security/security.js';
 import { fileUtils, generateHelpText, pathUtils, yamlUtils } from '../utils/config/target-utils.js';
+import { CLIError } from '../utils/error-handler.js';
+import { sanitize } from '../utils/security/security.js';
 
 /**
  * Claude Code target - composition approach with all original functionality
@@ -218,8 +218,12 @@ Please begin your response with a comprehensive summary of all the instructions 
     if (options.dryRun) {
       // Build the command for display
       const dryRunArgs = ['claude', '--dangerously-skip-permissions'];
-      if (options.print) dryRunArgs.push('-p');
-      if (options.continue) dryRunArgs.push('-c');
+      if (options.print) {
+        dryRunArgs.push('-p');
+      }
+      if (options.continue) {
+        dryRunArgs.push('-c');
+      }
       dryRunArgs.push('--system-prompt', '"<agent content>"');
       if (sanitizedUserPrompt.trim() !== '') {
         dryRunArgs.push(`"${sanitizedUserPrompt}"`);
@@ -297,14 +301,18 @@ Please begin your response with a comprehensive summary of all the instructions 
           reject(error);
         });
       });
-    } catch (error: any) {
-      if (error.code === 'ENOENT') {
+    } catch (error: unknown) {
+      const err = error as NodeJS.ErrnoException & { code?: string | number };
+      if (err.code === 'ENOENT') {
         throw new CLIError('Claude Code not found. Please install it first.', 'CLAUDE_NOT_FOUND');
       }
-      if (error.code) {
-        throw new CLIError(`Claude Code exited with code ${error.code}`, 'CLAUDE_ERROR');
+      if (err.code) {
+        throw new CLIError(`Claude Code exited with code ${err.code}`, 'CLAUDE_ERROR');
       }
-      throw new CLIError(`Failed to execute Claude Code: ${error.message}`, 'CLAUDE_ERROR');
+      throw new CLIError(
+        `Failed to execute Claude Code: ${(error as Error).message}`,
+        'CLAUDE_ERROR'
+      );
     }
   },
 
@@ -333,8 +341,9 @@ Please begin your response with a comprehensive summary of all the instructions 
       try {
         const content = await fsPromises.readFile(settingsPath, 'utf8');
         settings = JSON.parse(content);
-      } catch (error: any) {
-        if (error.code !== 'ENOENT') {
+      } catch (error: unknown) {
+        const err = error as NodeJS.ErrnoException;
+        if (err.code !== 'ENOENT') {
           throw error;
         }
         // File doesn't exist, will create new
@@ -376,7 +385,9 @@ Please begin your response with a comprehensive summary of all the instructions 
    * Configure session and prompt hooks for system information display
    */
   async setupHooks(cwd: string, _options: CommonOptions): Promise<SetupResult> {
-    const { processSettings, generateHookCommands } = await import('./functional/claude-code-logic.js');
+    const { processSettings, generateHookCommands } = await import(
+      './functional/claude-code-logic.js'
+    );
     const { pathExists, createDirectory, readFile, writeFile } = await import(
       '../composables/functional/useFileSystem.js'
     );

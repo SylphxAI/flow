@@ -12,9 +12,9 @@
 
 // Re-export all types for backward compatibility
 export type {
+  CommandConfig,
   CommandHandler,
   CommandOptions,
-  CommandConfig,
   RunCommandOptions,
 } from './types/cli.types.js';
 export type {

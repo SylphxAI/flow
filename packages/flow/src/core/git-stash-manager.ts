@@ -5,10 +5,9 @@
  */
 
 import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
-import fs from 'node:fs/promises';
-import path from 'node:path';
 import { existsSync } from 'node:fs';
+import path from 'node:path';
+import { promisify } from 'node:util';
 import chalk from 'chalk';
 
 const execAsync = promisify(exec);
@@ -39,7 +38,10 @@ export class GitStashManager {
     if (existsSync(claudeDir)) {
       try {
         const { stdout } = await execAsync('git ls-files .claude', { cwd: projectPath });
-        const claudeFiles = stdout.trim().split('\n').filter(f => f);
+        const claudeFiles = stdout
+          .trim()
+          .split('\n')
+          .filter((f) => f);
         files.push(...claudeFiles);
       } catch {
         // Directory not tracked in git
@@ -51,7 +53,10 @@ export class GitStashManager {
     if (existsSync(opencodeDir)) {
       try {
         const { stdout } = await execAsync('git ls-files .opencode', { cwd: projectPath });
-        const opencodeFiles = stdout.trim().split('\n').filter(f => f);
+        const opencodeFiles = stdout
+          .trim()
+          .split('\n')
+          .filter((f) => f);
         files.push(...opencodeFiles);
       } catch {
         // Directory not tracked in git
@@ -90,9 +95,11 @@ export class GitStashManager {
       }
 
       if (this.skipWorktreeFiles.length > 0) {
-        console.log(chalk.dim(`   ✓ Hiding ${this.skipWorktreeFiles.length} settings file(s) from git\n`));
+        console.log(
+          chalk.dim(`   ✓ Hiding ${this.skipWorktreeFiles.length} settings file(s) from git\n`)
+        );
       }
-    } catch (error) {
+    } catch (_error) {
       console.log(chalk.yellow('   ⚠️  Could not hide settings from git\n'));
     }
   }
@@ -116,11 +123,15 @@ export class GitStashManager {
         }
       }
 
-      console.log(chalk.dim(`   ✓ Restored git tracking for ${this.skipWorktreeFiles.length} file(s)\n`));
+      console.log(
+        chalk.dim(`   ✓ Restored git tracking for ${this.skipWorktreeFiles.length} file(s)\n`)
+      );
       this.skipWorktreeFiles = [];
-    } catch (error: any) {
+    } catch {
       console.log(chalk.yellow('   ⚠️  Could not restore git tracking'));
-      console.log(chalk.yellow('   Run manually: git update-index --no-skip-worktree .claude/* .opencode/*\n'));
+      console.log(
+        chalk.yellow('   Run manually: git update-index --no-skip-worktree .claude/* .opencode/*\n')
+      );
     }
   }
 

@@ -3,14 +3,14 @@ import path from 'node:path';
 import chalk from 'chalk';
 import { getRulesPath, ruleFileExists } from '../config/rules.js';
 import { MCP_SERVER_REGISTRY } from '../config/servers.js';
-import { installToDirectory, installFile } from '../core/installers/file-installer.js';
+import { installFile, installToDirectory } from '../core/installers/file-installer.js';
 import { createMCPInstaller } from '../core/installers/mcp-installer.js';
 import type { AgentMetadata } from '../types/target-config.types.js';
 import type { CommonOptions, MCPServerConfigUnion, SetupResult, Target } from '../types.js';
 import { getAgentsDir, getOutputStylesDir, getSlashCommandsDir } from '../utils/config/paths.js';
-import { secretUtils } from '../utils/security/secret-utils.js';
 import { fileUtils, generateHelpText, yamlUtils } from '../utils/config/target-utils.js';
 import { CLIError } from '../utils/error-handler.js';
+import { secretUtils } from '../utils/security/secret-utils.js';
 
 /**
  * OpenCode target - composition approach with all original functionality
@@ -63,7 +63,12 @@ export const opencodeTarget: Target = {
 
     // If additional metadata is provided, merge it (but exclude unsupported fields)
     if (metadata) {
-      const { name: additionalName, mode: additionalMode, rules: additionalRules, ...additionalCleanMetadata } = metadata;
+      const {
+        name: additionalName,
+        mode: additionalMode,
+        rules: additionalRules,
+        ...additionalCleanMetadata
+      } = metadata;
       const mergedMetadata = { ...cleanMetadata, ...additionalCleanMetadata };
       return yamlUtils.addFrontMatter(baseContent, mergedMetadata);
     }
@@ -397,9 +402,15 @@ export const opencodeTarget: Target = {
    * Execute OpenCode CLI
    */
   async executeCommand(
-    systemPrompt: string,
+    _systemPrompt: string,
     userPrompt: string,
-    options: { verbose?: boolean; dryRun?: boolean; print?: boolean; continue?: boolean; agent?: string } = {}
+    options: {
+      verbose?: boolean;
+      dryRun?: boolean;
+      print?: boolean;
+      continue?: boolean;
+      agent?: string;
+    } = {}
   ): Promise<void> {
     if (options.dryRun) {
       // Build the command for display
@@ -492,7 +503,6 @@ export const opencodeTarget: Target = {
           }
         });
       });
-
     } catch (error) {
       if (error instanceof Error) {
         throw new CLIError(`Failed to execute OpenCode: ${error.message}`, 'OPENCODE_ERROR');
