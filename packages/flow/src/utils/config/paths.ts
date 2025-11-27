@@ -39,7 +39,9 @@ export function findPackageRoot(context?: string): string {
     }
 
     const parentDir = path.dirname(currentDir);
-    if (parentDir === currentDir) break; // reached filesystem root
+    if (parentDir === currentDir) {
+      break; // reached filesystem root
+    }
     currentDir = parentDir;
   }
 

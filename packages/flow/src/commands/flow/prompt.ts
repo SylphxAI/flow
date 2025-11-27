@@ -3,8 +3,8 @@
  * Handle file input (@file.txt) and prompt loading
  */
 
-import path from 'node:path';
 import fs from 'node:fs/promises';
+import path from 'node:path';
 import chalk from 'chalk';
 
 /**
@@ -12,7 +12,9 @@ import chalk from 'chalk';
  * Supports @filename syntax: @prompt.txt or @/path/to/prompt.txt
  */
 export async function resolvePrompt(prompt: string | undefined): Promise<string | undefined> {
-  if (!prompt) return prompt;
+  if (!prompt) {
+    return prompt;
+  }
 
   // Check for file input syntax: @filename
   if (prompt.startsWith('@')) {
@@ -26,7 +28,7 @@ export async function resolvePrompt(prompt: string | undefined): Promise<string 
       const content = await fs.readFile(resolvedPath, 'utf-8');
       console.log(chalk.dim(`  ✓ Loaded prompt from: ${filePath}\n`));
       return content.trim();
-    } catch (error) {
+    } catch (_error) {
       throw new Error(`Failed to read prompt file: ${filePath}`);
     }
   }

@@ -1,14 +1,13 @@
+import { exec } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 import chalk from 'chalk';
 import ora from 'ora';
-import type { ProjectState } from './state-detector.js';
-import { CLIError } from '../utils/error-handler.js';
-import { ConfigService } from '../services/config-service.js';
 import { getProjectSettingsFile } from '../config/constants.js';
-import { detectPackageManager, getUpgradeCommand, type PackageManager } from '../utils/package-manager-detector.js';
+import { CLIError } from '../utils/error-handler.js';
+import { detectPackageManager, getUpgradeCommand } from '../utils/package-manager-detector.js';
+import type { ProjectState } from './state-detector.js';
 
 const execAsync = promisify(exec);
 
@@ -281,7 +280,7 @@ export class UpgradeManager {
       const packagePath = path.join(__dirname, '..', '..', 'package.json');
       const packageJson = JSON.parse(await fs.readFile(packagePath, 'utf-8'));
       return packageJson.version || null;
-    } catch (error) {
+    } catch (_error) {
       // Fallback: try to get version from globally installed package
       try {
         const { stdout } = await execAsync('npm list -g @sylphx/flow --depth=0 --json');

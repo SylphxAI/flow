@@ -95,7 +95,7 @@ export const retry = async <T>(
 ): AsyncResult<T> => {
   const { maxAttempts, delayMs = 1000, backoff = 2, onRetry } = options;
 
-  let lastError: AppError | null = null;
+  let lastError: AppError = { type: 'unknown', message: 'No attempts made', code: 'NO_ATTEMPTS' };
   let currentDelay = delayMs;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -117,7 +117,7 @@ export const retry = async <T>(
     }
   }
 
-  return failure(lastError!);
+  return failure(lastError);
 };
 
 /**
@@ -231,8 +231,9 @@ export const memoizeAsync = <Args extends any[], T>(
   return (...args: Args): AsyncResult<T, AppError> => {
     const key = keyFn ? keyFn(...args) : JSON.stringify(args);
 
-    if (cache.has(key)) {
-      return cache.get(key)!;
+    const cached = cache.get(key);
+    if (cached !== undefined) {
+      return cached;
     }
 
     const result = fn(...args);

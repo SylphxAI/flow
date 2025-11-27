@@ -3,9 +3,9 @@
  * Loads agent definitions from markdown files with front matter
  */
 
-import { readFile, readdir, access } from 'node:fs/promises';
-import { join, parse, relative, dirname } from 'node:path';
+import { access, readdir, readFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
+import { dirname, join, parse, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
 import type { Agent, AgentMetadata } from '../types/agent.types.js';
@@ -52,7 +52,10 @@ export async function loadAgentFromFile(
 /**
  * Load all agents from a directory (recursively)
  */
-export async function loadAgentsFromDirectory(dirPath: string, isBuiltin: boolean = false): Promise<Agent[]> {
+export async function loadAgentsFromDirectory(
+  dirPath: string,
+  isBuiltin: boolean = false
+): Promise<Agent[]> {
   try {
     // Read directory recursively to support subdirectories
     const files = await readdir(dirPath, { recursive: true, withFileTypes: true });
@@ -72,7 +75,7 @@ export async function loadAgentsFromDirectory(dirPath: string, isBuiltin: boolea
     );
 
     return agents.filter((agent): agent is Agent => agent !== null);
-  } catch (error) {
+  } catch (_error) {
     // Directory doesn't exist or can't be read
     return [];
   }
@@ -117,7 +120,7 @@ export async function loadAllAgents(cwd: string, targetAgentDir?: string): Promi
   const systemPath = await getSystemAgentsPath();
   const [globalPath, projectPath] = getAgentSearchPaths(cwd);
 
-  let allAgentPaths = [systemPath, globalPath, projectPath];
+  const allAgentPaths = [systemPath, globalPath, projectPath];
 
   // If a target-specific agent directory is provided, add it with highest priority
   if (targetAgentDir) {
@@ -126,7 +129,9 @@ export async function loadAllAgents(cwd: string, targetAgentDir?: string): Promi
   }
 
   // Load agents from all paths
-  const loadedAgentsPromises = allAgentPaths.map(path => loadAgentsFromDirectory(path, path === systemPath));
+  const loadedAgentsPromises = allAgentPaths.map((path) =>
+    loadAgentsFromDirectory(path, path === systemPath)
+  );
   const loadedAgentsArrays = await Promise.all(loadedAgentsPromises);
 
   // Flatten and deduplicate

@@ -10,12 +10,15 @@
  */
 
 import fs from 'node:fs/promises';
-import path from 'node:path';
 import os from 'node:os';
+import path from 'node:path';
 import { z } from 'zod';
-import { type Result, success, tryCatchAsync } from '../core/functional/result.js';
+import { type Result, tryCatchAsync } from '../core/functional/result.js';
 import { getAllProviders } from '../providers/index.js';
-import type { ProviderId, ProviderConfigValue as ProviderConfigValueType } from '../types/provider.types.js';
+import type {
+  ProviderConfigValue as ProviderConfigValueType,
+  ProviderId,
+} from '../types/provider.types.js';
 
 // Re-export types for backward compatibility
 export type { ProviderId } from '../types/provider.types.js';
@@ -39,14 +42,20 @@ export type ProviderConfigValue = ProviderConfigValueType;
  * Uses generic Record for provider configs - validation happens at provider level
  */
 const aiConfigSchema = z.object({
-  defaultProvider: z.enum(['anthropic', 'openai', 'google', 'openrouter', 'claude-code', 'zai']).optional(),
+  defaultProvider: z
+    .enum(['anthropic', 'openai', 'google', 'openrouter', 'claude-code', 'zai'])
+    .optional(),
   defaultModel: z.string().optional(),
-  providers: z.record(
-    z.string(),
-    z.object({
-      defaultModel: z.string().optional(),
-    }).passthrough() // Allow additional fields defined by provider
-  ).optional(),
+  providers: z
+    .record(
+      z.string(),
+      z
+        .object({
+          defaultModel: z.string().optional(),
+        })
+        .passthrough() // Allow additional fields defined by provider
+    )
+    .optional(),
 });
 
 export type AIConfig = z.infer<typeof aiConfigSchema>;
@@ -61,7 +70,9 @@ const LOCAL_CONFIG_FILE = '.sylphx-flow/settings.local.json';
 /**
  * Get AI config file paths in priority order
  */
-export const getAIConfigPaths = (cwd: string = process.cwd()): {
+export const getAIConfigPaths = (
+  cwd: string = process.cwd()
+): {
   global: string;
   project: string;
   local: string;
@@ -79,8 +90,9 @@ const loadConfigFile = async (filePath: string): Promise<AIConfig | null> => {
     const content = await fs.readFile(filePath, 'utf8');
     const parsed = JSON.parse(content);
     return aiConfigSchema.parse(parsed);
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
+  } catch (error: unknown) {
+    const err = error as NodeJS.ErrnoException;
+    if (err.code === 'ENOENT') {
       return null; // File doesn't exist
     }
     throw error; // Re-throw other errors
@@ -97,7 +109,7 @@ const mergeConfigs = (a: AIConfig, b: AIConfig): AIConfig => {
     ...Object.keys(b.providers || {}),
   ]);
 
-  const mergedProviders: Record<string, any> = {};
+  const mergedProviders: Record<string, Record<string, unknown>> = {};
   for (const providerId of allProviderIds) {
     mergedProviders[providerId] = {
       ...a.providers?.[providerId],
@@ -117,30 +129,31 @@ const mergeConfigs = (a: AIConfig, b: AIConfig): AIConfig => {
  */
 export const aiConfigExists = async (cwd: string = process.cwd()): Promise<boolean> => {
   const paths = getAIConfigPaths(cwd);
-  try {
-    // Check any of the config files
-    await fs.access(paths.global).catch(() => {});
-    return true;
-  } catch {}
 
-  try {
-    await fs.access(paths.project);
-    return true;
-  } catch {}
+  // Check if any config file exists
+  const checks = await Promise.all([
+    fs
+      .access(paths.global)
+      .then(() => true)
+      .catch(() => false),
+    fs
+      .access(paths.project)
+      .then(() => true)
+      .catch(() => false),
+    fs
+      .access(paths.local)
+      .then(() => true)
+      .catch(() => false),
+  ]);
 
-  try {
-    await fs.access(paths.local);
-    return true;
-  } catch {}
-
-  return false;
+  return checks.some(Boolean);
 };
 
 /**
  * Load AI configuration
  * Merges global, project, and local configs with priority: local > project > global
  */
-export const loadAIConfig = async (cwd: string = process.cwd()): Promise<Result<AIConfig, Error>> => {
+export const loadAIConfig = (cwd: string = process.cwd()): Promise<Result<AIConfig, Error>> => {
   return tryCatchAsync(
     async () => {
       const paths = getAIConfigPaths(cwd);
@@ -156,13 +169,19 @@ export const loadAIConfig = async (cwd: string = process.cwd()): Promise<Result<
       let merged: AIConfig = {};
 
       // Merge in priority order: global < project < local
-      if (globalConfig) merged = mergeConfigs(merged, globalConfig);
-      if (projectConfig) merged = mergeConfigs(merged, projectConfig);
-      if (localConfig) merged = mergeConfigs(merged, localConfig);
+      if (globalConfig) {
+        merged = mergeConfigs(merged, globalConfig);
+      }
+      if (projectConfig) {
+        merged = mergeConfigs(merged, projectConfig);
+      }
+      if (localConfig) {
+        merged = mergeConfigs(merged, localConfig);
+      }
 
       return merged;
     },
-    (error: any) => new Error(`Failed to load AI config: ${error.message}`)
+    (error: unknown) => new Error(`Failed to load AI config: ${(error as Error).message}`)
   );
 };
 
@@ -171,7 +190,7 @@ export const loadAIConfig = async (cwd: string = process.cwd()): Promise<Result<
  * By default, all configuration (including API keys) goes to ~/.sylphx-flow/settings.json
  * Automatically sets default provider if not set
  */
-export const saveAIConfig = async (
+export const saveAIConfig = (
   config: AIConfig,
   cwd: string = process.cwd()
 ): Promise<Result<void, Error>> => {
@@ -211,16 +230,16 @@ export const saveAIConfig = async (
       const validated = aiConfigSchema.parse(configToSave);
 
       // Write config
-      await fs.writeFile(configPath, JSON.stringify(validated, null, 2) + '\n', 'utf8');
+      await fs.writeFile(configPath, `${JSON.stringify(validated, null, 2)}\n`, 'utf8');
     },
-    (error: any) => new Error(`Failed to save AI config: ${error.message}`)
+    (error: unknown) => new Error(`Failed to save AI config: ${(error as Error).message}`)
   );
 };
 
 /**
  * Save AI configuration to a specific location
  */
-export const saveAIConfigTo = async (
+export const saveAIConfigTo = (
   config: AIConfig,
   location: 'global' | 'project' | 'local',
   cwd: string = process.cwd()
@@ -237,9 +256,10 @@ export const saveAIConfigTo = async (
       const validated = aiConfigSchema.parse(config);
 
       // Write config
-      await fs.writeFile(configPath, JSON.stringify(validated, null, 2) + '\n', 'utf8');
+      await fs.writeFile(configPath, `${JSON.stringify(validated, null, 2)}\n`, 'utf8');
     },
-    (error: any) => new Error(`Failed to save AI config to ${location}: ${error.message}`)
+    (error: unknown) =>
+      new Error(`Failed to save AI config to ${location}: ${(error as Error).message}`)
   );
 };
 
@@ -306,4 +326,3 @@ export const getConfiguredProviders = async (
 
   return providers;
 };
-

@@ -3,13 +3,13 @@
  * Interactive configuration for Sylphx Flow
  */
 
-import { Command } from 'commander';
 import chalk from 'chalk';
+import { Command } from 'commander';
 import inquirer from 'inquirer';
 import { GlobalConfigService } from '../services/global-config.js';
-import { UserCancelledError } from '../utils/errors.js';
 import { TargetInstaller } from '../services/target-installer.js';
-import { promptForDefaultTarget, buildAvailableTargets } from '../utils/target-selection.js';
+import { UserCancelledError } from '../utils/errors.js';
+import { buildAvailableTargets, promptForDefaultTarget } from '../utils/target-selection.js';
 
 export const settingsCommand = new Command('settings')
   .description('Configure Sylphx Flow settings')
@@ -30,9 +30,10 @@ export const settingsCommand = new Command('settings')
       } else {
         await showMainMenu(configService);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle user cancellation (Ctrl+C)
-      if (error.name === 'ExitPromptError' || error.message?.includes('force closed')) {
+      const err = error as Error & { name?: string };
+      if (err.name === 'ExitPromptError' || err.message?.includes('force closed')) {
         throw new UserCancelledError('Settings cancelled by user');
       }
       throw error;
@@ -123,9 +124,7 @@ async function configureAgents(configService: GlobalConfigService): Promise<void
   };
 
   // Get current enabled agents
-  const currentEnabled = Object.keys(currentAgents).filter(
-    (key) => currentAgents[key].enabled
-  );
+  const currentEnabled = Object.keys(currentAgents).filter((key) => currentAgents[key].enabled);
 
   const { selectedAgents } = await inquirer.prompt([
     {
@@ -191,9 +190,7 @@ async function configureRules(configService: GlobalConfigService): Promise<void>
   };
 
   // Get current enabled rules
-  const currentEnabled = Object.keys(currentRules).filter(
-    (key) => currentRules[key].enabled
-  );
+  const currentEnabled = Object.keys(currentRules).filter((key) => currentRules[key].enabled);
 
   const { selectedRules } = await inquirer.prompt([
     {
@@ -239,9 +236,7 @@ async function configureOutputStyles(configService: GlobalConfigService): Promis
   };
 
   // Get current enabled styles
-  const currentEnabled = Object.keys(currentStyles).filter(
-    (key) => currentStyles[key].enabled
-  );
+  const currentEnabled = Object.keys(currentStyles).filter((key) => currentStyles[key].enabled);
 
   const { selectedStyles } = await inquirer.prompt([
     {
@@ -283,17 +278,15 @@ async function configureMCP(configService: GlobalConfigService): Promise<void> {
 
   // Available MCP servers (from MCP_SERVER_REGISTRY)
   const availableServers = {
-    'grep': { name: 'GitHub Code Search (grep.app)', requiresEnv: [] },
-    'context7': { name: 'Context7 Docs', requiresEnv: [] },
-    'playwright': { name: 'Playwright Browser Control', requiresEnv: [] },
-    'github': { name: 'GitHub', requiresEnv: ['GITHUB_TOKEN'] },
-    'notion': { name: 'Notion', requiresEnv: ['NOTION_API_KEY'] },
+    grep: { name: 'GitHub Code Search (grep.app)', requiresEnv: [] },
+    context7: { name: 'Context7 Docs', requiresEnv: [] },
+    playwright: { name: 'Playwright Browser Control', requiresEnv: [] },
+    github: { name: 'GitHub', requiresEnv: ['GITHUB_TOKEN'] },
+    notion: { name: 'Notion', requiresEnv: ['NOTION_API_KEY'] },
   };
 
   // Get current enabled servers
-  const currentEnabled = Object.keys(currentServers).filter(
-    (key) => currentServers[key].enabled
-  );
+  const currentEnabled = Object.keys(currentServers).filter((key) => currentServers[key].enabled);
 
   const { selectedServers } = await inquirer.prompt([
     {
@@ -301,9 +294,10 @@ async function configureMCP(configService: GlobalConfigService): Promise<void> {
       name: 'selectedServers',
       message: 'Select MCP servers to enable:',
       choices: Object.entries(availableServers).map(([key, info]) => {
-        const requiresText = info.requiresEnv.length > 0
-          ? chalk.dim(` (requires ${info.requiresEnv.join(', ')})`)
-          : '';
+        const requiresText =
+          info.requiresEnv.length > 0
+            ? chalk.dim(` (requires ${info.requiresEnv.join(', ')})`)
+            : '';
         return {
           name: `${info.name}${requiresText}`,
           value: key,
@@ -316,10 +310,10 @@ async function configureMCP(configService: GlobalConfigService): Promise<void> {
   // Update servers
   for (const key of Object.keys(availableServers)) {
     if (selectedServers.includes(key)) {
-      if (!currentServers[key]) {
-        currentServers[key] = { enabled: true, env: {} };
-      } else {
+      if (currentServers[key]) {
         currentServers[key].enabled = true;
+      } else {
+        currentServers[key] = { enabled: true, env: {} };
       }
     } else if (currentServers[key]) {
       currentServers[key].enabled = false;
@@ -333,7 +327,7 @@ async function configureMCP(configService: GlobalConfigService): Promise<void> {
       const server = currentServers[serverKey];
 
       for (const envKey of serverInfo.requiresEnv) {
-        const hasKey = server.env && server.env[envKey];
+        const hasKey = server.env?.[envKey];
 
         const { shouldConfigure } = await inquirer.prompt([
           {
@@ -406,7 +400,9 @@ async function configureProvider(configService: GlobalConfigService): Promise<vo
       {
         type: 'confirm',
         name: 'shouldConfigure',
-        message: currentKey ? `Update ${defaultProvider} API key?` : `Configure ${defaultProvider} API key?`,
+        message: currentKey
+          ? `Update ${defaultProvider} API key?`
+          : `Configure ${defaultProvider} API key?`,
         default: !currentKey,
       },
     ]);
@@ -424,8 +420,11 @@ async function configureProvider(configService: GlobalConfigService): Promise<vo
       if (!providerConfig.claudeCode.providers[defaultProvider]) {
         providerConfig.claudeCode.providers[defaultProvider] = { enabled: true };
       }
-      providerConfig.claudeCode.providers[defaultProvider]!.apiKey = apiKey;
-      providerConfig.claudeCode.providers[defaultProvider]!.enabled = true;
+      const provider = providerConfig.claudeCode.providers[defaultProvider];
+      if (provider) {
+        provider.apiKey = apiKey;
+        provider.enabled = true;
+      }
     }
   }
 
@@ -450,7 +449,11 @@ async function configureTarget(configService: GlobalConfigService): Promise<void
 
   const defaultTarget = await promptForDefaultTarget(installedTargets, settings.defaultTarget);
 
-  settings.defaultTarget = defaultTarget as 'claude-code' | 'opencode' | 'cursor' | 'ask-every-time';
+  settings.defaultTarget = defaultTarget as
+    | 'claude-code'
+    | 'opencode'
+    | 'cursor'
+    | 'ask-every-time';
   await configService.saveSettings(settings);
 
   if (defaultTarget === 'ask-every-time') {

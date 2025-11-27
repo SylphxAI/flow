@@ -5,7 +5,7 @@
 
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { TargetInstaller } from '../services/target-installer.js';
+import type { TargetInstaller } from '../services/target-installer.js';
 import { handlePromptError } from './prompt-helpers.js';
 
 /**
@@ -51,7 +51,10 @@ export function buildAvailableTargets(installedTargets: string[]): TargetChoice[
  * @param context - Context where choice is displayed (affects status message)
  * @returns Formatted string with target name and installation status
  */
-export function formatTargetChoice(target: TargetChoice, context: 'execution' | 'settings'): string {
+export function formatTargetChoice(
+  target: TargetChoice,
+  context: 'execution' | 'settings'
+): string {
   const status = target.installed
     ? chalk.green(' ✓ installed')
     : context === 'execution'

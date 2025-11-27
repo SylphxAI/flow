@@ -6,6 +6,12 @@
   "bin": {
     "sylphx-flow": "./src/index.ts"
   },
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    }
+  },
   "engines": {
     "node": ">=18.0.0"
   },

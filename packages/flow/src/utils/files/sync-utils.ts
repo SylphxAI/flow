@@ -1,18 +1,21 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import chalk from 'chalk';
-import type { Target } from '../../types.js';
 import { MCP_SERVER_REGISTRY } from '../../config/servers.js';
-import { getAgentsDir, getSlashCommandsDir, getRulesDir } from '../config/paths.js';
+import type { Target } from '../../types.js';
+import { getAgentsDir, getRulesDir, getSlashCommandsDir } from '../config/paths.js';
 
 /**
  * Scan directory for .md files and return basenames
  */
 function scanTemplateDir(dir: string): string[] {
-  if (!fs.existsSync(dir)) return [];
+  if (!fs.existsSync(dir)) {
+    return [];
+  }
 
   try {
-    return fs.readdirSync(dir, { withFileTypes: true })
+    return fs
+      .readdirSync(dir, { withFileTypes: true })
       .filter((f) => f.isFile() && f.name.endsWith('.md'))
       .map((f) => f.name);
   } catch {
@@ -31,9 +34,9 @@ const FLOW_RULES = scanTemplateDir(getRulesDir());
  * Categorized files for sync
  */
 interface CategorizedFiles {
-  inFlow: string[];      // Files that exist locally and in Flow templates (will reinstall)
-  unknown: string[];     // Files not in Flow templates (custom or removed)
-  missing: string[];     // Flow templates that don't exist locally (will install)
+  inFlow: string[]; // Files that exist locally and in Flow templates (will reinstall)
+  unknown: string[]; // Files not in Flow templates (custom or removed)
+  missing: string[]; // Flow templates that don't exist locally (will install)
 }
 
 /**
@@ -48,8 +51,8 @@ interface SyncManifest {
     notInRegistry: string[];
   };
   hooks: {
-    inConfig: string[];      // Hooks from config (will be synced)
-    orphaned: string[];      // Hooks that exist locally but not in config (ask user)
+    inConfig: string[]; // Hooks from config (will be synced)
+    orphaned: string[]; // Hooks that exist locally but not in config (ask user)
   };
   preserve: string[];
 }
@@ -151,14 +154,14 @@ export async function buildSyncManifest(cwd: string, target: Target): Promise<Sy
         const installedServers = Object.keys(mcpConfig.mcpServers);
         const registryServers = Object.keys(MCP_SERVER_REGISTRY);
 
-        manifest.mcpServers.inRegistry = installedServers.filter(id =>
+        manifest.mcpServers.inRegistry = installedServers.filter((id) =>
           registryServers.includes(id)
         );
-        manifest.mcpServers.notInRegistry = installedServers.filter(id =>
-          !registryServers.includes(id)
+        manifest.mcpServers.notInRegistry = installedServers.filter(
+          (id) => !registryServers.includes(id)
         );
       }
-    } catch (error) {
+    } catch (_error) {
       console.warn(chalk.yellow('⚠ Failed to read .mcp.json'));
     }
   }
@@ -178,25 +181,21 @@ export async function buildSyncManifest(cwd: string, target: Target): Promise<Sy
           // In the future, this could be read from Flow config
           const expectedHookTypes = ['Notification'];
 
-          manifest.hooks.inConfig = existingHookTypes.filter(type =>
+          manifest.hooks.inConfig = existingHookTypes.filter((type) =>
             expectedHookTypes.includes(type)
           );
-          manifest.hooks.orphaned = existingHookTypes.filter(type =>
-            !expectedHookTypes.includes(type)
+          manifest.hooks.orphaned = existingHookTypes.filter(
+            (type) => !expectedHookTypes.includes(type)
           );
         }
-      } catch (error) {
+      } catch (_error) {
         console.warn(chalk.yellow('⚠ Failed to read settings.json'));
       }
     }
   }
 
   // Files to preserve
-  manifest.preserve = [
-    '.sylphx-flow/',
-    '.secrets/',
-    target.config.configFile || '',
-  ]
+  manifest.preserve = ['.sylphx-flow/', '.secrets/', target.config.configFile || '']
     .filter(Boolean)
     .map((p) => path.join(cwd, p));
 
@@ -379,7 +378,9 @@ export interface SelectedToRemove {
 /**
  * Select unknown files to remove
  */
-export async function selectUnknownFilesToRemove(manifest: SyncManifest): Promise<SelectedToRemove> {
+export async function selectUnknownFilesToRemove(
+  manifest: SyncManifest
+): Promise<SelectedToRemove> {
   const unknownFiles: Array<{ name: string; value: string; type: string }> = [];
 
   // Collect all unknown files
@@ -463,10 +464,7 @@ export async function selectUnknownFilesToRemove(manifest: SyncManifest): Promis
 /**
  * Show final summary before execution
  */
-export function showFinalSummary(
-  manifest: SyncManifest,
-  selectedUnknowns: SelectedToRemove
-): void {
+export function showFinalSummary(manifest: SyncManifest, selectedUnknowns: SelectedToRemove): void {
   console.log(chalk.cyan.bold('\n━━━ 📋 Final Summary\n'));
 
   // Will delete + reinstall
@@ -490,7 +488,10 @@ export function showFinalSummary(
   }
 
   // Will remove (selected unknowns)
-  const totalToRemove = selectedUnknowns.files.length + selectedUnknowns.mcpServers.length + selectedUnknowns.hooks.length;
+  const totalToRemove =
+    selectedUnknowns.files.length +
+    selectedUnknowns.mcpServers.length +
+    selectedUnknowns.hooks.length;
   if (totalToRemove > 0) {
     console.log(chalk.red('Remove (selected):\n'));
     selectedUnknowns.files.forEach((file) => {
@@ -506,7 +507,11 @@ export function showFinalSummary(
   }
 
   // Will preserve
-  const allSelected = [...selectedUnknowns.files, ...selectedUnknowns.mcpServers, ...selectedUnknowns.hooks];
+  const allSelected = [
+    ...selectedUnknowns.files,
+    ...selectedUnknowns.mcpServers,
+    ...selectedUnknowns.hooks,
+  ];
   const preservedUnknowns = [
     ...manifest.agents.unknown,
     ...manifest.slashCommands.unknown,
@@ -618,14 +623,10 @@ export async function removeMCPServers(cwd: string, serversToRemove: string[]): 
     }
 
     // Write back
-    await fs.promises.writeFile(
-      mcpPath,
-      JSON.stringify(mcpConfig, null, 2) + '\n',
-      'utf-8'
-    );
+    await fs.promises.writeFile(mcpPath, `${JSON.stringify(mcpConfig, null, 2)}\n`, 'utf-8');
 
     return removedCount;
-  } catch (error) {
+  } catch (_error) {
     console.warn(chalk.yellow('⚠ Failed to update .mcp.json'));
     return 0;
   }
@@ -659,14 +660,10 @@ export async function removeHooks(cwd: string, hooksToRemove: string[]): Promise
     }
 
     // Write back
-    await fs.promises.writeFile(
-      settingsPath,
-      JSON.stringify(settings, null, 2) + '\n',
-      'utf-8'
-    );
+    await fs.promises.writeFile(settingsPath, `${JSON.stringify(settings, null, 2)}\n`, 'utf-8');
 
     return removedCount;
-  } catch (error) {
+  } catch (_error) {
     console.warn(chalk.yellow('⚠ Failed to update settings.json'));
     return 0;
   }

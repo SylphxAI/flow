@@ -4,10 +4,10 @@
  * All sessions stored in ~/.sylphx-flow/sessions/
  */
 
+import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { existsSync } from 'node:fs';
-import { ProjectManager } from './project-manager.js';
+import type { ProjectManager } from './project-manager.js';
 
 export interface Session {
   projectHash: string;
@@ -20,10 +20,10 @@ export interface Session {
   target: 'claude-code' | 'opencode';
   cleanupRequired: boolean;
   // Multi-session support
-  isOriginal: boolean;        // First session that created backup
-  sharedBackupId: string;     // Shared backup ID for all sessions
-  refCount: number;           // Number of active sessions
-  activePids: number[];       // All active PIDs sharing this session
+  isOriginal: boolean; // First session that created backup
+  sharedBackupId: string; // Shared backup ID for all sessions
+  refCount: number; // Number of active sessions
+  activePids: number[]; // All active PIDs sharing this session
 }
 
 export class SessionManager {
@@ -93,7 +93,9 @@ export class SessionManager {
   /**
    * Mark session as completed (with reference counting)
    */
-  async endSession(projectHash: string): Promise<{ shouldRestore: boolean; session: Session | null }> {
+  async endSession(
+    projectHash: string
+  ): Promise<{ shouldRestore: boolean; session: Session | null }> {
     try {
       const session = await this.getActiveSession(projectHash);
 
@@ -104,7 +106,7 @@ export class SessionManager {
       const paths = this.projectManager.getProjectPaths(projectHash);
 
       // Remove current PID from active PIDs
-      session.activePids = session.activePids.filter(pid => pid !== process.pid);
+      session.activePids = session.activePids.filter((pid) => pid !== process.pid);
       session.refCount = session.activePids.length;
 
       if (session.refCount === 0) {
@@ -115,12 +117,7 @@ export class SessionManager {
         const flowHome = this.projectManager.getFlowHomeDir();
 
         // Archive to history
-        const historyPath = path.join(
-          flowHome,
-          'sessions',
-          'history',
-          `${session.sessionId}.json`
-        );
+        const historyPath = path.join(flowHome, 'sessions', 'history', `${session.sessionId}.json`);
         await fs.mkdir(path.dirname(historyPath), { recursive: true });
         await fs.writeFile(historyPath, JSON.stringify(session, null, 2));
 
@@ -134,7 +131,7 @@ export class SessionManager {
 
         return { shouldRestore: false, session };
       }
-    } catch (error) {
+    } catch (_error) {
       // Session file might not exist
       return { shouldRestore: false, session: null };
     }
@@ -203,7 +200,7 @@ export class SessionManager {
       // Send signal 0 to check if process exists
       process.kill(pid, 0);
       return true;
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }
@@ -254,9 +251,7 @@ export class SessionManager {
 
     // Sort by start time (newest first)
     sessions.sort(
-      (a, b) =>
-        new Date(b.session.startTime).getTime() -
-        new Date(a.session.startTime).getTime()
+      (a, b) => new Date(b.session.startTime).getTime() - new Date(a.session.startTime).getTime()
     );
 
     // Remove old sessions

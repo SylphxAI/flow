@@ -8,16 +8,16 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
-import { hookCommand } from './commands/hook-command.js';
+import { executeFlow } from './commands/flow/execute-v2.js';
 import {
-  flowCommand,
-  statusCommand,
-  setupCommand,
   doctorCommand,
+  flowCommand,
+  setupCommand,
+  statusCommand,
   upgradeCommand,
 } from './commands/flow-command.js';
+import { hookCommand } from './commands/hook-command.js';
 import { settingsCommand } from './commands/settings-command.js';
-import { executeFlow } from './commands/flow/execute-v2.js';
 import { UserCancelledError } from './utils/errors.js';
 
 // Read version from package.json
@@ -53,7 +53,10 @@ export function createCLI(): Command {
   // Default action: delegate to flow command for convenience
   // This allows `sylphx-flow "prompt"` instead of requiring `sylphx-flow flow "prompt"`
   program
-    .argument('[prompt]', 'Prompt to execute with agent (optional, supports @file.txt for file input)')
+    .argument(
+      '[prompt]',
+      'Prompt to execute with agent (optional, supports @file.txt for file input)'
+    )
     .option('--agent <name>', 'Agent to use (default: coder)', 'coder')
     .option('--agent-file <path>', 'Load agent from specific file')
     .option('--verbose', 'Show detailed output')

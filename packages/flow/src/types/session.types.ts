@@ -49,7 +49,7 @@ export type MessagePart =
   | {
       type: 'error';
       error: string;
-      status: 'completed';  // Errors are immediately completed
+      status: 'completed'; // Errors are immediately completed
     };
 
 /**
@@ -94,8 +94,8 @@ export interface TokenUsage {
  * - content: Shown in UI AND sent to LLM
  */
 export interface MessageMetadata {
-  cpu?: string;         // CPU usage at creation time (e.g., "45.3% (8 cores)")
-  memory?: string;      // Memory usage at creation time (e.g., "4.2GB/16.0GB")
+  cpu?: string; // CPU usage at creation time (e.g., "45.3% (8 cores)")
+  memory?: string; // Memory usage at creation time (e.g., "4.2GB/16.0GB")
   // Future: add more fields as needed (sessionId, requestId, modelVersion, etc.)
 }
 
@@ -136,14 +136,14 @@ export interface MessageMetadata {
  */
 export interface SessionMessage {
   role: 'user' | 'assistant';
-  content: MessagePart[];  // UI display (without system status)
+  content: MessagePart[]; // UI display (without system status)
   timestamp: number;
-  status?: 'active' | 'completed' | 'error' | 'abort';  // Message lifecycle state (default: 'completed')
-  metadata?: MessageMetadata;  // System info for LLM context (not shown in UI)
-  todoSnapshot?: Todo[];   // Full todo state at message creation time (for rewind + LLM context)
+  status?: 'active' | 'completed' | 'error' | 'abort'; // Message lifecycle state (default: 'completed')
+  metadata?: MessageMetadata; // System info for LLM context (not shown in UI)
+  todoSnapshot?: Todo[]; // Full todo state at message creation time (for rewind + LLM context)
   attachments?: FileAttachment[];
-  usage?: TokenUsage;          // For UI/monitoring, not sent to LLM
-  finishReason?: string;       // For flow control (stop/tool-calls/length/error), not sent to LLM
+  usage?: TokenUsage; // For UI/monitoring, not sent to LLM
+  finishReason?: string; // For flow control (stop/tool-calls/length/error), not sent to LLM
 }
 
 /**
@@ -203,8 +203,8 @@ export interface Session {
   provider: ProviderId;
   model: string;
   messages: SessionMessage[];
-  todos: Todo[];         // Per-session todo list (not global!)
-  nextTodoId: number;    // Next todo ID for this session (starts at 1)
+  todos: Todo[]; // Per-session todo list (not global!)
+  nextTodoId: number; // Next todo ID for this session (starts at 1)
 
   // Note: Streaming state derived from message.status, not stored here
   // To check if streaming: messages.some(m => m.status === 'active')

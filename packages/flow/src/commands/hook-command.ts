@@ -153,9 +153,7 @@ async function sendLinuxNotification(title: string, message: string): Promise<vo
   try {
     await execAsync('which notify-send');
     // Use Flow-themed spiral emoji as icon for Sylphx Flow
-    await execAsync(
-      `notify-send -i "🌀" "${escapeForShell(title)}" "${escapeForShell(message)}"`
-    );
+    await execAsync(`notify-send -i "🌀" "${escapeForShell(title)}" "${escapeForShell(message)}"`);
   } catch {
     // notify-send not available, skip notification silently
   }

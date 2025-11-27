@@ -6,10 +6,10 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 import chalk from 'chalk';
-import ora from 'ora';
 import inquirer from 'inquirer';
-import { detectPackageManager, type PackageManager } from '../utils/package-manager-detector.js';
+import ora from 'ora';
 import { UserCancelledError } from '../utils/errors.js';
+import { detectPackageManager, type PackageManager } from '../utils/package-manager-detector.js';
 
 const execAsync = promisify(exec);
 
@@ -136,9 +136,10 @@ export class TargetInstaller {
       ]);
 
       return targetId;
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle user cancellation (Ctrl+C)
-      if (error.name === 'ExitPromptError' || error.message?.includes('force closed')) {
+      const err = error as Error & { name?: string };
+      if (err.name === 'ExitPromptError' || err.message?.includes('force closed')) {
         throw new UserCancelledError('Target selection cancelled');
       }
       throw error;
@@ -182,9 +183,10 @@ export class TargetInstaller {
           console.log(chalk.yellow('\n⚠️  Installation cancelled\n'));
           return false;
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Handle user cancellation (Ctrl+C)
-        if (error.name === 'ExitPromptError' || error.message?.includes('force closed')) {
+        const err = error as Error & { name?: string };
+        if (err.name === 'ExitPromptError' || err.message?.includes('force closed')) {
           throw new UserCancelledError('Installation cancelled');
         }
         throw error;
@@ -199,7 +201,7 @@ export class TargetInstaller {
 
       spinner.succeed(chalk.green(`✓ ${installation.name} installed successfully`));
       return true;
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(chalk.red(`✗ Failed to install ${installation.name}`));
 
       const installCmd = installation.installCommand(this.packageManager);

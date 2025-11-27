@@ -209,11 +209,15 @@ export const commandSecurity = {
 
     try {
       return await execFileAsync(command, validatedArgs, secureOptions);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Sanitize error message to prevent information disclosure
-      const sanitizedError = new Error(`Command execution failed: ${command}`);
-      sanitizedError.code = error.code;
-      sanitizedError.signal = error.signal;
+      const err = error as NodeJS.ErrnoException & { signal?: string };
+      const sanitizedError = new Error(`Command execution failed: ${command}`) as Error & {
+        code?: string;
+        signal?: string;
+      };
+      sanitizedError.code = err.code;
+      sanitizedError.signal = err.signal;
       throw sanitizedError;
     }
   },

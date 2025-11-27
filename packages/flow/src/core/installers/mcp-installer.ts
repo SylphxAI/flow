@@ -177,4 +177,3 @@ export function createMCPInstaller(target: Target): MCPInstaller {
     setupMCP,
   };
 }
-

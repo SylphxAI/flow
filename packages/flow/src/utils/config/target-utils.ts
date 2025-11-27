@@ -288,7 +288,7 @@ export const pathUtils = {
     // Try to extract from content title
     const titleMatch = content.match(/^#\s+(.+?)(?:\s+Agent)?$/m);
     if (titleMatch) {
-      const title = titleMatch[1]!.trim().toLowerCase();
+      const title = titleMatch[1]?.trim().toLowerCase();
       const kebabTitle = title.replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
       return kebabTitle + (kebabTitle.includes('agent') ? '' : '-agent');
     }
@@ -319,7 +319,7 @@ export const pathUtils = {
   extractDescription(content: string): string {
     const firstParagraph = content.match(/^#\s+.+?\n\n(.+?)(?:\n\n|\n#|$)/s);
     if (firstParagraph) {
-      return firstParagraph[1]!.trim().replace(/\n+/g, ' ');
+      return firstParagraph[1]?.trim().replace(/\n+/g, ' ');
     }
     return 'Development agent for specialized tasks';
   },

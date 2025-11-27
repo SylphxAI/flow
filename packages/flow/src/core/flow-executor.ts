@@ -5,14 +5,14 @@
  */
 
 import chalk from 'chalk';
-import { ProjectManager } from './project-manager.js';
-import { SessionManager } from './session-manager.js';
+import { AttachManager, type AttachResult } from './attach-manager.js';
 import { BackupManager } from './backup-manager.js';
-import { AttachManager } from './attach-manager.js';
-import { SecretsManager } from './secrets-manager.js';
 import { CleanupHandler } from './cleanup-handler.js';
-import { TemplateLoader } from './template-loader.js';
 import { GitStashManager } from './git-stash-manager.js';
+import { ProjectManager } from './project-manager.js';
+import { SecretsManager } from './secrets-manager.js';
+import { SessionManager } from './session-manager.js';
+import { TemplateLoader } from './template-loader.js';
 
 export interface FlowExecutorOptions {
   verbose?: boolean;
@@ -49,10 +49,7 @@ export class FlowExecutor {
   /**
    * Execute complete flow with attach mode (with multi-session support)
    */
-  async execute(
-    projectPath: string,
-    options: FlowExecutorOptions = {}
-  ): Promise<void> {
+  async execute(projectPath: string, options: FlowExecutorOptions = {}): Promise<void> {
     // Initialize Flow directories
     await this.projectManager.initialize();
 
@@ -76,7 +73,7 @@ export class FlowExecutor {
       // Joining existing session
       console.log(chalk.cyan('🔗 Joining existing session...'));
 
-      const { session, isFirstSession } = await this.sessionManager.startSession(
+      const { session } = await this.sessionManager.startSession(
         projectPath,
         projectHash,
         target,
@@ -97,31 +94,21 @@ export class FlowExecutor {
     await this.gitStashManager.stashSettingsChanges(projectPath);
 
     console.log(chalk.cyan('💾 Creating backup...'));
-    const backup = await this.backupManager.createBackup(
-      projectPath,
-      projectHash,
-      target
-    );
+    const backup = await this.backupManager.createBackup(projectPath, projectHash, target);
 
     // Step 4: Extract and save secrets
     if (!options.skipSecrets) {
       console.log(chalk.cyan('🔐 Extracting secrets...'));
-      const secrets = await this.secretsManager.extractMCPSecrets(
-        projectPath,
-        projectHash,
-        target
-      );
+      const secrets = await this.secretsManager.extractMCPSecrets(projectPath, projectHash, target);
 
       if (Object.keys(secrets.servers).length > 0) {
         await this.secretsManager.saveSecrets(projectHash, secrets);
-        console.log(
-          chalk.green(`   ✓ Saved ${Object.keys(secrets.servers).length} MCP secret(s)`)
-        );
+        console.log(chalk.green(`   ✓ Saved ${Object.keys(secrets.servers).length} MCP secret(s)`));
       }
     }
 
     // Step 5: Start session (use backup's sessionId to ensure consistency)
-    const { session, isFirstSession } = await this.sessionManager.startSession(
+    const { session } = await this.sessionManager.startSession(
       projectPath,
       projectHash,
       target,
@@ -185,9 +172,10 @@ export class FlowExecutor {
     }
 
     // Get directory names for this target
-    const dirs = target === 'claude-code'
-      ? { agents: 'agents', commands: 'commands' }
-      : { agents: 'agent', commands: 'command' };
+    const dirs =
+      target === 'claude-code'
+        ? { agents: 'agents', commands: 'commands' }
+        : { agents: 'agent', commands: 'command' };
 
     // 1. Clear agents directory (including AGENTS.md rules file)
     const agentsDir = path.join(targetDir, dirs.agents);
@@ -217,9 +205,10 @@ export class FlowExecutor {
     }
 
     // 4. Clear MCP configuration completely
-    const configPath = target === 'claude-code'
-      ? path.join(targetDir, 'settings.json')
-      : path.join(targetDir, '.mcp.json');
+    const configPath =
+      target === 'claude-code'
+        ? path.join(targetDir, 'settings.json')
+        : path.join(targetDir, '.mcp.json');
 
     if (existsSync(configPath)) {
       if (target === 'claude-code') {
@@ -294,13 +283,11 @@ export class FlowExecutor {
   /**
    * Show attach summary
    */
-  private showAttachSummary(result: any): void {
+  private showAttachSummary(result: AttachResult): void {
     const items = [];
 
     if (result.agentsAdded.length > 0) {
-      items.push(
-        `${result.agentsAdded.length} agent${result.agentsAdded.length > 1 ? 's' : ''}`
-      );
+      items.push(`${result.agentsAdded.length} agent${result.agentsAdded.length > 1 ? 's' : ''}`);
     }
 
     if (result.commandsAdded.length > 0) {
@@ -316,9 +303,7 @@ export class FlowExecutor {
     }
 
     if (result.hooksAdded.length > 0) {
-      items.push(
-        `${result.hooksAdded.length} hook${result.hooksAdded.length > 1 ? 's' : ''}`
-      );
+      items.push(`${result.hooksAdded.length} hook${result.hooksAdded.length > 1 ? 's' : ''}`);
     }
 
     if (result.rulesAppended) {
@@ -329,7 +314,8 @@ export class FlowExecutor {
       console.log(chalk.green(`   ✓ Added: ${items.join(', ')}`));
     }
 
-    const overridden = result.agentsOverridden.length +
+    const overridden =
+      result.agentsOverridden.length +
       result.commandsOverridden.length +
       result.mcpServersOverridden.length +
       result.hooksOverridden.length;

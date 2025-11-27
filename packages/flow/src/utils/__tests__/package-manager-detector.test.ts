@@ -1,14 +1,14 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  detectPackageManagerFromUserAgent,
-  detectPackageManagerFromLockFiles,
   detectPackageManager,
+  detectPackageManagerFromLockFiles,
+  detectPackageManagerFromUserAgent,
   getPackageManagerInfo,
   getUpgradeCommand,
 } from '../package-manager-detector';
-import fs from 'node:fs';
-import path from 'node:path';
-import os from 'node:os';
 
 describe('Package Manager Detection', () => {
   const originalEnv = process.env;

@@ -14,12 +14,7 @@ export class BaseError extends Error {
   public readonly statusCode: number;
   public readonly details?: Record<string, unknown>;
 
-  constructor(
-    message: string,
-    code: string,
-    statusCode = 500,
-    details?: Record<string, unknown>
-  ) {
+  constructor(message: string, code: string, statusCode = 500, details?: Record<string, unknown>) {
     super(message);
     this.name = this.constructor.name;
     this.code = code;
@@ -176,7 +171,7 @@ export interface ErrorHandler {
 export class LoggerErrorHandler implements ErrorHandler {
   constructor(private level: 'error' | 'warn' | 'info' | 'debug' = 'error') {}
 
-  canHandle(error: Error): boolean {
+  canHandle(_error: Error): boolean {
     return true; // Logger can handle all errors
   }
 
@@ -211,7 +206,7 @@ export class LoggerErrorHandler implements ErrorHandler {
  * Console error handler
  */
 export class ConsoleErrorHandler implements ErrorHandler {
-  canHandle(error: Error): boolean {
+  canHandle(_error: Error): boolean {
     return true; // Console can handle all errors
   }
 
@@ -269,9 +264,7 @@ export class ErrorHandlerChain {
 /**
  * Global error handler
  */
-export const globalErrorHandler = new ErrorHandlerChain([
-  new LoggerErrorHandler('error'),
-]);
+export const globalErrorHandler = new ErrorHandlerChain([new LoggerErrorHandler('error')]);
 
 /**
  * Set up global error handlers
@@ -371,7 +364,7 @@ export async function withRetry<T>(
     onRetry,
   } = options;
 
-  let lastError: Error;
+  let lastError: Error = new Error('Unknown error');
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
@@ -381,7 +374,8 @@ export async function withRetry<T>(
       lastError = error instanceof Error ? error : new Error(String(error));
 
       // Check if error is retryable
-      const isRetryable = retryableErrors.length === 0 ||
+      const isRetryable =
+        retryableErrors.length === 0 ||
         retryableErrors.includes((lastError as BaseError).code) ||
         retryableErrors.includes(lastError.constructor.name);
 
@@ -396,23 +390,21 @@ export async function withRetry<T>(
       }
 
       // Calculate delay
-      const retryDelay = backoff === 'exponential'
-        ? delay * Math.pow(2, attempt - 1)
-        : delay * attempt;
+      const retryDelay = backoff === 'exponential' ? delay * 2 ** (attempt - 1) : delay * attempt;
 
       // Wait before retry
-      await new Promise(resolve => setTimeout(resolve, retryDelay));
+      await new Promise((resolve) => setTimeout(resolve, retryDelay));
     }
   }
 
-  await globalErrorHandler.handle(lastError!);
-  return { success: false, error: lastError! };
+  await globalErrorHandler.handle(lastError);
+  return { success: false, error: lastError };
 }
 
 /**
  * Timeout wrapper
  */
-export async function withTimeout<T>(
+export function withTimeout<T>(
   fn: () => Promise<T>,
   timeoutMs: number,
   timeoutMessage = 'Operation timed out'
@@ -447,26 +439,27 @@ export class CircuitBreaker {
   private failures = 0;
   private lastFailureTime = 0;
   private state: 'closed' | 'open' | 'half-open' = 'closed';
+  private readonly config: {
+    failureThreshold: number;
+    recoveryTimeMs: number;
+    monitoringPeriodMs: number;
+  };
 
   constructor(
-    private options: {
+    options: {
       failureThreshold?: number;
       recoveryTimeMs?: number;
       monitoringPeriodMs?: number;
     } = {}
   ) {
-    const {
-      failureThreshold = 5,
-      recoveryTimeMs = 60000,
-      monitoringPeriodMs = 10000,
-    } = options;
+    const { failureThreshold = 5, recoveryTimeMs = 60000, monitoringPeriodMs = 10000 } = options;
 
-    this.options = { failureThreshold, recoveryTimeMs, monitoringPeriodMs };
+    this.config = { failureThreshold, recoveryTimeMs, monitoringPeriodMs };
   }
 
   async execute<T>(fn: () => Promise<T>): Promise<Result<T>> {
     if (this.state === 'open') {
-      if (Date.now() - this.lastFailureTime > this.options.recoveryTimeMs!) {
+      if (Date.now() - this.lastFailureTime > this.config.recoveryTimeMs) {
         this.state = 'half-open';
       } else {
         return {
@@ -498,7 +491,7 @@ export class CircuitBreaker {
     this.failures++;
     this.lastFailureTime = Date.now();
 
-    if (this.failures >= this.options.failureThreshold!) {
+    if (this.failures >= this.config.failureThreshold) {
       this.state = 'open';
     }
   }

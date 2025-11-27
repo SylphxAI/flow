@@ -4,9 +4,9 @@
  * Supports both claude-code and opencode targets
  */
 
+import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { FlowTemplates } from './attach-manager.js';
 
@@ -24,7 +24,7 @@ export class TemplateLoader {
    * Load all templates for target
    * Uses flat assets directory structure (no target-specific subdirectories)
    */
-  async loadTemplates(target: 'claude-code' | 'opencode'): Promise<FlowTemplates> {
+  async loadTemplates(_target: 'claude-code' | 'opencode'): Promise<FlowTemplates> {
     const templates: FlowTemplates = {
       agents: [],
       commands: [],
@@ -77,14 +77,14 @@ export class TemplateLoader {
   /**
    * Load agents from directory
    */
-  private async loadAgents(
-    agentsDir: string
-  ): Promise<Array<{ name: string; content: string }>> {
+  private async loadAgents(agentsDir: string): Promise<Array<{ name: string; content: string }>> {
     const agents = [];
     const files = await fs.readdir(agentsDir);
 
     for (const file of files) {
-      if (!file.endsWith('.md')) continue;
+      if (!file.endsWith('.md')) {
+        continue;
+      }
 
       const content = await fs.readFile(path.join(agentsDir, file), 'utf-8');
       agents.push({ name: file, content });
@@ -103,7 +103,9 @@ export class TemplateLoader {
     const files = await fs.readdir(commandsDir);
 
     for (const file of files) {
-      if (!file.endsWith('.md')) continue;
+      if (!file.endsWith('.md')) {
+        continue;
+      }
 
       const content = await fs.readFile(path.join(commandsDir, file), 'utf-8');
       commands.push({ name: file, content });
@@ -115,9 +117,7 @@ export class TemplateLoader {
   /**
    * Load MCP servers configuration
    */
-  private async loadMCPServers(
-    configPath: string
-  ): Promise<Array<{ name: string; config: any }>> {
+  private async loadMCPServers(configPath: string): Promise<Array<{ name: string; config: any }>> {
     const data = await fs.readFile(configPath, 'utf-8');
     const config = JSON.parse(data);
 
@@ -127,25 +127,6 @@ export class TemplateLoader {
     }
 
     return servers;
-  }
-
-  /**
-   * Load hooks from directory
-   */
-  private async loadHooks(
-    hooksDir: string
-  ): Promise<Array<{ name: string; content: string }>> {
-    const hooks = [];
-    const files = await fs.readdir(hooksDir);
-
-    for (const file of files) {
-      if (!file.endsWith('.js')) continue;
-
-      const content = await fs.readFile(path.join(hooksDir, file), 'utf-8');
-      hooks.push({ name: file, content });
-    }
-
-    return hooks;
   }
 
   /**
@@ -180,7 +161,7 @@ export class TemplateLoader {
   /**
    * Check if templates exist (uses flat directory structure)
    */
-  async hasTemplates(target: 'claude-code' | 'opencode'): Promise<boolean> {
+  async hasTemplates(_target: 'claude-code' | 'opencode'): Promise<boolean> {
     // Check if any template directories exist
     const agentsDir = path.join(this.assetsDir, 'agents');
     const commandsDir = path.join(this.assetsDir, 'slash-commands');

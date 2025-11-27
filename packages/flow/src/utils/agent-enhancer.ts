@@ -12,7 +12,7 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { getOutputStylesDir, getRulesDir, getAgentsDir } from './config/paths.js';
+import { getAgentsDir, getOutputStylesDir, getRulesDir } from './config/paths.js';
 import { yamlUtils } from './config/target-utils.js';
 import { CLIError } from './error-handler.js';
 
@@ -58,7 +58,7 @@ async function loadRules(ruleNames?: string[]): Promise<string> {
         // Strip YAML front matter
         const stripped = await yamlUtils.stripFrontMatter(content);
         sections.push(stripped);
-      } catch (error) {
+      } catch (_error) {
         // Log warning if rule file not found, but continue with other rules
         console.warn(`Warning: Rule file not found: ${ruleName}.md`);
       }
@@ -88,7 +88,7 @@ async function loadOutputStyles(styleNames?: string[]): Promise<string> {
           const content = await fs.readFile(filePath, 'utf8');
           const stripped = await yamlUtils.stripFrontMatter(content);
           sections.push(stripped);
-        } catch (error) {
+        } catch (_error) {
           console.warn(`Warning: Output style file not found: ${styleName}.md`);
         }
       }
@@ -150,7 +150,7 @@ function filterRules(agentRules?: string[], enabledRules?: string[]): string[] |
   }
 
   // Return intersection: rules that are both in agent's list AND globally enabled
-  const filtered = agentRules.filter(rule => enabledRules.includes(rule));
+  const filtered = agentRules.filter((rule) => enabledRules.includes(rule));
   return filtered.length > 0 ? filtered : undefined;
 }
 

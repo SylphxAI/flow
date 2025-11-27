@@ -1,8 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { projectSettings } from '../utils/config/settings.js';
-import { targetManager } from './target-manager.js';
 import { ConfigService } from '../services/config-service.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -28,7 +26,13 @@ export interface ProjectState {
   lastUpdated: Date | null;
 }
 
-export type RecommendedAction = 'FULL_INIT' | 'RUN_ONLY' | 'REPAIR' | 'UPGRADE' | 'UPGRADE_TARGET' | 'CLEAN_INIT';
+export type RecommendedAction =
+  | 'FULL_INIT'
+  | 'RUN_ONLY'
+  | 'REPAIR'
+  | 'UPGRADE'
+  | 'UPGRADE_TARGET'
+  | 'CLEAN_INIT';
 
 export class StateDetector {
   private projectPath: string;
@@ -121,8 +125,7 @@ export class StateDetector {
 
       // Check corruption
       state.corrupted = await this.checkCorruption(state);
-
-    } catch (error) {
+    } catch (_error) {
       state.corrupted = true;
     }
 
@@ -142,8 +145,11 @@ export class StateDetector {
       return 'UPGRADE';
     }
 
-    if (state.targetVersion && state.targetLatestVersion &&
-        this.isVersionOutdated(state.targetVersion, state.targetLatestVersion)) {
+    if (
+      state.targetVersion &&
+      state.targetLatestVersion &&
+      this.isVersionOutdated(state.targetVersion, state.targetLatestVersion)
+    ) {
       return 'UPGRADE_TARGET';
     }
 
@@ -170,8 +176,11 @@ export class StateDetector {
       explanations.push('Run `bun dev:flow upgrade` to upgrade');
     }
 
-    if (state.targetVersion && state.targetLatestVersion &&
-        this.isVersionOutdated(state.targetVersion, state.targetLatestVersion)) {
+    if (
+      state.targetVersion &&
+      state.targetLatestVersion &&
+      this.isVersionOutdated(state.targetVersion, state.targetLatestVersion)
+    ) {
       explanations.push(`${state.target} update available`);
       explanations.push(`Run \`bun dev:flow upgrade-target\` to upgrade`);
     }
@@ -210,7 +219,10 @@ export class StateDetector {
   ): Promise<void> {
     try {
       const fullPath = path.join(this.projectPath, componentPath);
-      const exists = await fs.access(fullPath).then(() => true).catch(() => false);
+      const exists = await fs
+        .access(fullPath)
+        .then(() => true)
+        .catch(() => false);
 
       if (!exists) {
         state.components[componentName].installed = false;
@@ -219,19 +231,30 @@ export class StateDetector {
 
       // 计算文件数量
       const files = await fs.readdir(fullPath).catch(() => []);
-      const count = pattern === '*.js' ? files.filter(f => f.endsWith('.js')).length :
-                   pattern === '*.md' ? files.filter(f => f.endsWith('.md')).length : files.length;
+      const count =
+        pattern === '*.js'
+          ? files.filter((f) => f.endsWith('.js')).length
+          : pattern === '*.md'
+            ? files.filter((f) => f.endsWith('.md')).length
+            : files.length;
 
       // Component is only installed if it has files
       state.components[componentName].installed = count > 0;
 
-      if (componentName === 'agents' || componentName === 'slashCommands' || componentName === 'rules') {
+      if (
+        componentName === 'agents' ||
+        componentName === 'slashCommands' ||
+        componentName === 'rules'
+      ) {
         state.components[componentName].count = count;
       }
 
       // 这里可以读取版本信息（如果保存了的话）
       const versionPath = path.join(fullPath, '.version');
-      const versionExists = await fs.access(versionPath).then(() => true).catch(() => false);
+      const versionExists = await fs
+        .access(versionPath)
+        .then(() => true)
+        .catch(() => false);
       if (versionExists) {
         state.components[componentName].version = await fs.readFile(versionPath, 'utf-8');
       }
@@ -247,7 +270,10 @@ export class StateDetector {
   ): Promise<void> {
     try {
       const fullPath = path.join(this.projectPath, filePath);
-      const exists = await fs.access(fullPath).then(() => true).catch(() => false);
+      const exists = await fs
+        .access(fullPath)
+        .then(() => true)
+        .catch(() => false);
 
       state.components[componentName].installed = exists;
 
@@ -263,7 +289,10 @@ export class StateDetector {
   private async checkOutputStylesInAGENTS(): Promise<boolean> {
     try {
       const agentsPath = path.join(this.projectPath, 'AGENTS.md');
-      const exists = await fs.access(agentsPath).then(() => true).catch(() => false);
+      const exists = await fs
+        .access(agentsPath)
+        .then(() => true)
+        .catch(() => false);
 
       if (!exists) {
         return false;
@@ -277,7 +306,9 @@ export class StateDetector {
     }
   }
 
-  private async checkMCPConfig(target?: string | null): Promise<{ exists: boolean; serverCount: number; version: string | null }> {
+  private async checkMCPConfig(
+    target?: string | null
+  ): Promise<{ exists: boolean; serverCount: number; version: string | null }> {
     try {
       let mcpPath: string;
       let serversKey: string;
@@ -292,7 +323,10 @@ export class StateDetector {
         serversKey = 'mcpServers';
       }
 
-      const exists = await fs.access(mcpPath).then(() => true).catch(() => false);
+      const exists = await fs
+        .access(mcpPath)
+        .then(() => true)
+        .catch(() => false);
 
       if (!exists) {
         return { exists: false, serverCount: 0, version: null };
@@ -322,7 +356,9 @@ export class StateDetector {
     }
   }
 
-  private async checkTargetVersion(target: string): Promise<{ version: string | null; latestVersion: string | null }> {
+  private async checkTargetVersion(
+    target: string
+  ): Promise<{ version: string | null; latestVersion: string | null }> {
     try {
       // 这里可以检查目标平台的版本
       // 例如检查 claude CLI 版本或 opencode 版本

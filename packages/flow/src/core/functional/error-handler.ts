@@ -81,7 +81,7 @@ export const retry = async <T>(
 ): Promise<Result<T, AppError>> => {
   const { maxRetries, delayMs, backoff = 2, onRetry } = options;
 
-  let lastError: AppError | null = null;
+  let lastError: AppError = { type: 'unknown', message: 'Unknown error', code: 'UNKNOWN' };
   let currentDelay = delayMs;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -103,7 +103,7 @@ export const retry = async <T>(
     }
   }
 
-  return failure(lastError!);
+  return failure(lastError);
 };
 
 /**
