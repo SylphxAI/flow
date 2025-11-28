@@ -12,6 +12,7 @@ import chalk from 'chalk';
 import { MCP_SERVER_REGISTRY } from '../config/servers.js';
 import { GlobalConfigService } from '../services/global-config.js';
 import type { Target } from '../types/target.types.js';
+import { attachItemsToDir, attachRulesFile } from './attach/index.js';
 import type { BackupManifest } from './backup-manager.js';
 import type { ProjectManager } from './project-manager.js';
 import { targetManager } from './target-manager.js';
@@ -188,6 +189,7 @@ export class AttachManager {
 
   /**
    * Attach agents (override strategy)
+   * Uses shared attachItemsToDir function
    */
   private async attachAgents(
     projectPath: string,
@@ -196,40 +198,24 @@ export class AttachManager {
     result: AttachResult,
     manifest: BackupManifest
   ): Promise<void> {
-    // Use full path from target config
     const agentsDir = path.join(projectPath, target.config.agentDir);
-    await fs.mkdir(agentsDir, { recursive: true });
+    const { stats, manifest: itemManifest } = await attachItemsToDir(agents, agentsDir, 'agent');
 
-    for (const agent of agents) {
-      const agentPath = path.join(agentsDir, agent.name);
-      const existed = existsSync(agentPath);
+    // Update result
+    result.agentsAdded.push(...stats.added);
+    result.agentsOverridden.push(...stats.overridden);
+    result.conflicts.push(
+      ...stats.conflicts.map((c) => ({ ...c, type: 'agent' as const }))
+    );
 
-      if (existed) {
-        // Conflict: user has same agent
-        result.agentsOverridden.push(agent.name);
-        result.conflicts.push({
-          type: 'agent',
-          name: agent.name,
-          action: 'overridden',
-          message: `Agent '${agent.name}' overridden (will be restored on exit)`,
-        });
-
-        // Track in manifest
-        manifest.backup.agents.user.push(agent.name);
-      } else {
-        result.agentsAdded.push(agent.name);
-      }
-
-      // Write Flow agent (override)
-      await fs.writeFile(agentPath, agent.content);
-
-      // Track Flow agent
-      manifest.backup.agents.flow.push(agent.name);
-    }
+    // Update manifest
+    manifest.backup.agents.user.push(...itemManifest.user);
+    manifest.backup.agents.flow.push(...itemManifest.flow);
   }
 
   /**
    * Attach commands (override strategy)
+   * Uses shared attachItemsToDir function
    */
   private async attachCommands(
     projectPath: string,
@@ -238,40 +224,24 @@ export class AttachManager {
     result: AttachResult,
     manifest: BackupManifest
   ): Promise<void> {
-    // Use full path from target config
     const commandsDir = path.join(projectPath, target.config.slashCommandsDir);
-    await fs.mkdir(commandsDir, { recursive: true });
+    const { stats, manifest: itemManifest } = await attachItemsToDir(commands, commandsDir, 'command');
 
-    for (const command of commands) {
-      const commandPath = path.join(commandsDir, command.name);
-      const existed = existsSync(commandPath);
+    // Update result
+    result.commandsAdded.push(...stats.added);
+    result.commandsOverridden.push(...stats.overridden);
+    result.conflicts.push(
+      ...stats.conflicts.map((c) => ({ ...c, type: 'command' as const }))
+    );
 
-      if (existed) {
-        // Conflict: user has same command
-        result.commandsOverridden.push(command.name);
-        result.conflicts.push({
-          type: 'command',
-          name: command.name,
-          action: 'overridden',
-          message: `Command '${command.name}' overridden (will be restored on exit)`,
-        });
-
-        // Track in manifest
-        manifest.backup.commands.user.push(command.name);
-      } else {
-        result.commandsAdded.push(command.name);
-      }
-
-      // Write Flow command (override)
-      await fs.writeFile(commandPath, command.content);
-
-      // Track Flow command
-      manifest.backup.commands.flow.push(command.name);
-    }
+    // Update manifest
+    manifest.backup.commands.user.push(...itemManifest.user);
+    manifest.backup.commands.flow.push(...itemManifest.flow);
   }
 
   /**
    * Attach rules (append strategy for AGENTS.md)
+   * Uses shared attachRulesFile function
    */
   private async attachRules(
     projectPath: string,
@@ -280,52 +250,20 @@ export class AttachManager {
     result: AttachResult,
     manifest: BackupManifest
   ): Promise<void> {
-    // Use full paths from target config:
-    // - rulesFile defined (e.g., OpenCode): projectPath/rulesFile
-    // - rulesFile undefined (e.g., Claude Code): projectPath/agentDir/AGENTS.md
     const rulesPath = target.config.rulesFile
       ? path.join(projectPath, target.config.rulesFile)
       : path.join(projectPath, target.config.agentDir, 'AGENTS.md');
 
-    if (existsSync(rulesPath)) {
-      // User has AGENTS.md, append Flow rules
-      const userRules = await fs.readFile(rulesPath, 'utf-8');
+    const { originalSize, flowContentAdded } = await attachRulesFile(rulesPath, rules);
 
-      // Check if already appended (avoid duplicates)
-      if (userRules.includes('<!-- Sylphx Flow Rules -->')) {
-        // Already appended, skip
-        return;
-      }
-
-      const merged = `${userRules}
-
-<!-- ========== Sylphx Flow Rules (Auto-injected) ========== -->
-
-${rules}
-
-<!-- ========== End of Sylphx Flow Rules ========== -->
-`;
-
-      await fs.writeFile(rulesPath, merged);
-
+    if (flowContentAdded) {
       manifest.backup.rules = {
         path: rulesPath,
-        originalSize: userRules.length,
+        originalSize,
         flowContentAdded: true,
       };
-    } else {
-      // User doesn't have AGENTS.md, create new
-      await fs.mkdir(path.dirname(rulesPath), { recursive: true });
-      await fs.writeFile(rulesPath, rules);
-
-      manifest.backup.rules = {
-        path: rulesPath,
-        originalSize: 0,
-        flowContentAdded: true,
-      };
+      result.rulesAppended = true;
     }
-
-    result.rulesAppended = true;
   }
 
   /**
