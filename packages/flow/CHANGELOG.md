@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.1.9 (2025-11-28)
+
+### 🐛 Bug Fixes
+
+- **mcp:** use process.cwd() instead of undefined cwd variable ([aa99db0](https://github.com/SylphxAI/flow/commit/aa99db0a96bb333c38da3c73c325fddf124948d8))
+
 ## 2.1.8 (2025-11-28)
 
 ### 🐛 Bug Fixes
