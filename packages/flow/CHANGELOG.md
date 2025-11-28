@@ -1,5 +1,12 @@
 # @sylphx/flow
 
+## 2.1.10 (2025-11-28)
+
+### 🐛 Bug Fixes
+
+- **upgrade:** prevent recursive self-upgrade with env flag ([43416fa](https://github.com/SylphxAI/flow/commit/43416faabf18a6ba93c4c739a7fe1300aa63cb60))
+- **upgrade:** re-exec process after self-upgrade ([d2111f8](https://github.com/SylphxAI/flow/commit/d2111f800eb91e0b377d4e434ccdb214d71a1d27))
+
 ## 2.1.9 (2025-11-28)
 
 ### 🐛 Bug Fixes
