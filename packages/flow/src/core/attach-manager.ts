@@ -327,6 +327,12 @@ export class AttachManager {
     // Write updated config
     await fs.writeFile(configPath, JSON.stringify(config, null, 2));
 
+    // Approve MCP servers if target supports it (e.g., Claude Code needs enabledMcpjsonServers)
+    if (target.approveMCPServers) {
+      const serverNames = mcpServers.map((s) => s.name);
+      await target.approveMCPServers(projectPath, serverNames);
+    }
+
     // Track in manifest
     manifest.backup.config = {
       path: configPath,
