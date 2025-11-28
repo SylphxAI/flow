@@ -24,6 +24,7 @@ export const claudeCodeTarget: Target = {
   isDefault: false,
 
   config: {
+    configDir: '.claude',
     agentDir: '.claude/agents',
     agentExtension: '.md',
     agentFormat: 'yaml-frontmatter',

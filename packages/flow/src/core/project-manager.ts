@@ -9,6 +9,8 @@ import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import type { Target } from '../types/target.types.js';
+import { targetManager } from './target-manager.js';
 
 export interface ProjectPaths {
   sessionFile: string;
@@ -124,10 +126,7 @@ export class ProjectManager {
   /**
    * Save project-specific target preference to global config
    */
-  async saveProjectTargetPreference(
-    projectHash: string,
-    target: 'claude-code' | 'opencode'
-  ): Promise<void> {
+  async saveProjectTargetPreference(projectHash: string, target: string): Promise<void> {
     const prefsPath = path.join(this.flowHomeDir, 'project-preferences.json');
     let prefs: { projects: Record<string, { target?: string }> } = { projects: {} };
 
@@ -152,11 +151,11 @@ export class ProjectManager {
   }
 
   /**
-   * Detect target platform (claude-code or opencode)
+   * Detect target platform
    * New strategy: Detect based on installed commands, not folders
    * Priority: saved preference > installed commands > global default
    */
-  async detectTarget(projectPath: string): Promise<'claude-code' | 'opencode'> {
+  async detectTarget(projectPath: string): Promise<string> {
     const projectHash = this.getProjectHash(projectPath);
 
     // 1. Check if we already have a saved preference for this project
@@ -213,11 +212,22 @@ export class ProjectManager {
 
   /**
    * Get target config directory for project
+   * @param projectPath - The project root path
+   * @param target - Either a Target object or target ID string
    */
-  getTargetConfigDir(projectPath: string, target: 'claude-code' | 'opencode'): string {
-    return target === 'claude-code'
-      ? path.join(projectPath, '.claude')
-      : path.join(projectPath, '.opencode');
+  getTargetConfigDir(projectPath: string, target: Target | string): string {
+    // If target is a string, look up the Target object
+    const targetObj =
+      typeof target === 'string'
+        ? targetManager.getTarget(target)
+        : { _tag: 'Some' as const, value: target };
+
+    if (targetObj._tag === 'None') {
+      // Fallback for unknown targets - use the ID as directory name
+      return path.join(projectPath, `.${target}`);
+    }
+
+    return path.join(projectPath, targetObj.value.config.configDir);
   }
 
   /**

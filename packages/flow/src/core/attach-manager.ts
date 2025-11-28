@@ -11,8 +11,10 @@ import path from 'node:path';
 import chalk from 'chalk';
 import { MCP_SERVER_REGISTRY } from '../config/servers.js';
 import { GlobalConfigService } from '../services/global-config.js';
+import type { Target } from '../types/target.types.js';
 import type { BackupManifest } from './backup-manager.js';
 import type { ProjectManager } from './project-manager.js';
+import { targetManager } from './target-manager.js';
 
 export interface AttachResult {
   agentsAdded: string[];
@@ -45,7 +47,6 @@ export interface FlowTemplates {
 }
 
 export class AttachManager {
-  private projectManager: ProjectManager;
   private configService: GlobalConfigService;
 
   constructor(projectManager: ProjectManager) {
@@ -66,22 +67,21 @@ export class AttachManager {
   }
 
   /**
-   * Get target-specific directory names
+   * Resolve target from ID string to Target object
    */
-  private getTargetDirs(target: 'claude-code' | 'opencode'): {
-    agents: string;
-    commands: string;
-  } {
-    return target === 'claude-code'
-      ? { agents: 'agents', commands: 'commands' }
-      : { agents: 'agent', commands: 'command' };
+  private resolveTarget(targetId: string): Target {
+    const targetOption = targetManager.getTarget(targetId);
+    if (targetOption._tag === 'None') {
+      throw new Error(`Unknown target: ${targetId}`);
+    }
+    return targetOption.value;
   }
 
   /**
    * Load global MCP servers from ~/.sylphx-flow/mcp-config.json
    */
   private async loadGlobalMCPServers(
-    _target: 'claude-code' | 'opencode'
+    _target: Target
   ): Promise<Array<{ name: string; config: Record<string, unknown> }>> {
     try {
       const enabledServers = await this.configService.getEnabledMCPServers();
@@ -119,15 +119,21 @@ export class AttachManager {
   /**
    * Attach Flow templates to project
    * Strategy: Override with warning, backup handles restoration
+   * @param projectPath - Project root path
+   * @param _projectHash - Project hash (unused but kept for API compatibility)
+   * @param targetOrId - Target object or target ID string
+   * @param templates - Flow templates to attach
+   * @param manifest - Backup manifest to track changes
    */
   async attach(
     projectPath: string,
     _projectHash: string,
-    target: 'claude-code' | 'opencode',
+    targetOrId: Target | string,
     templates: FlowTemplates,
     manifest: BackupManifest
   ): Promise<AttachResult> {
-    const targetDir = this.projectManager.getTargetConfigDir(projectPath, target);
+    // Resolve target from ID if needed
+    const target = typeof targetOrId === 'string' ? this.resolveTarget(targetOrId) : targetOrId;
 
     const result: AttachResult = {
       agentsAdded: [],
@@ -143,18 +149,17 @@ export class AttachManager {
       conflicts: [],
     };
 
-    // Ensure target directory exists
-    await fs.mkdir(targetDir, { recursive: true });
+    // All paths are relative to projectPath, using target.config.* directly
 
     // 1. Attach agents
-    await this.attachAgents(targetDir, target, templates.agents, result, manifest);
+    await this.attachAgents(projectPath, target, templates.agents, result, manifest);
 
     // 2. Attach commands
-    await this.attachCommands(targetDir, target, templates.commands, result, manifest);
+    await this.attachCommands(projectPath, target, templates.commands, result, manifest);
 
     // 3. Attach rules (if applicable)
     if (templates.rules) {
-      await this.attachRules(targetDir, target, templates.rules, result, manifest);
+      await this.attachRules(projectPath, target, templates.rules, result, manifest);
     }
 
     // 4. Attach MCP servers (merge global + template servers)
@@ -162,12 +167,12 @@ export class AttachManager {
     const allMCPServers = [...globalMCPServers, ...templates.mcpServers];
 
     if (allMCPServers.length > 0) {
-      await this.attachMCPServers(targetDir, target, allMCPServers, result, manifest);
+      await this.attachMCPServers(projectPath, target, allMCPServers, result, manifest);
     }
 
     // 5. Attach hooks
     if (templates.hooks.length > 0) {
-      await this.attachHooks(targetDir, templates.hooks, result, manifest);
+      await this.attachHooks(projectPath, target, templates.hooks, result, manifest);
     }
 
     // 6. Attach single files
@@ -185,14 +190,14 @@ export class AttachManager {
    * Attach agents (override strategy)
    */
   private async attachAgents(
-    targetDir: string,
-    target: 'claude-code' | 'opencode',
+    projectPath: string,
+    target: Target,
     agents: Array<{ name: string; content: string }>,
     result: AttachResult,
     manifest: BackupManifest
   ): Promise<void> {
-    const dirs = this.getTargetDirs(target);
-    const agentsDir = path.join(targetDir, dirs.agents);
+    // Use full path from target config
+    const agentsDir = path.join(projectPath, target.config.agentDir);
     await fs.mkdir(agentsDir, { recursive: true });
 
     for (const agent of agents) {
@@ -227,14 +232,14 @@ export class AttachManager {
    * Attach commands (override strategy)
    */
   private async attachCommands(
-    targetDir: string,
-    target: 'claude-code' | 'opencode',
+    projectPath: string,
+    target: Target,
     commands: Array<{ name: string; content: string }>,
     result: AttachResult,
     manifest: BackupManifest
   ): Promise<void> {
-    const dirs = this.getTargetDirs(target);
-    const commandsDir = path.join(targetDir, dirs.commands);
+    // Use full path from target config
+    const commandsDir = path.join(projectPath, target.config.slashCommandsDir);
     await fs.mkdir(commandsDir, { recursive: true });
 
     for (const command of commands) {
@@ -269,19 +274,18 @@ export class AttachManager {
    * Attach rules (append strategy for AGENTS.md)
    */
   private async attachRules(
-    targetDir: string,
-    target: 'claude-code' | 'opencode',
+    projectPath: string,
+    target: Target,
     rules: string,
     result: AttachResult,
     manifest: BackupManifest
   ): Promise<void> {
-    // Claude Code: .claude/agents/AGENTS.md
-    // OpenCode: .opencode/AGENTS.md
-    const dirs = this.getTargetDirs(target);
-    const rulesPath =
-      target === 'claude-code'
-        ? path.join(targetDir, dirs.agents, 'AGENTS.md')
-        : path.join(targetDir, 'AGENTS.md');
+    // Use full paths from target config:
+    // - rulesFile defined (e.g., OpenCode): projectPath/rulesFile
+    // - rulesFile undefined (e.g., Claude Code): projectPath/agentDir/AGENTS.md
+    const rulesPath = target.config.rulesFile
+      ? path.join(projectPath, target.config.rulesFile)
+      : path.join(projectPath, target.config.agentDir, 'AGENTS.md');
 
     if (existsSync(rulesPath)) {
       // User has AGENTS.md, append Flow rules
@@ -326,20 +330,21 @@ ${rules}
 
   /**
    * Attach MCP servers (merge strategy)
+   * Uses target.config.configFile and target.config.mcpConfigPath
+   * Note: configFile is relative to project root, not targetDir
    */
   private async attachMCPServers(
-    targetDir: string,
-    target: 'claude-code' | 'opencode',
+    projectPath: string,
+    target: Target,
     mcpServers: Array<{ name: string; config: Record<string, unknown> }>,
     result: AttachResult,
     manifest: BackupManifest
   ): Promise<void> {
-    // Claude Code: .claude/settings.json (mcp.servers)
-    // OpenCode: .opencode/.mcp.json
-    const configPath =
-      target === 'claude-code'
-        ? path.join(targetDir, 'settings.json')
-        : path.join(targetDir, '.mcp.json');
+    // Use target config for file path and MCP config structure
+    // Claude Code: .mcp.json at project root with mcpServers key
+    // OpenCode: opencode.jsonc at project root with mcp key
+    const configPath = path.join(projectPath, target.config.configFile);
+    const mcpPath = target.config.mcpConfigPath;
 
     let config: Record<string, unknown> = {};
 
@@ -347,17 +352,21 @@ ${rules}
       config = JSON.parse(await fs.readFile(configPath, 'utf-8'));
     }
 
-    // Ensure mcp.servers exists
-    if (!config.mcp) {
-      config.mcp = {};
-    }
-    if (!config.mcp.servers) {
-      config.mcp.servers = {};
+    // Get or create the MCP servers object at the correct path
+    // Claude Code: config.mcpServers = {}
+    // OpenCode: config.mcp = {}
+    let mcpContainer = config[mcpPath] as Record<string, unknown> | undefined;
+    if (!mcpContainer) {
+      mcpContainer = {};
+      config[mcpPath] = mcpContainer;
     }
 
     // Add Flow MCP servers
     for (const server of mcpServers) {
-      if (config.mcp.servers[server.name]) {
+      // Transform the server config for this target
+      const transformedConfig = target.transformMCPConfig(server.config as any, server.name);
+
+      if (mcpContainer[server.name]) {
         // Conflict: user has same MCP server
         result.mcpServersOverridden.push(server.name);
         result.conflicts.push({
@@ -370,8 +379,8 @@ ${rules}
         result.mcpServersAdded.push(server.name);
       }
 
-      // Override with Flow config
-      config.mcp.servers[server.name] = server.config;
+      // Override with Flow config (transformed for target)
+      mcpContainer[server.name] = transformedConfig;
     }
 
     // Write updated config
@@ -381,7 +390,7 @@ ${rules}
     manifest.backup.config = {
       path: configPath,
       hash: await this.calculateFileHash(configPath),
-      mcpServersCount: Object.keys(config.mcp.servers).length,
+      mcpServersCount: Object.keys(mcpContainer).length,
     };
   }
 
@@ -389,12 +398,14 @@ ${rules}
    * Attach hooks (override strategy)
    */
   private async attachHooks(
-    targetDir: string,
+    projectPath: string,
+    target: Target,
     hooks: Array<{ name: string; content: string }>,
     result: AttachResult,
     _manifest: BackupManifest
   ): Promise<void> {
-    const hooksDir = path.join(targetDir, 'hooks');
+    // Hooks are in configDir/hooks
+    const hooksDir = path.join(projectPath, target.config.configDir, 'hooks');
     await fs.mkdir(hooksDir, { recursive: true });
 
     for (const hook of hooks) {
@@ -428,13 +439,16 @@ ${rules}
     result: AttachResult,
     manifest: BackupManifest
   ): Promise<void> {
-    // Get target from manifest to determine correct directory
-    const target = manifest.target;
-    const targetDir = this.projectManager.getTargetConfigDir(projectPath, target);
+    // Get target from manifest to determine config directory
+    const targetOption = targetManager.getTarget(manifest.target);
+    if (targetOption._tag === 'None') {
+      return; // Unknown target, skip
+    }
+    const target = targetOption.value;
 
     for (const file of singleFiles) {
-      // Write to target config directory, not project root
-      const filePath = path.join(targetDir, file.path);
+      // Write to target config directory (e.g., .claude/ or .opencode/)
+      const filePath = path.join(projectPath, target.config.configDir, file.path);
       const existed = existsSync(filePath);
 
       if (existed) {

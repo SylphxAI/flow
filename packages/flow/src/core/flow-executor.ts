@@ -5,6 +5,7 @@
  */
 
 import chalk from 'chalk';
+import type { Target } from '../types/target.types.js';
 import { AttachManager, type AttachResult } from './attach-manager.js';
 import { BackupManager } from './backup-manager.js';
 import { CleanupHandler } from './cleanup-handler.js';
@@ -12,6 +13,7 @@ import { GitStashManager } from './git-stash-manager.js';
 import { ProjectManager } from './project-manager.js';
 import { SecretsManager } from './secrets-manager.js';
 import { SessionManager } from './session-manager.js';
+import { targetManager } from './target-manager.js';
 import { TemplateLoader } from './template-loader.js';
 
 export interface FlowExecutorOptions {
@@ -155,30 +157,30 @@ export class FlowExecutor {
   }
 
   /**
+   * Resolve target from ID string to Target object
+   */
+  private resolveTarget(targetId: string): Target {
+    const targetOption = targetManager.getTarget(targetId);
+    if (targetOption._tag === 'None') {
+      throw new Error(`Unknown target: ${targetId}`);
+    }
+    return targetOption.value;
+  }
+
+  /**
    * Clear user settings in replace mode
    * This ensures a clean slate for Flow's configuration
    */
-  private async clearUserSettings(
-    projectPath: string,
-    target: 'claude-code' | 'opencode'
-  ): Promise<void> {
-    const targetDir = this.projectManager.getTargetConfigDir(projectPath, target);
+  private async clearUserSettings(projectPath: string, targetOrId: Target | string): Promise<void> {
+    const target = typeof targetOrId === 'string' ? this.resolveTarget(targetOrId) : targetOrId;
     const fs = await import('node:fs/promises');
     const path = await import('node:path');
     const { existsSync } = await import('node:fs');
 
-    if (!existsSync(targetDir)) {
-      return;
-    }
+    // All paths use target.config.* directly (full paths relative to projectPath)
 
-    // Get directory names for this target
-    const dirs =
-      target === 'claude-code'
-        ? { agents: 'agents', commands: 'commands' }
-        : { agents: 'agent', commands: 'command' };
-
-    // 1. Clear agents directory (including AGENTS.md rules file)
-    const agentsDir = path.join(targetDir, dirs.agents);
+    // 1. Clear agents directory (including AGENTS.md rules file for Claude Code)
+    const agentsDir = path.join(projectPath, target.config.agentDir);
     if (existsSync(agentsDir)) {
       const files = await fs.readdir(agentsDir);
       for (const file of files) {
@@ -186,17 +188,19 @@ export class FlowExecutor {
       }
     }
 
-    // 2. Clear commands directory
-    const commandsDir = path.join(targetDir, dirs.commands);
-    if (existsSync(commandsDir)) {
-      const files = await fs.readdir(commandsDir);
-      for (const file of files) {
-        await fs.unlink(path.join(commandsDir, file));
+    // 2. Clear commands directory (if target supports slash commands)
+    if (target.config.slashCommandsDir) {
+      const commandsDir = path.join(projectPath, target.config.slashCommandsDir);
+      if (existsSync(commandsDir)) {
+        const files = await fs.readdir(commandsDir);
+        for (const file of files) {
+          await fs.unlink(path.join(commandsDir, file));
+        }
       }
     }
 
-    // 3. Clear hooks directory
-    const hooksDir = path.join(targetDir, 'hooks');
+    // 3. Clear hooks directory (in configDir)
+    const hooksDir = path.join(projectPath, target.config.configDir, 'hooks');
     if (existsSync(hooksDir)) {
       const files = await fs.readdir(hooksDir);
       for (const file of files) {
@@ -204,41 +208,33 @@ export class FlowExecutor {
       }
     }
 
-    // 4. Clear MCP configuration completely
-    const configPath =
-      target === 'claude-code'
-        ? path.join(targetDir, 'settings.json')
-        : path.join(targetDir, '.mcp.json');
+    // 4. Clear MCP configuration using target config
+    const configPath = path.join(projectPath, target.config.configFile);
+    const mcpPath = target.config.mcpConfigPath;
 
     if (existsSync(configPath)) {
-      if (target === 'claude-code') {
-        // For Claude Code, clear entire MCP section to remove all user config
-        const config = JSON.parse(await fs.readFile(configPath, 'utf-8'));
-        if (config.mcp) {
-          // Remove entire MCP configuration, not just servers
-          delete config.mcp;
-          await fs.writeFile(configPath, JSON.stringify(config, null, 2));
-        }
-      } else {
-        // For OpenCode, clear the entire .mcp.json file
-        await fs.writeFile(configPath, JSON.stringify({ servers: {} }, null, 2));
+      const config = JSON.parse(await fs.readFile(configPath, 'utf-8'));
+      if (config[mcpPath]) {
+        // Remove entire MCP configuration section
+        delete config[mcpPath];
+        await fs.writeFile(configPath, JSON.stringify(config, null, 2));
       }
     }
 
-    // 5. Clear AGENTS.md rules file (for OpenCode)
-    // Claude Code AGENTS.md is already handled in agents directory
-    if (target === 'opencode') {
-      const rulesPath = path.join(targetDir, 'AGENTS.md');
+    // 5. Clear rules file if target has one defined (for targets like OpenCode)
+    // Claude Code puts AGENTS.md in agents directory, handled above
+    if (target.config.rulesFile) {
+      const rulesPath = path.join(projectPath, target.config.rulesFile);
       if (existsSync(rulesPath)) {
         await fs.unlink(rulesPath);
       }
     }
 
     // 6. Clear single files (output styles like silent.md)
-    // These are now in the target directory, not project root
+    // These are in the configDir
     const singleFiles = ['silent.md']; // Add other known single files here
     for (const fileName of singleFiles) {
-      const filePath = path.join(targetDir, fileName);
+      const filePath = path.join(projectPath, target.config.configDir, fileName);
       if (existsSync(filePath)) {
         await fs.unlink(filePath);
       }

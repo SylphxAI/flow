@@ -11,6 +11,8 @@ import type { MCPServerConfigUnion } from './mcp.types.js';
  * Defines how agents, configs, and other artifacts are structured for each target
  */
 export interface TargetConfig {
+  /** Base configuration directory (e.g., '.claude', '.opencode') */
+  configDir: string;
   /** Directory where agents are installed */
   agentDir: string;
   /** File extension for agent files */
