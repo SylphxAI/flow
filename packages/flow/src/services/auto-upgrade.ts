@@ -233,7 +233,18 @@ export class AutoUpgrade {
       console.log(chalk.cyan('\n📦 Installing updates...\n'));
 
       if (status.flowNeedsUpgrade) {
-        await this.upgradeFlow();
+        const upgraded = await this.upgradeFlow();
+        if (upgraded) {
+          // Re-exec the process to use the new version
+          console.log(chalk.cyan('\n🔄 Restarting with updated version...\n'));
+          const { spawn } = await import('node:child_process');
+          const child = spawn(process.argv[0], process.argv.slice(1), {
+            stdio: 'inherit',
+            env: process.env,
+          });
+          child.on('exit', (code) => process.exit(code ?? 0));
+          return; // Don't continue with old code
+        }
       }
 
       if (status.targetNeedsUpgrade && targetId) {
