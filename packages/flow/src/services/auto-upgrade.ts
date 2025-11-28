@@ -232,7 +232,7 @@ export class AutoUpgrade {
     if (status.flowNeedsUpgrade || status.targetNeedsUpgrade) {
       console.log(chalk.cyan('\n📦 Installing updates...\n'));
 
-      if (status.flowNeedsUpgrade) {
+      if (status.flowNeedsUpgrade && !process.env.SYLPHX_FLOW_UPGRADED) {
         const upgraded = await this.upgradeFlow();
         if (upgraded) {
           // Re-exec the process to use the new version
@@ -240,7 +240,7 @@ export class AutoUpgrade {
           const { spawn } = await import('node:child_process');
           const child = spawn(process.argv[0], process.argv.slice(1), {
             stdio: 'inherit',
-            env: process.env,
+            env: { ...process.env, SYLPHX_FLOW_UPGRADED: '1' },
           });
           child.on('exit', (code) => process.exit(code ?? 0));
           return; // Don't continue with old code
