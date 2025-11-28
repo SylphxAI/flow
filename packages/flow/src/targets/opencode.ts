@@ -11,6 +11,12 @@ import { getAgentsDir, getOutputStylesDir, getSlashCommandsDir } from '../utils/
 import { fileUtils, generateHelpText, yamlUtils } from '../utils/config/target-utils.js';
 import { CLIError } from '../utils/error-handler.js';
 import { secretUtils } from '../utils/security/secret-utils.js';
+import {
+  transformMCPConfig as transformMCP,
+  detectTargetConfig,
+  stripFrontMatter,
+  setupSlashCommandsTo,
+} from './shared/index.js';
 
 /**
  * OpenCode target - composition approach with all original functionality
@@ -80,44 +86,10 @@ export const opencodeTarget: Target = {
 
   /**
    * Transform MCP server configuration for OpenCode
-   * Convert from Claude Code's optimal format to OpenCode's format
+   * Uses shared pure function for bidirectional conversion
    */
   transformMCPConfig(config: MCPServerConfigUnion, _serverId?: string): Record<string, unknown> {
-    // Handle new Claude Code stdio format
-    if (config.type === 'stdio') {
-      // Convert Claude Code format to OpenCode format
-      const openCodeConfig: Record<string, unknown> = {
-        type: 'local',
-        command: [config.command],
-      };
-
-      if (config.args && config.args.length > 0) {
-        openCodeConfig.command.push(...config.args);
-      }
-
-      if (config.env) {
-        openCodeConfig.environment = config.env;
-      }
-
-      return openCodeConfig;
-    }
-
-    // Handle new Claude Code http format
-    if (config.type === 'http') {
-      // Claude Code http format is compatible with OpenCode remote format
-      return {
-        type: 'remote',
-        url: config.url,
-        ...(config.headers && { headers: config.headers }),
-      };
-    }
-
-    // Handle legacy OpenCode formats (pass through)
-    if (config.type === 'local' || config.type === 'remote') {
-      return config;
-    }
-
-    return config;
+    return transformMCP(config, 'opencode');
   },
 
   getConfigPath: (cwd: string) =>
@@ -217,21 +189,14 @@ export const opencodeTarget: Target = {
    * Detect if this target is being used in the current environment
    */
   detectFromEnvironment(): boolean {
-    try {
-      const cwd = process.cwd();
-      return fs.existsSync(path.join(cwd, 'opencode.jsonc'));
-    } catch {
-      return false;
-    }
+    return detectTargetConfig(process.cwd(), 'opencode.jsonc');
   },
 
   /**
    * Transform rules content for OpenCode
    * OpenCode doesn't need front matter in rules files (AGENTS.md)
    */
-  async transformRulesContent(content: string): Promise<string> {
-    return yamlUtils.stripFrontMatter(content);
-  },
+  transformRulesContent: stripFrontMatter,
 
   /**
    * Setup agents for OpenCode
@@ -380,23 +345,7 @@ export const opencodeTarget: Target = {
     if (!this.config.slashCommandsDir) {
       return { count: 0 };
     }
-
-    const slashCommandsDir = path.join(cwd, this.config.slashCommandsDir);
-
-    const results = await installToDirectory(
-      getSlashCommandsDir(),
-      slashCommandsDir,
-      async (content) => {
-        // Slash commands are plain markdown with front matter - no transformation needed
-        return content;
-      },
-      {
-        ...options,
-        showProgress: false, // UI handled by init-command
-      }
-    );
-
-    return { count: results.length };
+    return setupSlashCommandsTo(path.join(cwd, this.config.slashCommandsDir), undefined, options);
   },
 
   /**
