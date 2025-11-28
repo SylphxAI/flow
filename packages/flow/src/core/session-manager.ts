@@ -7,6 +7,7 @@
 import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import type { Target } from '../types/target.types.js';
 import type { ProjectManager } from './project-manager.js';
 
 export interface Session {
@@ -17,7 +18,7 @@ export interface Session {
   startTime: string;
   backupPath: string;
   status: 'active' | 'completed' | 'crashed';
-  target: 'claude-code' | 'opencode';
+  target: string;
   cleanupRequired: boolean;
   // Multi-session support
   isOriginal: boolean; // First session that created backup
@@ -39,10 +40,12 @@ export class SessionManager {
   async startSession(
     projectPath: string,
     projectHash: string,
-    target: 'claude-code' | 'opencode',
+    targetOrId: Target | string,
     backupPath: string,
     sessionId?: string
   ): Promise<{ session: Session; isFirstSession: boolean }> {
+    // Get target ID for storage
+    const targetId = typeof targetOrId === 'string' ? targetOrId : targetOrId.id;
     const paths = this.projectManager.getProjectPaths(projectHash);
 
     // Ensure sessions directory exists
@@ -74,7 +77,7 @@ export class SessionManager {
       startTime: new Date().toISOString(),
       backupPath,
       status: 'active',
-      target,
+      target: targetId,
       cleanupRequired: true,
       isOriginal: true,
       sharedBackupId: newSessionId,

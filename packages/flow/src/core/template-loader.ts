@@ -1,13 +1,14 @@
 /**
  * Template Loader
  * Loads Flow templates from assets directory
- * Supports both claude-code and opencode targets
+ * Supports any target with consistent template structure
  */
 
 import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import type { Target } from '../types/target.types.js';
 import type { FlowTemplates } from './attach-manager.js';
 
 export class TemplateLoader {
@@ -24,7 +25,7 @@ export class TemplateLoader {
    * Load all templates for target
    * Uses flat assets directory structure (no target-specific subdirectories)
    */
-  async loadTemplates(_target: 'claude-code' | 'opencode'): Promise<FlowTemplates> {
+  async loadTemplates(_target: Target | string): Promise<FlowTemplates> {
     const templates: FlowTemplates = {
       agents: [],
       commands: [],
@@ -161,7 +162,7 @@ export class TemplateLoader {
   /**
    * Check if templates exist (uses flat directory structure)
    */
-  async hasTemplates(_target: 'claude-code' | 'opencode'): Promise<boolean> {
+  async hasTemplates(_target: Target | string): Promise<boolean> {
     // Check if any template directories exist
     const agentsDir = path.join(this.assetsDir, 'agents');
     const commandsDir = path.join(this.assetsDir, 'slash-commands');

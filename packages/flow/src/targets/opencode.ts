@@ -24,6 +24,7 @@ export const opencodeTarget: Target = {
   isDefault: true,
 
   config: {
+    configDir: '.opencode',
     agentDir: '.opencode/agent',
     agentExtension: '.md',
     agentFormat: 'yaml-frontmatter',

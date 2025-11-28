@@ -2,6 +2,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ConfigService } from '../services/config-service.js';
+import type { Target } from '../types/target.types.js';
+import { targetManager } from './target-manager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -39,6 +41,17 @@ export class StateDetector {
 
   constructor(projectPath: string = process.cwd()) {
     this.projectPath = projectPath;
+  }
+
+  /**
+   * Resolve target from ID string to Target object
+   */
+  private resolveTarget(targetId: string): Target | null {
+    const targetOption = targetManager.getTarget(targetId);
+    if (targetOption._tag === 'None') {
+      return null;
+    }
+    return targetOption.value;
   }
 
   async detect(): Promise<ProjectState> {
@@ -81,37 +94,16 @@ export class StateDetector {
         state.outdated = this.isVersionOutdated(state.version, state.latestVersion);
       }
 
-      // Check components based on target
-      if (state.target === 'opencode') {
-        // OpenCode uses different directory structure
-        await this.checkComponent('agents', '.opencode/agent', '*.md', state);
-        // OpenCode uses AGENTS.md for rules
-        await this.checkFileComponent('rules', 'AGENTS.md', state);
-        // OpenCode doesn't have separate hooks directory (hooks config in opencode.jsonc)
-        state.components.hooks.installed = false;
-        // OpenCode appends output styles to AGENTS.md
-        state.components.outputStyles.installed = await this.checkOutputStylesInAGENTS();
-        await this.checkComponent('slashCommands', '.opencode/command', '*.md', state);
-      } else {
-        // Claude Code (default)
-        await this.checkComponent('agents', '.claude/agents', '*.md', state);
+      // Resolve target to get config
+      const target = state.target ? this.resolveTarget(state.target) : null;
 
-        // Claude Code includes rules and output styles in agent files
-        // So we mark them as installed if agents are installed
-        state.components.rules.installed = state.components.agents.installed;
-        state.components.rules.count = state.components.agents.count;
-
-        state.components.outputStyles.installed = state.components.agents.installed;
-
-        // Check hooks (optional for Claude Code)
-        await this.checkComponent('hooks', '.claude/hooks', '*.js', state);
-
-        // Check slash commands
-        await this.checkComponent('slashCommands', '.claude/commands', '*.md', state);
+      // Check components based on target config
+      if (target) {
+        await this.checkComponentsForTarget(target, state);
       }
 
       // Check MCP
-      const mcpConfig = await this.checkMCPConfig(state.target);
+      const mcpConfig = await this.checkMCPConfig(target);
       state.components.mcp.installed = mcpConfig.exists;
       state.components.mcp.serverCount = mcpConfig.serverCount;
       state.components.mcp.version = mcpConfig.version;
@@ -130,6 +122,38 @@ export class StateDetector {
     }
 
     return state;
+  }
+
+  /**
+   * Check components based on target configuration
+   */
+  private async checkComponentsForTarget(target: Target, state: ProjectState): Promise<void> {
+    // Check agents using target's agentDir
+    await this.checkComponent('agents', target.config.agentDir, '*.md', state);
+
+    // Check rules based on target config
+    if (target.config.rulesFile) {
+      // Target has separate rules file (e.g., OpenCode's AGENTS.md)
+      await this.checkFileComponent('rules', target.config.rulesFile, state);
+      // Check output styles in rules file
+      state.components.outputStyles.installed = await this.checkOutputStylesInFile(
+        target.config.rulesFile
+      );
+    } else {
+      // Rules are included in agent files (e.g., Claude Code)
+      state.components.rules.installed = state.components.agents.installed;
+      state.components.rules.count = state.components.agents.count;
+      state.components.outputStyles.installed = state.components.agents.installed;
+    }
+
+    // Check hooks - look for hooks directory in configDir
+    const hooksDir = path.join(target.config.configDir, 'hooks');
+    await this.checkComponent('hooks', hooksDir, '*.js', state);
+
+    // Check slash commands using target's slashCommandsDir
+    if (target.config.slashCommandsDir) {
+      await this.checkComponent('slashCommands', target.config.slashCommandsDir, '*.md', state);
+    }
   }
 
   recommendAction(state: ProjectState): RecommendedAction {
@@ -286,11 +310,11 @@ export class StateDetector {
     }
   }
 
-  private async checkOutputStylesInAGENTS(): Promise<boolean> {
+  private async checkOutputStylesInFile(filePath: string): Promise<boolean> {
     try {
-      const agentsPath = path.join(this.projectPath, 'AGENTS.md');
+      const fullPath = path.join(this.projectPath, filePath);
       const exists = await fs
-        .access(agentsPath)
+        .access(fullPath)
         .then(() => true)
         .catch(() => false);
 
@@ -298,8 +322,8 @@ export class StateDetector {
         return false;
       }
 
-      // Check if AGENTS.md contains output styles section
-      const content = await fs.readFile(agentsPath, 'utf-8');
+      // Check if file contains output styles section
+      const content = await fs.readFile(fullPath, 'utf-8');
       return content.includes('# Output Styles');
     } catch {
       return false;
@@ -307,21 +331,16 @@ export class StateDetector {
   }
 
   private async checkMCPConfig(
-    target?: string | null
+    target?: Target | null
   ): Promise<{ exists: boolean; serverCount: number; version: string | null }> {
     try {
-      let mcpPath: string;
-      let serversKey: string;
-
-      if (target === 'opencode') {
-        // OpenCode uses opencode.jsonc with mcp key
-        mcpPath = path.join(this.projectPath, 'opencode.jsonc');
-        serversKey = 'mcp';
-      } else {
-        // Claude Code uses .mcp.json with mcpServers key
-        mcpPath = path.join(this.projectPath, '.mcp.json');
-        serversKey = 'mcpServers';
+      if (!target) {
+        return { exists: false, serverCount: 0, version: null };
       }
+
+      // Use target config for MCP file path and servers key
+      const mcpPath = path.join(this.projectPath, target.config.configFile);
+      const serversKey = target.config.mcpConfigPath;
 
       const exists = await fs
         .access(mcpPath)
@@ -332,15 +351,12 @@ export class StateDetector {
         return { exists: false, serverCount: 0, version: null };
       }
 
-      // Use proper JSONC parser for OpenCode (handles comments)
+      // Use target's readConfig method for proper parsing (handles JSONC, etc.)
       let content: any;
-      if (target === 'opencode') {
-        // Import dynamically to avoid circular dependency
-        const { fileUtils } = await import('../utils/target-utils.js');
-        const { opencodeTarget } = await import('../targets/opencode.js');
-        content = await fileUtils.readConfig(opencodeTarget.config, this.projectPath);
-      } else {
-        // Claude Code uses plain JSON
+      try {
+        content = await target.readConfig(this.projectPath);
+      } catch {
+        // Fallback to plain JSON parsing
         content = JSON.parse(await fs.readFile(mcpPath, 'utf-8'));
       }
 
@@ -357,20 +373,23 @@ export class StateDetector {
   }
 
   private async checkTargetVersion(
-    target: string
+    targetId: string
   ): Promise<{ version: string | null; latestVersion: string | null }> {
     try {
-      // 这里可以检查目标平台的版本
-      // 例如检查 claude CLI 版本或 opencode 版本
-      if (target === 'claude-code') {
-        // 检查 claude --version
+      const target = this.resolveTarget(targetId);
+      if (!target) {
+        return { version: null, latestVersion: null };
+      }
+
+      // Check if target has executeCommand (CLI-based target)
+      // Only CLI targets like claude-code have version checking capability
+      if (target.executeCommand && target.id === 'claude-code') {
         const { exec } = await import('node:child_process');
         const { promisify } = await import('node:util');
         const execAsync = promisify(exec);
 
         try {
           const { stdout } = await execAsync('claude --version');
-          // 解析版本号
           const match = stdout.match(/v?(\d+\.\d+\.\d+)/);
           return {
             version: match ? match[1] : null,
@@ -402,14 +421,18 @@ export class StateDetector {
   }
 
   private async checkCorruption(state: ProjectState): Promise<boolean> {
-    // 检查是否存在矛盾的状态
+    // Check for contradictory states
     if (state.initialized && !state.target) {
-      return true; // 初始化咗但冇 target
+      return true; // Initialized but no target
     }
 
-    // 检查必需组件 - only check agents for claude-code
-    if (state.initialized && state.target === 'claude-code' && !state.components.agents.installed) {
-      return true; // claude-code 初始化咗但冇 agents
+    // Check required components based on target
+    if (state.initialized && state.target) {
+      const target = this.resolveTarget(state.target);
+      // CLI-based targets (category: 'cli') require agents to be installed
+      if (target && target.category === 'cli' && !state.components.agents.installed) {
+        return true; // CLI target initialized but no agents
+      }
     }
 
     return false;

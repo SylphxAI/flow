@@ -7,7 +7,9 @@
 import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import type { Target } from '../types/target.types.js';
 import type { ProjectManager } from './project-manager.js';
+import { targetManager } from './target-manager.js';
 
 export interface MCPSecrets {
   version: string;
@@ -29,18 +31,28 @@ export class SecretsManager {
   }
 
   /**
+   * Resolve target from ID string to Target object
+   */
+  private resolveTarget(targetId: string): Target {
+    const targetOption = targetManager.getTarget(targetId);
+    if (targetOption._tag === 'None') {
+      throw new Error(`Unknown target: ${targetId}`);
+    }
+    return targetOption.value;
+  }
+
+  /**
    * Extract MCP secrets from project config
    */
   async extractMCPSecrets(
     projectPath: string,
     _projectHash: string,
-    target: 'claude-code' | 'opencode'
+    targetOrId: Target | string
   ): Promise<MCPSecrets> {
-    const targetDir = this.projectManager.getTargetConfigDir(projectPath, target);
-    const configPath =
-      target === 'claude-code'
-        ? path.join(targetDir, 'settings.json')
-        : path.join(targetDir, '.mcp.json');
+    const target = typeof targetOrId === 'string' ? this.resolveTarget(targetOrId) : targetOrId;
+    // configFile is at project root, not in targetDir
+    const configPath = path.join(projectPath, target.config.configFile);
+    const mcpPath = target.config.mcpConfigPath;
 
     const secrets: MCPSecrets = {
       version: '1.0.0',
@@ -55,24 +67,28 @@ export class SecretsManager {
     try {
       const config = JSON.parse(await fs.readFile(configPath, 'utf-8'));
 
-      // Extract MCP server secrets
-      if (config.mcp?.servers) {
-        for (const [serverName, serverConfig] of Object.entries(config.mcp.servers)) {
+      // Extract MCP server secrets using target's mcpConfigPath
+      const mcpServers = config[mcpPath] as Record<string, unknown> | undefined;
+      if (mcpServers) {
+        for (const [serverName, serverConfig] of Object.entries(mcpServers)) {
           const server = serverConfig as any;
 
-          // Extract env vars (sensitive)
-          if (server.env && Object.keys(server.env).length > 0) {
+          // Extract env vars (sensitive) - handle both 'env' and 'environment' keys
+          const envVars = server.env || server.environment;
+          if (envVars && Object.keys(envVars).length > 0) {
             secrets.servers[serverName] = {
-              env: server.env,
+              env: envVars,
             };
           }
 
-          // Extract args (may contain secrets)
-          if (server.args && Array.isArray(server.args)) {
+          // Extract args (may contain secrets) - handle both 'args' and 'command' array
+          const args =
+            server.args || (Array.isArray(server.command) ? server.command.slice(1) : undefined);
+          if (args && Array.isArray(args) && args.length > 0) {
             if (!secrets.servers[serverName]) {
               secrets.servers[serverName] = {};
             }
-            secrets.servers[serverName].args = server.args;
+            secrets.servers[serverName].args = args;
           }
         }
       }
@@ -122,18 +138,17 @@ export class SecretsManager {
   async restoreSecrets(
     projectPath: string,
     _projectHash: string,
-    target: 'claude-code' | 'opencode',
+    targetOrId: Target | string,
     secrets: MCPSecrets
   ): Promise<void> {
     if (Object.keys(secrets.servers).length === 0) {
       return;
     }
 
-    const targetDir = this.projectManager.getTargetConfigDir(projectPath, target);
-    const configPath =
-      target === 'claude-code'
-        ? path.join(targetDir, 'settings.json')
-        : path.join(targetDir, '.mcp.json');
+    const target = typeof targetOrId === 'string' ? this.resolveTarget(targetOrId) : targetOrId;
+    // configFile is at project root, not in targetDir
+    const configPath = path.join(projectPath, target.config.configFile);
+    const mcpPath = target.config.mcpConfigPath;
 
     if (!existsSync(configPath)) {
       return;
@@ -142,18 +157,24 @@ export class SecretsManager {
     try {
       const config = JSON.parse(await fs.readFile(configPath, 'utf-8'));
 
-      // Restore secrets to MCP servers
-      if (config.mcp?.servers) {
+      // Restore secrets to MCP servers using target's mcpConfigPath
+      const mcpServers = config[mcpPath] as Record<string, unknown> | undefined;
+      if (mcpServers) {
         for (const [serverName, serverSecrets] of Object.entries(secrets.servers)) {
-          if (config.mcp.servers[serverName]) {
-            // Restore env vars
+          const serverConfig = mcpServers[serverName] as Record<string, unknown> | undefined;
+          if (serverConfig) {
+            // Restore env vars - use the key that exists in config
             if (serverSecrets.env) {
-              config.mcp.servers[serverName].env = serverSecrets.env;
+              if ('environment' in serverConfig) {
+                serverConfig.environment = serverSecrets.env;
+              } else {
+                serverConfig.env = serverSecrets.env;
+              }
             }
 
             // Restore args
             if (serverSecrets.args) {
-              config.mcp.servers[serverName].args = serverSecrets.args;
+              serverConfig.args = serverSecrets.args;
             }
           }
         }

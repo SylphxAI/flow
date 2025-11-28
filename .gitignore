@@ -74,3 +74,4 @@ models/.cache/
 .sylphx-flow.json
 .vercel
 coverage/
+.codebase-search/

@@ -8,13 +8,15 @@ import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import ora from 'ora';
+import type { Target } from '../types/target.types.js';
 import type { ProjectManager } from './project-manager.js';
+import { targetManager } from './target-manager.js';
 
 export interface BackupInfo {
   sessionId: string;
   timestamp: string;
   projectPath: string;
-  target: 'claude-code' | 'opencode';
+  target: string;
   backupPath: string;
 }
 
@@ -22,7 +24,7 @@ export interface BackupManifest {
   sessionId: string;
   timestamp: string;
   projectPath: string;
-  target: 'claude-code' | 'opencode';
+  target: string;
   backup: {
     config?: {
       path: string;
@@ -65,13 +67,26 @@ export class BackupManager {
   }
 
   /**
+   * Resolve target from ID string to Target object
+   */
+  private resolveTarget(targetId: string): Target {
+    const targetOption = targetManager.getTarget(targetId);
+    if (targetOption._tag === 'None') {
+      throw new Error(`Unknown target: ${targetId}`);
+    }
+    return targetOption.value;
+  }
+
+  /**
    * Create full backup of project environment
    */
   async createBackup(
     projectPath: string,
     projectHash: string,
-    target: 'claude-code' | 'opencode'
+    targetOrId: Target | string
   ): Promise<BackupInfo> {
+    const target = typeof targetOrId === 'string' ? this.resolveTarget(targetOrId) : targetOrId;
+    const targetId = target.id;
     const sessionId = `session-${Date.now()}`;
     const timestamp = new Date().toISOString();
 
@@ -89,19 +104,17 @@ export class BackupManager {
 
       // Backup entire target directory if it exists
       if (existsSync(targetConfigDir)) {
-        const backupTargetDir = path.join(
-          backupPath,
-          target === 'claude-code' ? '.claude' : '.opencode'
-        );
+        // Use configDir from target config (e.g., '.claude', '.opencode')
+        const backupTargetDir = path.join(backupPath, target.config.configDir);
         await this.copyDirectory(targetConfigDir, backupTargetDir);
       }
 
-      // Create manifest
+      // Create manifest (store target ID as string for JSON serialization)
       const manifest: BackupManifest = {
         sessionId,
         timestamp,
         projectPath,
-        target,
+        target: targetId,
         backup: {
           agents: { user: [], flow: [] },
           commands: { user: [], flow: [] },
@@ -128,7 +141,7 @@ export class BackupManager {
         sessionId,
         timestamp,
         projectPath,
-        target,
+        target: targetId,
         backupPath,
       };
     } catch (error) {
@@ -156,7 +169,10 @@ export class BackupManager {
       const manifest: BackupManifest = JSON.parse(await fs.readFile(manifestPath, 'utf-8'));
 
       const projectPath = manifest.projectPath;
-      const target = manifest.target;
+      const targetId = manifest.target;
+
+      // Resolve target to get config
+      const target = this.resolveTarget(targetId);
 
       // Get target config directory
       const targetConfigDir = this.projectManager.getTargetConfigDir(projectPath, target);
@@ -166,11 +182,8 @@ export class BackupManager {
         await fs.rm(targetConfigDir, { recursive: true, force: true });
       }
 
-      // Restore from backup
-      const backupTargetDir = path.join(
-        backupPath,
-        target === 'claude-code' ? '.claude' : '.opencode'
-      );
+      // Restore from backup using target config's configDir
+      const backupTargetDir = path.join(backupPath, target.config.configDir);
 
       if (existsSync(backupTargetDir)) {
         await this.copyDirectory(backupTargetDir, targetConfigDir);

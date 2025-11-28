@@ -5,9 +5,11 @@ import { promisify } from 'node:util';
 import chalk from 'chalk';
 import ora from 'ora';
 import { getProjectSettingsFile } from '../config/constants.js';
+import type { Target } from '../types/target.types.js';
 import { CLIError } from '../utils/error-handler.js';
 import { detectPackageManager, getUpgradeCommand } from '../utils/package-manager-detector.js';
 import type { ProjectState } from './state-detector.js';
+import { targetManager } from './target-manager.js';
 
 const execAsync = promisify(exec);
 
@@ -149,67 +151,83 @@ export class UpgradeManager {
     }
   }
 
+  /**
+   * Resolve target from ID string to Target object
+   */
+  private resolveTarget(targetId: string): Target | null {
+    const targetOption = targetManager.getTarget(targetId);
+    if (targetOption._tag === 'None') {
+      return null;
+    }
+    return targetOption.value;
+  }
+
   async upgradeTarget(state: ProjectState, autoInstall: boolean = false): Promise<boolean> {
     if (!state.target || !state.targetLatestVersion) {
       return false;
     }
 
-    const spinner = ora(`Upgrading ${state.target}...`).start();
+    const target = this.resolveTarget(state.target);
+    if (!target) {
+      return false;
+    }
+
+    const spinner = ora(`Upgrading ${target.name}...`).start();
 
     try {
-      if (state.target === 'claude-code') {
-        await this.upgradeClaudeCode(autoInstall);
-      } else if (state.target === 'opencode') {
-        await this.upgradeOpenCode();
-      }
+      // Use target-specific upgrade logic based on target ID
+      // This is necessary because each CLI has different upgrade commands
+      await this.upgradeTargetCLI(target, autoInstall);
 
-      spinner.succeed(`${state.target} upgraded to latest version`);
+      spinner.succeed(`${target.name} upgraded to latest version`);
       return true;
     } catch (error) {
-      spinner.fail(`${state.target} upgrade failed`);
+      spinner.fail(`${target.name} upgrade failed`);
       throw new CLIError(
-        `Failed to upgrade ${state.target}: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to upgrade ${target.name}: ${error instanceof Error ? error.message : String(error)}`,
         'TARGET_UPGRADE_FAILED'
       );
     }
   }
 
-  private async upgradeClaudeCode(autoInstall: boolean = false): Promise<void> {
+  /**
+   * Upgrade target CLI - handles target-specific upgrade commands
+   */
+  private async upgradeTargetCLI(target: Target, autoInstall: boolean = false): Promise<void> {
     if (this.options.dryRun) {
-      console.log('Dry run: claude update');
+      console.log(`Dry run: upgrade ${target.id}`);
       return;
     }
 
-    if (autoInstall) {
-      // Use detected package manager to install latest version
-      const packageManager = detectPackageManager(this.projectPath);
-      const installCmd = getUpgradeCommand('@anthropic-ai/claude-code', packageManager);
-      const { stdout } = await execAsync(installCmd);
+    // Each CLI target has specific upgrade commands
+    // This is inherently target-specific and can't be fully abstracted
+    switch (target.id) {
+      case 'claude-code':
+        if (autoInstall) {
+          const packageManager = detectPackageManager(this.projectPath);
+          const installCmd = getUpgradeCommand('@anthropic-ai/claude-code', packageManager);
+          const { stdout } = await execAsync(installCmd);
+          if (this.options.verbose) {
+            console.log(stdout);
+          }
+        } else {
+          const { stdout } = await execAsync('claude update');
+          if (this.options.verbose) {
+            console.log(stdout);
+          }
+        }
+        break;
 
-      if (this.options.verbose) {
-        console.log(stdout);
+      case 'opencode': {
+        const { stdout: ocStdout } = await execAsync('opencode upgrade');
+        if (this.options.verbose) {
+          console.log(ocStdout);
+        }
+        break;
       }
-    } else {
-      // Claude Code has built-in update command
-      const { stdout } = await execAsync('claude update');
 
-      if (this.options.verbose) {
-        console.log(stdout);
-      }
-    }
-  }
-
-  private async upgradeOpenCode(): Promise<void> {
-    if (this.options.dryRun) {
-      console.log('模拟: opencode upgrade');
-      return;
-    }
-
-    // OpenCode has built-in upgrade command
-    const { stdout } = await execAsync('opencode upgrade');
-
-    if (this.options.verbose) {
-      console.log(stdout);
+      default:
+        console.log(chalk.yellow(`No upgrade command available for ${target.name}`));
     }
   }
 
@@ -234,40 +252,63 @@ export class UpgradeManager {
     return upgraded;
   }
 
+  /**
+   * Get the current target from project settings
+   */
+  private async getCurrentTarget(): Promise<Target | null> {
+    try {
+      const configPath = path.join(this.projectPath, getProjectSettingsFile());
+      const config = JSON.parse(await fs.readFile(configPath, 'utf-8'));
+      if (config.target) {
+        return this.resolveTarget(config.target);
+      }
+    } catch {
+      // Cannot read config
+    }
+    return null;
+  }
+
   private async upgradeComponent(component: string): Promise<void> {
-    // 删除旧版本
-    const componentPath = path.join(this.projectPath, '.claude', component);
+    // Get target config for correct directory
+    const target = await this.getCurrentTarget();
+    const configDir = target?.config.configDir || '.claude';
+
+    // Delete old version
+    const componentPath = path.join(this.projectPath, configDir, component);
     await fs.rm(componentPath, { recursive: true, force: true });
 
-    // 重新安装最新版本
-    // 实际实现会调用相应的 installer
-    // 这里用 dry-run 模式模拟
+    // Reinstall latest version
+    // Actual implementation would call the appropriate installer
     if (this.options.dryRun) {
-      console.log(`模拟: 重新安装 ${component}`);
+      console.log(`Dry run: reinstall ${component}`);
     }
   }
 
   private async backupConfig(): Promise<string> {
-    const backupDir = this.options.backupPath || path.join(this.projectPath, '.claude-backup');
+    // Get target config for correct directories
+    const target = await this.getCurrentTarget();
+    const configDir = target?.config.configDir || '.claude';
+
+    const backupDir = this.options.backupPath || path.join(this.projectPath, `${configDir}-backup`);
     await fs.mkdir(backupDir, { recursive: true });
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupPath = path.join(backupDir, `backup-${timestamp}`);
 
-    // 备份 .claude 目录
-    const claudePath = path.join(this.projectPath, '.claude');
+    // Backup target config directory
+    const targetConfigPath = path.join(this.projectPath, configDir);
     try {
-      await fs.cp(claudePath, path.join(backupPath, '.claude'), { recursive: true });
+      await fs.cp(targetConfigPath, path.join(backupPath, configDir), { recursive: true });
     } catch {
-      // .claude 目录可能不存在
+      // Config directory may not exist
     }
 
-    // 备份配置文件
-    const configPath = path.join(this.projectPath, getProjectSettingsFile());
+    // Backup project settings file
+    const settingsPath = path.join(this.projectPath, getProjectSettingsFile());
     try {
-      await fs.cp(configPath, path.join(backupPath, getProjectSettingsFile()));
+      await fs.cp(settingsPath, path.join(backupPath, getProjectSettingsFile()));
     } catch {
-      // 配置文件可能不存在
+      // Settings file may not exist
     }
 
     return backupPath;
@@ -310,18 +351,31 @@ export class UpgradeManager {
     }
   }
 
-  private async getCurrentTargetVersion(target: string): Promise<string | null> {
-    if (target === 'claude-code') {
-      try {
-        const { stdout } = await execAsync('claude --version');
-        const match = stdout.match(/v?(\d+\.\d+\.\d+)/);
-        return match ? match[1] : null;
-      } catch {
-        return null;
-      }
+  private async getCurrentTargetVersion(targetId: string): Promise<string | null> {
+    const target = this.resolveTarget(targetId);
+    if (!target) {
+      return null;
     }
 
-    return null;
+    // Each CLI target has specific version commands
+    try {
+      switch (target.id) {
+        case 'claude-code': {
+          const { stdout } = await execAsync('claude --version');
+          const match = stdout.match(/v?(\d+\.\d+\.\d+)/);
+          return match ? match[1] : null;
+        }
+        case 'opencode': {
+          const { stdout } = await execAsync('opencode --version');
+          const match = stdout.match(/v?(\d+\.\d+\.\d+)/);
+          return match ? match[1] : null;
+        }
+        default:
+          return null;
+      }
+    } catch {
+      return null;
+    }
   }
 
   private async getLatestTargetVersion(): Promise<string | null> {
