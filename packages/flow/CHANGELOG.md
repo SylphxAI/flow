@@ -1,5 +1,21 @@
 # @sylphx/flow
 
+## 2.1.5 (2025-11-28)
+
+### 🐛 Bug Fixes
+
+- **settings:** use MCP_SERVER_REGISTRY instead of hardcoded list ([79fb625](https://github.com/SylphxAI/flow/commit/79fb625c27f58f7f62902314d92c205fdc84a06e))
+
+### ♻️ Refactoring
+
+- **settings:** extract checkbox configuration handler ([66303bb](https://github.com/SylphxAI/flow/commit/66303bb21a5281e5f358c69b8a6c143f3866fa76))
+- **attach:** extract file attachment pure functions ([5723be3](https://github.com/SylphxAI/flow/commit/5723be3817804228014ceec8de27f267c990fbe8))
+- **targets:** extract shared pure functions for MCP transforms ([0bba2cb](https://github.com/SylphxAI/flow/commit/0bba2cbc4a4233e0d63a78875346a2e9c341d803))
+
+### 🔧 Chores
+
+- remove dead cursor target references ([bf16f75](https://github.com/SylphxAI/flow/commit/bf16f759ec4705ddf0a763ea0ef6c778c91ccbbe))
+
 ## 2.1.4 (2025-11-28)
 
 ### ♻️ Refactoring
