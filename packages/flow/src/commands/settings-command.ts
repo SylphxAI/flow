@@ -449,7 +449,6 @@ async function configureTarget(configService: GlobalConfigService): Promise<void
   settings.defaultTarget = defaultTarget as
     | 'claude-code'
     | 'opencode'
-    | 'cursor'
     | 'ask-every-time';
   await configService.saveSettings(settings);
 
