@@ -113,19 +113,33 @@ export const transformMCPConfig = (
 ): Record<string, unknown> => {
   // Claude Code format (stdio/http)
   if (targetFormat === 'claude-code') {
-    if (config.type === 'local') return localToStdio(config as LocalConfig);
-    if (config.type === 'remote') return remoteToHttp(config as RemoteConfig);
-    if (config.type === 'stdio') return normalizeStdio(config as StdioConfig);
-    if (config.type === 'http') return normalizeHttp(config as HttpConfig);
-    return config;
+    switch (config.type) {
+      case 'local':
+        return localToStdio(config as LocalConfig);
+      case 'remote':
+        return remoteToHttp(config as RemoteConfig);
+      case 'stdio':
+        return normalizeStdio(config as StdioConfig);
+      case 'http':
+        return normalizeHttp(config as HttpConfig);
+      default:
+        return config;
+    }
   }
 
   // OpenCode format (local/remote)
   if (targetFormat === 'opencode') {
-    if (config.type === 'stdio') return stdioToLocal(config as StdioConfig);
-    if (config.type === 'http') return httpToRemote(config as HttpConfig);
-    if (config.type === 'local' || config.type === 'remote') return config;
-    return config;
+    switch (config.type) {
+      case 'stdio':
+        return stdioToLocal(config as StdioConfig);
+      case 'http':
+        return httpToRemote(config as HttpConfig);
+      case 'local':
+      case 'remote':
+        return config;
+      default:
+        return config;
+    }
   }
 
   return config;

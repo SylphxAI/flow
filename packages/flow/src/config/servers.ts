@@ -339,3 +339,70 @@ export function getServerDefinition(id: MCPServerID): MCPServerDefinition {
   }
   return server;
 }
+
+// ============================================================================
+// SSOT: Effective Server Config
+// ============================================================================
+
+/**
+ * Saved server state (from user config file)
+ */
+export interface SavedServerState {
+  enabled: boolean;
+  env?: Record<string, string>;
+}
+
+/**
+ * Effective server state (computed from saved + defaults)
+ */
+export interface EffectiveServerState {
+  id: MCPServerID;
+  enabled: boolean;
+  env: Record<string, string>;
+  /** Whether this server was in saved config or using default */
+  isDefault: boolean;
+}
+
+/**
+ * Compute effective server states from saved config
+ * This is the SSOT for determining which servers are enabled
+ *
+ * Logic:
+ * - If server is in savedConfig, use its enabled state
+ * - If server is NOT in savedConfig, use defaultInInit from registry
+ *
+ * @param savedServers - Servers from user's config file (may be empty/undefined)
+ * @returns Map of server ID to effective state
+ */
+export function computeEffectiveServers(
+  savedServers: Record<string, SavedServerState> | undefined
+): Record<MCPServerID, EffectiveServerState> {
+  const result: Record<string, EffectiveServerState> = {};
+  const saved = savedServers || {};
+
+  for (const [id, def] of Object.entries(MCP_SERVER_REGISTRY)) {
+    const serverId = id as MCPServerID;
+    const savedState = saved[id];
+    const isInSaved = id in saved;
+
+    result[serverId] = {
+      id: serverId,
+      enabled: isInSaved ? (savedState?.enabled ?? false) : (def.defaultInInit ?? false),
+      env: savedState?.env || {},
+      isDefault: !isInSaved,
+    };
+  }
+
+  return result as Record<MCPServerID, EffectiveServerState>;
+}
+
+/**
+ * Get only enabled servers from effective config
+ */
+export function getEnabledServersFromEffective(
+  effective: Record<MCPServerID, EffectiveServerState>
+): MCPServerID[] {
+  return Object.entries(effective)
+    .filter(([, state]) => state.enabled)
+    .map(([id]) => id as MCPServerID);
+}

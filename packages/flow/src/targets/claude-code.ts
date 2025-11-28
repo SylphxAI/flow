@@ -1,8 +1,8 @@
 import { spawn } from 'node:child_process';
-import fs from 'node:fs';
 import fsPromises from 'node:fs/promises';
 import path from 'node:path';
 import chalk from 'chalk';
+import { installToDirectory } from '../core/installers/file-installer.js';
 import { createMCPInstaller } from '../core/installers/mcp-installer.js';
 import type { AgentMetadata } from '../types/target-config.types.js';
 import type { CommonOptions, MCPServerConfigUnion, SetupResult, Target } from '../types.js';
@@ -11,10 +11,10 @@ import { fileUtils, generateHelpText, pathUtils, yamlUtils } from '../utils/conf
 import { CLIError } from '../utils/error-handler.js';
 import { sanitize } from '../utils/security/security.js';
 import {
-  transformMCPConfig as transformMCP,
   detectTargetConfig,
-  stripFrontMatter,
   setupSlashCommandsTo,
+  stripFrontMatter,
+  transformMCPConfig as transformMCP,
 } from './shared/index.js';
 
 /**

@@ -72,8 +72,7 @@ export const writeFile = (filePath: string, content: string): Promise<void> =>
 /**
  * Read file content
  */
-export const readFile = (filePath: string): Promise<string> =>
-  fs.readFile(filePath, 'utf-8');
+export const readFile = (filePath: string): Promise<string> => fs.readFile(filePath, 'utf-8');
 
 // ============================================================================
 // Generic Attach Function
@@ -131,8 +130,7 @@ const FLOW_RULES_MARKER = '<!-- Sylphx Flow Rules -->';
 /**
  * Check if content already has Flow rules appended
  */
-export const hasFlowRules = (content: string): boolean =>
-  content.includes(FLOW_RULES_MARKER);
+export const hasFlowRules = (content: string): boolean => content.includes(FLOW_RULES_MARKER);
 
 /**
  * Wrap rules content with markers

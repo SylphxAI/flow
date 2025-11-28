@@ -6,12 +6,17 @@
 import chalk from 'chalk';
 import { Command } from 'commander';
 import inquirer from 'inquirer';
-import { getRequiredEnvVars, MCP_SERVER_REGISTRY, type MCPServerID } from '../config/servers.js';
+import {
+  computeEffectiveServers,
+  getRequiredEnvVars,
+  MCP_SERVER_REGISTRY,
+  type MCPServerID,
+} from '../config/servers.js';
 import { GlobalConfigService } from '../services/global-config.js';
 import { TargetInstaller } from '../services/target-installer.js';
 import { UserCancelledError } from '../utils/errors.js';
 import { buildAvailableTargets, promptForDefaultTarget } from '../utils/target-selection.js';
-import { handleCheckboxConfig, printHeader, printConfirmation } from './settings/index.js';
+import { handleCheckboxConfig } from './settings/index.js';
 
 export const settingsCommand = new Command('settings')
   .description('Configure Sylphx Flow settings')
@@ -204,13 +209,11 @@ async function configureMCP(configService: GlobalConfigService): Promise<void> {
   console.log(chalk.cyan.bold('\n━━━ 📡 MCP Server Configuration\n'));
 
   const mcpConfig = await configService.loadMCPConfig();
-  const currentServers = mcpConfig.servers || {};
+  const savedServers = mcpConfig.servers || {};
 
-  // Get all servers from registry
+  // SSOT: compute effective state from saved config + defaults
+  const effectiveServers = computeEffectiveServers(savedServers);
   const allServerIds = Object.keys(MCP_SERVER_REGISTRY) as MCPServerID[];
-
-  // Get current enabled servers
-  const currentEnabled = Object.keys(currentServers).filter((key) => currentServers[key].enabled);
 
   const { selectedServers } = await inquirer.prompt([
     {
@@ -219,33 +222,27 @@ async function configureMCP(configService: GlobalConfigService): Promise<void> {
       message: 'Select MCP servers to enable:',
       choices: allServerIds.map((id) => {
         const server = MCP_SERVER_REGISTRY[id];
+        const effective = effectiveServers[id];
         const requiredEnvVars = getRequiredEnvVars(id);
         const requiresText =
           requiredEnvVars.length > 0 ? chalk.dim(` (requires ${requiredEnvVars.join(', ')})`) : '';
-        // Only use defaultInInit if server not yet in config (first time)
-        // Otherwise respect the saved enabled state
-        const isInConfig = id in currentServers;
-        const isChecked = isInConfig ? currentServers[id]?.enabled : server.defaultInInit;
         return {
           name: `${server.name} - ${server.description}${requiresText}`,
           value: id,
-          checked: isChecked,
+          checked: effective.enabled, // Use SSOT effective state
         };
       }),
     },
   ]);
 
-  // Update servers
+  // Update servers - save ALL servers with explicit enabled state
+  const updatedServers: Record<string, { enabled: boolean; env: Record<string, string> }> = {};
   for (const id of allServerIds) {
-    if (selectedServers.includes(id)) {
-      if (currentServers[id]) {
-        currentServers[id].enabled = true;
-      } else {
-        currentServers[id] = { enabled: true, env: {} };
-      }
-    } else if (currentServers[id]) {
-      currentServers[id].enabled = false;
-    }
+    const effective = effectiveServers[id];
+    updatedServers[id] = {
+      enabled: selectedServers.includes(id),
+      env: effective.env, // Preserve existing env vars
+    };
   }
 
   // Ask for API keys for newly enabled servers
@@ -254,10 +251,10 @@ async function configureMCP(configService: GlobalConfigService): Promise<void> {
     const requiredEnvVars = getRequiredEnvVars(serverId);
 
     if (requiredEnvVars.length > 0) {
-      const server = currentServers[serverId];
+      const serverState = updatedServers[serverId];
 
       for (const envKey of requiredEnvVars) {
-        const hasKey = server.env?.[envKey];
+        const hasKey = serverState.env?.[envKey];
 
         const { shouldConfigure } = await inquirer.prompt([
           {
@@ -280,16 +277,13 @@ async function configureMCP(configService: GlobalConfigService): Promise<void> {
             },
           ]);
 
-          if (!server.env) {
-            server.env = {};
-          }
-          server.env[envKey] = apiKey;
+          serverState.env[envKey] = apiKey;
         }
       }
     }
   }
 
-  mcpConfig.servers = currentServers;
+  mcpConfig.servers = updatedServers;
   await configService.saveMCPConfig(mcpConfig);
 
   console.log(chalk.green(`\n✓ MCP configuration saved`));
@@ -379,10 +373,7 @@ async function configureTarget(configService: GlobalConfigService): Promise<void
 
   const defaultTarget = await promptForDefaultTarget(installedTargets, settings.defaultTarget);
 
-  settings.defaultTarget = defaultTarget as
-    | 'claude-code'
-    | 'opencode'
-    | 'ask-every-time';
+  settings.defaultTarget = defaultTarget as 'claude-code' | 'opencode' | 'ask-every-time';
   await configService.saveSettings(settings);
 
   if (defaultTarget === 'ask-every-time') {

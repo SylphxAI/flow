@@ -9,7 +9,7 @@ import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import chalk from 'chalk';
-import { MCP_SERVER_REGISTRY } from '../config/servers.js';
+import { MCP_SERVER_REGISTRY, type MCPServerID } from '../config/servers.js';
 import { GlobalConfigService } from '../services/global-config.js';
 import type { Target } from '../types/target.types.js';
 import { attachItemsToDir, attachRulesFile } from './attach/index.js';
@@ -80,30 +80,33 @@ export class AttachManager {
 
   /**
    * Load global MCP servers from ~/.sylphx-flow/mcp-config.json
+   * Uses SSOT: computeEffectiveServers for determining enabled servers
    */
   private async loadGlobalMCPServers(
     _target: Target
   ): Promise<Array<{ name: string; config: Record<string, unknown> }>> {
     try {
-      const enabledServers = await this.configService.getEnabledMCPServers();
+      const mcpConfig = await this.configService.loadMCPConfig();
+      const enabledServerIds = this.configService.getEnabledServerIds(mcpConfig.servers);
+      const effectiveServers = this.configService.getEffectiveMCPServers(mcpConfig.servers);
+
       const servers: Array<{ name: string; config: Record<string, unknown> }> = [];
 
-      for (const [serverKey, serverConfig] of Object.entries(enabledServers)) {
-        // Lookup server definition in registry
-        const serverDef = MCP_SERVER_REGISTRY[serverKey];
+      for (const serverId of enabledServerIds) {
+        const serverDef = MCP_SERVER_REGISTRY[serverId as MCPServerID];
+        const effective = effectiveServers[serverId as MCPServerID];
 
         if (!serverDef) {
-          console.warn(`MCP server '${serverKey}' not found in registry, skipping`);
           continue;
         }
 
         // Clone the server config from registry
         const config: Record<string, unknown> = { ...serverDef.config };
 
-        // Merge environment variables from global config
-        if (serverConfig.env && Object.keys(serverConfig.env).length > 0) {
+        // Merge environment variables from effective config (SSOT)
+        if (effective.env && Object.keys(effective.env).length > 0) {
           if (config.type === 'stdio' || config.type === 'local') {
-            config.env = { ...config.env, ...serverConfig.env };
+            config.env = { ...config.env, ...effective.env };
           }
         }
 
@@ -204,9 +207,7 @@ export class AttachManager {
     // Update result
     result.agentsAdded.push(...stats.added);
     result.agentsOverridden.push(...stats.overridden);
-    result.conflicts.push(
-      ...stats.conflicts.map((c) => ({ ...c, type: 'agent' as const }))
-    );
+    result.conflicts.push(...stats.conflicts.map((c) => ({ ...c, type: 'agent' as const })));
 
     // Update manifest
     manifest.backup.agents.user.push(...itemManifest.user);
@@ -225,14 +226,16 @@ export class AttachManager {
     manifest: BackupManifest
   ): Promise<void> {
     const commandsDir = path.join(projectPath, target.config.slashCommandsDir);
-    const { stats, manifest: itemManifest } = await attachItemsToDir(commands, commandsDir, 'command');
+    const { stats, manifest: itemManifest } = await attachItemsToDir(
+      commands,
+      commandsDir,
+      'command'
+    );
 
     // Update result
     result.commandsAdded.push(...stats.added);
     result.commandsOverridden.push(...stats.overridden);
-    result.conflicts.push(
-      ...stats.conflicts.map((c) => ({ ...c, type: 'command' as const }))
-    );
+    result.conflicts.push(...stats.conflicts.map((c) => ({ ...c, type: 'command' as const })));
 
     // Update manifest
     manifest.backup.commands.user.push(...itemManifest.user);

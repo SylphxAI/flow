@@ -7,7 +7,11 @@ import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { getDefaultServers } from '../config/servers.js';
+import {
+  computeEffectiveServers,
+  getEnabledServersFromEffective,
+  type MCPServerID,
+} from '../config/servers.js';
 
 export interface GlobalSettings {
   version: string;
@@ -199,26 +203,33 @@ export class GlobalConfigService {
   }
 
   /**
-   * Load MCP config
+   * Load raw MCP config from file (may be empty if no file)
    */
   async loadMCPConfig(): Promise<MCPConfig> {
     const configPath = this.getMCPConfigPath();
 
     if (!existsSync(configPath)) {
-      // Return default servers (those with defaultInInit: true)
-      const defaultServerIds = getDefaultServers();
-      const servers: Record<string, MCPServerConfig> = {};
-      for (const id of defaultServerIds) {
-        servers[id] = { enabled: true, env: {} };
-      }
-      return {
-        version: '1.0.0',
-        servers,
-      };
+      return { version: '1.0.0', servers: {} };
     }
 
     const data = await fs.readFile(configPath, 'utf-8');
     return JSON.parse(data);
+  }
+
+  /**
+   * Get effective MCP servers using SSOT computation
+   * Merges saved config with defaults from registry
+   */
+  getEffectiveMCPServers(savedServers: Record<string, MCPServerConfig> | undefined) {
+    return computeEffectiveServers(savedServers);
+  }
+
+  /**
+   * Get enabled server IDs using SSOT
+   */
+  getEnabledServerIds(savedServers: Record<string, MCPServerConfig> | undefined): MCPServerID[] {
+    const effective = computeEffectiveServers(savedServers);
+    return getEnabledServersFromEffective(effective);
   }
 
   /**

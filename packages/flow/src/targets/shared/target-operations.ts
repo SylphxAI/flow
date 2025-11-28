@@ -5,8 +5,8 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import type { CommonOptions, SetupResult, TargetConfig } from '../../types.js';
 import { installToDirectory } from '../../core/installers/file-installer.js';
+import type { CommonOptions, SetupResult, TargetConfig } from '../../types.js';
 import { getAgentsDir, getSlashCommandsDir } from '../../utils/config/paths.js';
 import { yamlUtils } from '../../utils/config/target-utils.js';
 
@@ -49,8 +49,7 @@ export const stripFrontMatter = (content: string): Promise<string> =>
 /**
  * Identity transformer - returns content unchanged
  */
-export const identityTransform: ContentTransformer = (content: string) =>
-  Promise.resolve(content);
+export const identityTransform: ContentTransformer = (content: string) => Promise.resolve(content);
 
 // ============================================================================
 // Pure Functions - Setup Operations
@@ -65,12 +64,10 @@ export const setupAgentsTo = async (
   transformer: ContentTransformer,
   options: SetupOptions = {}
 ): Promise<SetupResult> => {
-  const results = await installToDirectory(
-    getAgentsDir(),
-    targetDir,
-    transformer,
-    { ...options, showProgress: false }
-  );
+  const results = await installToDirectory(getAgentsDir(), targetDir, transformer, {
+    ...options,
+    showProgress: false,
+  });
   return { count: results.length };
 };
 
@@ -83,12 +80,10 @@ export const setupSlashCommandsTo = async (
   transformer: ContentTransformer = identityTransform,
   options: SetupOptions = {}
 ): Promise<SetupResult> => {
-  const results = await installToDirectory(
-    getSlashCommandsDir(),
-    targetDir,
-    transformer,
-    { ...options, showProgress: false }
-  );
+  const results = await installToDirectory(getSlashCommandsDir(), targetDir, transformer, {
+    ...options,
+    showProgress: false,
+  });
   return { count: results.length };
 };
 
@@ -105,7 +100,9 @@ export const ensureConfigStructure = <T extends Record<string, unknown>>(
   key: string,
   defaultValue: unknown = {}
 ): T => {
-  if (config[key] !== undefined) return config;
+  if (config[key] !== undefined) {
+    return config;
+  }
   return { ...config, [key]: defaultValue };
 };
 
@@ -126,10 +123,6 @@ export const resolveTargetPaths = (cwd: string, config: TargetConfig) => ({
   configDir: path.join(cwd, config.configDir),
   agentDir: path.join(cwd, config.agentDir),
   configFile: path.join(cwd, config.configFile),
-  slashCommandsDir: config.slashCommandsDir
-    ? path.join(cwd, config.slashCommandsDir)
-    : undefined,
-  rulesFile: config.rulesFile
-    ? path.join(cwd, config.rulesFile)
-    : undefined,
+  slashCommandsDir: config.slashCommandsDir ? path.join(cwd, config.slashCommandsDir) : undefined,
+  rulesFile: config.rulesFile ? path.join(cwd, config.rulesFile) : undefined,
 });
