@@ -1,5 +1,17 @@
 # @sylphx/flow
 
+## 2.1.4 (2025-11-28)
+
+### ♻️ Refactoring
+
+- **flow:** eliminate hardcoded target checks with Target interface ([1dc75f9](https://github.com/SylphxAI/flow/commit/1dc75f9d4936b51554b1d09bf8576f832ce131e9))
+
+### 🔧 Chores
+
+- apply @sylphx/doctor fixes for 100% health score ([ae55969](https://github.com/SylphxAI/flow/commit/ae5596924dab48675ff3100b40f67651e7ebe26f))
+- remove unused api.types.ts re-export file ([ad8f6a6](https://github.com/SylphxAI/flow/commit/ad8f6a6b8dcad75d2c0201f2286e52adccb728c7))
+- remove dead code and unused modules ([6eaa904](https://github.com/SylphxAI/flow/commit/6eaa90438dcb40f9508953e874bf8c04204ae017))
+
 ## 2.1.3
 
 ### Patch Changes
