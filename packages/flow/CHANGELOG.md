@@ -1,5 +1,20 @@
 # @sylphx/flow
 
+## 2.1.6 (2025-11-28)
+
+### 🐛 Bug Fixes
+
+- **settings:** respect saved MCP server enabled state ([8447cea](https://github.com/SylphxAI/flow/commit/8447cea1b2f46e49cfc1bd7e57e557307d072163))
+- **mcp:** return default servers when no config exists ([bd6c588](https://github.com/SylphxAI/flow/commit/bd6c58819cdde8e31bd18cdc2f05c2c45e4f3d39))
+
+### ♻️ Refactoring
+
+- **mcp:** implement SSOT for server configuration ([e0b5ee0](https://github.com/SylphxAI/flow/commit/e0b5ee01d4952e825d81005465147ce39963bbd0))
+
+### 🔧 Chores
+
+- format package.json (tabs to spaces) ([305096a](https://github.com/SylphxAI/flow/commit/305096a9e276a3626415d76b8f313e95dc6daeff))
+
 ## 2.1.5 (2025-11-28)
 
 ### 🐛 Bug Fixes
