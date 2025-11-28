@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.1.8 (2025-11-28)
+
+### 🐛 Bug Fixes
+
+- **mcp:** explicitly pass --mcp-config flag to Claude Code ([fa955e9](https://github.com/SylphxAI/flow/commit/fa955e95b14bbbec3ebf7e93dab5ca959e9f012b))
+
 ## 2.1.7 (2025-11-28)
 
 ### 🐛 Bug Fixes
