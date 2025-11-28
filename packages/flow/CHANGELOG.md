@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.1.7 (2025-11-28)
+
+### 🐛 Bug Fixes
+
+- **mcp:** approve MCP servers for Claude Code during attach ([19cdc3b](https://github.com/SylphxAI/flow/commit/19cdc3bea9df58bc9c1fe55242a8e2858c1303c1))
+
 ## 2.1.6 (2025-11-28)
 
 ### 🐛 Bug Fixes
