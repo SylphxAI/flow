@@ -15,7 +15,7 @@ export interface TargetChoice {
   /** Display name of the target */
   name: string;
   /** Target identifier */
-  value: 'claude-code' | 'opencode' | 'cursor';
+  value: 'claude-code' | 'opencode';
   /** Whether the target is currently installed */
   installed: boolean;
 }
@@ -36,11 +36,6 @@ export function buildAvailableTargets(installedTargets: string[]): TargetChoice[
       name: 'OpenCode',
       value: 'opencode',
       installed: installedTargets.includes('opencode'),
-    },
-    {
-      name: 'Cursor',
-      value: 'cursor',
-      installed: installedTargets.includes('cursor'),
     },
   ];
 }

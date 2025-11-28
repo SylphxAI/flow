@@ -1,6 +1,6 @@
 /**
  * Target Installation Service
- * Auto-detects and installs AI CLI tools (Claude Code, OpenCode, Cursor)
+ * Auto-detects and installs AI CLI tools (Claude Code, OpenCode)
  */
 
 import { exec } from 'node:child_process';
@@ -14,7 +14,7 @@ import { detectPackageManager, type PackageManager } from '../utils/package-mana
 const execAsync = promisify(exec);
 
 export interface TargetInstallation {
-  id: 'claude-code' | 'opencode' | 'cursor';
+  id: 'claude-code' | 'opencode';
   name: string;
   package: string;
   checkCommand: string;
@@ -59,16 +59,6 @@ const TARGET_INSTALLATIONS: TargetInstallation[] = [
         case 'yarn':
           return 'yarn global add opencode-ai@latest';
       }
-    },
-  },
-  {
-    id: 'cursor',
-    name: 'Cursor',
-    package: 'cursor',
-    checkCommand: 'cursor --version',
-    installCommand: () => {
-      // Cursor is typically installed via installer, not npm
-      return 'Visit https://cursor.sh to download and install';
     },
   },
 ];
@@ -157,13 +147,6 @@ export class TargetInstaller {
     const installation = TARGET_INSTALLATIONS.find((t) => t.id === targetId);
     if (!installation) {
       console.log(chalk.red(`✗ Unknown target: ${targetId}`));
-      return false;
-    }
-
-    // Special handling for Cursor (not npm-installable)
-    if (targetId === 'cursor') {
-      console.log(chalk.yellow('\n⚠️  Cursor requires manual installation'));
-      console.log(chalk.cyan('   Visit https://cursor.sh to download and install\n'));
       return false;
     }
 
