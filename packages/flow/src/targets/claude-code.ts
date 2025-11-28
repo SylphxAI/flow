@@ -3,14 +3,19 @@ import fs from 'node:fs';
 import fsPromises from 'node:fs/promises';
 import path from 'node:path';
 import chalk from 'chalk';
-import { installToDirectory } from '../core/installers/file-installer.js';
 import { createMCPInstaller } from '../core/installers/mcp-installer.js';
 import type { AgentMetadata } from '../types/target-config.types.js';
 import type { CommonOptions, MCPServerConfigUnion, SetupResult, Target } from '../types.js';
-import { getAgentsDir, getSlashCommandsDir } from '../utils/config/paths.js';
+import { getAgentsDir } from '../utils/config/paths.js';
 import { fileUtils, generateHelpText, pathUtils, yamlUtils } from '../utils/config/target-utils.js';
 import { CLIError } from '../utils/error-handler.js';
 import { sanitize } from '../utils/security/security.js';
+import {
+  transformMCPConfig as transformMCP,
+  detectTargetConfig,
+  stripFrontMatter,
+  setupSlashCommandsTo,
+} from './shared/index.js';
 
 /**
  * Claude Code target - composition approach with all original functionality
@@ -68,50 +73,10 @@ export const claudeCodeTarget: Target = {
 
   /**
    * Transform MCP server configuration for Claude Code
-   * Convert from various formats to Claude Code's optimal format
+   * Uses shared pure function for bidirectional conversion
    */
   transformMCPConfig(config: MCPServerConfigUnion, _serverId?: string): Record<string, unknown> {
-    // Handle legacy OpenCode 'local' type
-    if (config.type === 'local') {
-      // Convert OpenCode 'local' array command to Claude Code format
-      const [command, ...args] = config.command;
-      return {
-        type: 'stdio',
-        command,
-        ...(args && args.length > 0 && { args }),
-        ...(config.environment && { env: config.environment }),
-      };
-    }
-
-    // Handle new stdio format (already optimized for Claude Code)
-    if (config.type === 'stdio') {
-      return {
-        type: 'stdio',
-        command: config.command,
-        ...(config.args && config.args.length > 0 && { args: config.args }),
-        ...(config.env && { env: config.env }),
-      };
-    }
-
-    // Handle legacy OpenCode 'remote' type
-    if (config.type === 'remote') {
-      return {
-        type: 'http',
-        url: config.url,
-        ...(config.headers && { headers: config.headers }),
-      };
-    }
-
-    // Handle new http format (already optimized for Claude Code)
-    if (config.type === 'http') {
-      return {
-        type: 'http',
-        url: config.url,
-        ...(config.headers && { headers: config.headers }),
-      };
-    }
-
-    return config;
+    return transformMCP(config, 'claude-code');
   },
 
   getConfigPath: (cwd: string) =>
@@ -321,12 +286,7 @@ Please begin your response with a comprehensive summary of all the instructions 
    * Detect if this target is being used in the current environment
    */
   detectFromEnvironment(): boolean {
-    try {
-      const cwd = process.cwd();
-      return fs.existsSync(path.join(cwd, '.mcp.json'));
-    } catch {
-      return false;
-    }
+    return detectTargetConfig(process.cwd(), '.mcp.json');
   },
 
   /**
@@ -377,9 +337,7 @@ Please begin your response with a comprehensive summary of all the instructions 
    * Transform rules content for Claude Code
    * Claude Code doesn't need front matter in rules files (CLAUDE.md)
    */
-  async transformRulesContent(content: string): Promise<string> {
-    return yamlUtils.stripFrontMatter(content);
-  },
+  transformRulesContent: stripFrontMatter,
 
   /**
    * Setup hooks for Claude Code
@@ -524,23 +482,7 @@ Please begin your response with a comprehensive summary of all the instructions 
     if (!this.config.slashCommandsDir) {
       return { count: 0 };
     }
-
-    const slashCommandsDir = path.join(cwd, this.config.slashCommandsDir);
-
-    const results = await installToDirectory(
-      getSlashCommandsDir(),
-      slashCommandsDir,
-      async (content) => {
-        // Slash commands are plain markdown with front matter - no transformation needed
-        return content;
-      },
-      {
-        ...options,
-        showProgress: false, // UI handled by init-command
-      }
-    );
-
-    return { count: results.length };
+    return setupSlashCommandsTo(path.join(cwd, this.config.slashCommandsDir), undefined, options);
   },
 };
 
