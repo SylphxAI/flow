@@ -222,10 +222,14 @@ async function configureMCP(configService: GlobalConfigService): Promise<void> {
         const requiredEnvVars = getRequiredEnvVars(id);
         const requiresText =
           requiredEnvVars.length > 0 ? chalk.dim(` (requires ${requiredEnvVars.join(', ')})`) : '';
+        // Only use defaultInInit if server not yet in config (first time)
+        // Otherwise respect the saved enabled state
+        const isInConfig = id in currentServers;
+        const isChecked = isInConfig ? currentServers[id]?.enabled : server.defaultInInit;
         return {
           name: `${server.name} - ${server.description}${requiresText}`,
           value: id,
-          checked: currentEnabled.includes(id) || server.defaultInInit,
+          checked: isChecked,
         };
       }),
     },
