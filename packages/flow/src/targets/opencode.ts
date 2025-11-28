@@ -7,15 +7,15 @@ import { installFile, installToDirectory } from '../core/installers/file-install
 import { createMCPInstaller } from '../core/installers/mcp-installer.js';
 import type { AgentMetadata } from '../types/target-config.types.js';
 import type { CommonOptions, MCPServerConfigUnion, SetupResult, Target } from '../types.js';
-import { getAgentsDir, getOutputStylesDir, getSlashCommandsDir } from '../utils/config/paths.js';
+import { getAgentsDir, getOutputStylesDir } from '../utils/config/paths.js';
 import { fileUtils, generateHelpText, yamlUtils } from '../utils/config/target-utils.js';
 import { CLIError } from '../utils/error-handler.js';
 import { secretUtils } from '../utils/security/secret-utils.js';
 import {
-  transformMCPConfig as transformMCP,
   detectTargetConfig,
-  stripFrontMatter,
   setupSlashCommandsTo,
+  stripFrontMatter,
+  transformMCPConfig as transformMCP,
 } from './shared/index.js';
 
 /**
