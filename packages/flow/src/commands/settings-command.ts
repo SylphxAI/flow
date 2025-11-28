@@ -11,6 +11,7 @@ import { GlobalConfigService } from '../services/global-config.js';
 import { TargetInstaller } from '../services/target-installer.js';
 import { UserCancelledError } from '../utils/errors.js';
 import { buildAvailableTargets, promptForDefaultTarget } from '../utils/target-selection.js';
+import { handleCheckboxConfig, printHeader, printConfirmation } from './settings/index.js';
 
 export const settingsCommand = new Command('settings')
   .description('Configure Sylphx Flow settings')
@@ -107,16 +108,12 @@ async function openSection(section: string, configService: GlobalConfigService):
 }
 
 /**
- * Configure Agents
+ * Configure Agents - uses shared checkbox handler + default selection
  */
 async function configureAgents(configService: GlobalConfigService): Promise<void> {
-  console.log(chalk.cyan.bold('\n━━━ 🤖 Agent Configuration\n'));
-
   const flowConfig = await configService.loadFlowConfig();
   const settings = await configService.loadSettings();
-  const currentAgents = flowConfig.agents || {};
 
-  // Available agents
   const availableAgents = {
     coder: 'Coder - Write and modify code',
     writer: 'Writer - Documentation and explanation',
@@ -124,38 +121,22 @@ async function configureAgents(configService: GlobalConfigService): Promise<void
     orchestrator: 'Orchestrator - Task coordination',
   };
 
-  // Get current enabled agents
-  const currentEnabled = Object.keys(currentAgents).filter((key) => currentAgents[key].enabled);
+  const { selected, updated } = await handleCheckboxConfig({
+    title: 'Agent Configuration',
+    icon: '🤖',
+    message: 'Select agents to enable:',
+    available: availableAgents,
+    current: flowConfig.agents || {},
+    itemType: 'Agents',
+  });
 
-  const { selectedAgents } = await inquirer.prompt([
-    {
-      type: 'checkbox',
-      name: 'selectedAgents',
-      message: 'Select agents to enable:',
-      choices: Object.entries(availableAgents).map(([key, name]) => ({
-        name,
-        value: key,
-        checked: currentEnabled.includes(key),
-      })),
-    },
-  ]);
-
-  // Update agents
-  for (const key of Object.keys(availableAgents)) {
-    if (selectedAgents.includes(key)) {
-      currentAgents[key] = { enabled: true };
-    } else {
-      currentAgents[key] = { enabled: false };
-    }
-  }
-
-  // Select default agent
+  // Additional step: select default agent from enabled ones
   const { defaultAgent } = await inquirer.prompt([
     {
       type: 'list',
       name: 'defaultAgent',
       message: 'Select default agent:',
-      choices: selectedAgents.map((key: string) => ({
+      choices: selected.map((key) => ({
         name: availableAgents[key as keyof typeof availableAgents],
         value: key,
       })),
@@ -163,109 +144,57 @@ async function configureAgents(configService: GlobalConfigService): Promise<void
     },
   ]);
 
-  flowConfig.agents = currentAgents;
+  flowConfig.agents = updated;
   await configService.saveFlowConfig(flowConfig);
 
   settings.defaultAgent = defaultAgent;
   await configService.saveSettings(settings);
 
-  console.log(chalk.green(`\n✓ Agent configuration saved`));
-  console.log(chalk.dim(`  Enabled agents: ${selectedAgents.length}`));
   console.log(chalk.dim(`  Default agent: ${defaultAgent}`));
 }
 
 /**
- * Configure Rules
+ * Configure Rules - uses shared checkbox handler
  */
 async function configureRules(configService: GlobalConfigService): Promise<void> {
-  console.log(chalk.cyan.bold('\n━━━ 📋 Rules Configuration\n'));
-
   const flowConfig = await configService.loadFlowConfig();
-  const currentRules = flowConfig.rules || {};
 
-  // Available rules
-  const availableRules = {
-    core: 'Core - Identity, personality, execution',
-    'code-standards': 'Code Standards - Quality, patterns, anti-patterns',
-    workspace: 'Workspace - Documentation management',
-  };
-
-  // Get current enabled rules
-  const currentEnabled = Object.keys(currentRules).filter((key) => currentRules[key].enabled);
-
-  const { selectedRules } = await inquirer.prompt([
-    {
-      type: 'checkbox',
-      name: 'selectedRules',
-      message: 'Select rules to enable:',
-      choices: Object.entries(availableRules).map(([key, name]) => ({
-        name,
-        value: key,
-        checked: currentEnabled.includes(key),
-      })),
+  const { updated } = await handleCheckboxConfig({
+    title: 'Rules Configuration',
+    icon: '📋',
+    message: 'Select rules to enable:',
+    available: {
+      core: 'Core - Identity, personality, execution',
+      'code-standards': 'Code Standards - Quality, patterns, anti-patterns',
+      workspace: 'Workspace - Documentation management',
     },
-  ]);
+    current: flowConfig.rules || {},
+    itemType: 'Rules',
+  });
 
-  // Update rules
-  for (const key of Object.keys(availableRules)) {
-    if (selectedRules.includes(key)) {
-      currentRules[key] = { enabled: true };
-    } else {
-      currentRules[key] = { enabled: false };
-    }
-  }
-
-  flowConfig.rules = currentRules;
+  flowConfig.rules = updated;
   await configService.saveFlowConfig(flowConfig);
-
-  console.log(chalk.green(`\n✓ Rules configuration saved`));
-  console.log(chalk.dim(`  Enabled rules: ${selectedRules.length}`));
 }
 
 /**
- * Configure Output Styles
+ * Configure Output Styles - uses shared checkbox handler
  */
 async function configureOutputStyles(configService: GlobalConfigService): Promise<void> {
-  console.log(chalk.cyan.bold('\n━━━ 🎨 Output Styles Configuration\n'));
-
   const flowConfig = await configService.loadFlowConfig();
-  const currentStyles = flowConfig.outputStyles || {};
 
-  // Available output styles
-  const availableStyles = {
-    silent: 'Silent - Execution without narration',
-  };
-
-  // Get current enabled styles
-  const currentEnabled = Object.keys(currentStyles).filter((key) => currentStyles[key].enabled);
-
-  const { selectedStyles } = await inquirer.prompt([
-    {
-      type: 'checkbox',
-      name: 'selectedStyles',
-      message: 'Select output styles to enable:',
-      choices: Object.entries(availableStyles).map(([key, name]) => ({
-        name,
-        value: key,
-        checked: currentEnabled.includes(key),
-      })),
+  const { updated } = await handleCheckboxConfig({
+    title: 'Output Styles Configuration',
+    icon: '🎨',
+    message: 'Select output styles to enable:',
+    available: {
+      silent: 'Silent - Execution without narration',
     },
-  ]);
+    current: flowConfig.outputStyles || {},
+    itemType: 'Output styles',
+  });
 
-  // Update styles
-  for (const key of Object.keys(availableStyles)) {
-    if (selectedStyles.includes(key)) {
-      currentStyles[key] = { enabled: true };
-    } else {
-      currentStyles[key] = { enabled: false };
-    }
-  }
-
-  flowConfig.outputStyles = currentStyles;
+  flowConfig.outputStyles = updated;
   await configService.saveFlowConfig(flowConfig);
-
-  console.log(chalk.green(`\n✓ Output styles configuration saved`));
-  console.log(chalk.dim(`  Enabled styles: ${selectedStyles.length}`));
 }
 
 /**
