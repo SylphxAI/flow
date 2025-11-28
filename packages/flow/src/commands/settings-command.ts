@@ -6,6 +6,7 @@
 import chalk from 'chalk';
 import { Command } from 'commander';
 import inquirer from 'inquirer';
+import { getRequiredEnvVars, MCP_SERVER_REGISTRY, type MCPServerID } from '../config/servers.js';
 import { GlobalConfigService } from '../services/global-config.js';
 import { TargetInstaller } from '../services/target-installer.js';
 import { UserCancelledError } from '../utils/errors.js';
@@ -276,14 +277,8 @@ async function configureMCP(configService: GlobalConfigService): Promise<void> {
   const mcpConfig = await configService.loadMCPConfig();
   const currentServers = mcpConfig.servers || {};
 
-  // Available MCP servers (from MCP_SERVER_REGISTRY)
-  const availableServers = {
-    grep: { name: 'GitHub Code Search (grep.app)', requiresEnv: [] },
-    context7: { name: 'Context7 Docs', requiresEnv: [] },
-    playwright: { name: 'Playwright Browser Control', requiresEnv: [] },
-    github: { name: 'GitHub', requiresEnv: ['GITHUB_TOKEN'] },
-    notion: { name: 'Notion', requiresEnv: ['NOTION_API_KEY'] },
-  };
+  // Get all servers from registry
+  const allServerIds = Object.keys(MCP_SERVER_REGISTRY) as MCPServerID[];
 
   // Get current enabled servers
   const currentEnabled = Object.keys(currentServers).filter((key) => currentServers[key].enabled);
@@ -293,40 +288,42 @@ async function configureMCP(configService: GlobalConfigService): Promise<void> {
       type: 'checkbox',
       name: 'selectedServers',
       message: 'Select MCP servers to enable:',
-      choices: Object.entries(availableServers).map(([key, info]) => {
+      choices: allServerIds.map((id) => {
+        const server = MCP_SERVER_REGISTRY[id];
+        const requiredEnvVars = getRequiredEnvVars(id);
         const requiresText =
-          info.requiresEnv.length > 0
-            ? chalk.dim(` (requires ${info.requiresEnv.join(', ')})`)
-            : '';
+          requiredEnvVars.length > 0 ? chalk.dim(` (requires ${requiredEnvVars.join(', ')})`) : '';
         return {
-          name: `${info.name}${requiresText}`,
-          value: key,
-          checked: currentEnabled.includes(key),
+          name: `${server.name} - ${server.description}${requiresText}`,
+          value: id,
+          checked: currentEnabled.includes(id) || server.defaultInInit,
         };
       }),
     },
   ]);
 
   // Update servers
-  for (const key of Object.keys(availableServers)) {
-    if (selectedServers.includes(key)) {
-      if (currentServers[key]) {
-        currentServers[key].enabled = true;
+  for (const id of allServerIds) {
+    if (selectedServers.includes(id)) {
+      if (currentServers[id]) {
+        currentServers[id].enabled = true;
       } else {
-        currentServers[key] = { enabled: true, env: {} };
+        currentServers[id] = { enabled: true, env: {} };
       }
-    } else if (currentServers[key]) {
-      currentServers[key].enabled = false;
+    } else if (currentServers[id]) {
+      currentServers[id].enabled = false;
     }
   }
 
   // Ask for API keys for newly enabled servers
-  for (const serverKey of selectedServers) {
-    const serverInfo = availableServers[serverKey as keyof typeof availableServers];
-    if (serverInfo.requiresEnv.length > 0) {
-      const server = currentServers[serverKey];
+  for (const serverId of selectedServers as MCPServerID[]) {
+    const serverDef = MCP_SERVER_REGISTRY[serverId];
+    const requiredEnvVars = getRequiredEnvVars(serverId);
 
-      for (const envKey of serverInfo.requiresEnv) {
+    if (requiredEnvVars.length > 0) {
+      const server = currentServers[serverId];
+
+      for (const envKey of requiredEnvVars) {
         const hasKey = server.env?.[envKey];
 
         const { shouldConfigure } = await inquirer.prompt([
@@ -334,8 +331,8 @@ async function configureMCP(configService: GlobalConfigService): Promise<void> {
             type: 'confirm',
             name: 'shouldConfigure',
             message: hasKey
-              ? `Update ${envKey} for ${serverInfo.name}?`
-              : `Configure ${envKey} for ${serverInfo.name}?`,
+              ? `Update ${envKey} for ${serverDef.name}?`
+              : `Configure ${envKey} for ${serverDef.name}?`,
             default: !hasKey,
           },
         ]);
