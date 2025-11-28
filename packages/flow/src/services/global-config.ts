@@ -7,6 +7,7 @@ import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { getDefaultServers } from '../config/servers.js';
 
 export interface GlobalSettings {
   version: string;
@@ -204,9 +205,15 @@ export class GlobalConfigService {
     const configPath = this.getMCPConfigPath();
 
     if (!existsSync(configPath)) {
+      // Return default servers (those with defaultInInit: true)
+      const defaultServerIds = getDefaultServers();
+      const servers: Record<string, MCPServerConfig> = {};
+      for (const id of defaultServerIds) {
+        servers[id] = { enabled: true, env: {} };
+      }
       return {
         version: '1.0.0',
-        servers: {},
+        servers,
       };
     }
 
