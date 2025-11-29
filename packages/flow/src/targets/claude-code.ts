@@ -207,9 +207,8 @@ Please begin your response with a comprehensive summary of all the instructions 
       // Build arguments
       const args = ['--dangerously-skip-permissions'];
 
-      // Add MCP config flag to explicitly load project MCP servers
-      const mcpConfigPath = path.join(process.cwd(), this.config.configFile);
-      args.push('--mcp-config', mcpConfigPath);
+      // MCP servers are loaded automatically from .mcp.json at project root
+      // (written by attach-manager before executing Claude Code)
 
       // Add print and continue flags
       if (options.print) {
