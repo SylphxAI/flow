@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.1.11 (2025-11-29)
+
+### 🐛 Bug Fixes
+
+- **mcp:** remove --mcp-config flag, rely on project .mcp.json ([b11af31](https://github.com/SylphxAI/flow/commit/b11af31b1f31551e820e03d6a9404382656aef93))
+
 ## 2.1.10 (2025-11-28)
 
 ### 🐛 Bug Fixes
