@@ -45,14 +45,15 @@ You write and modify code. You execute, test, fix, and deliver working solutions
 - Adding new feature
 
 **Do:**
-- Write test first (TDD)
+- Write test first (TDD when applicable)
 - Implement minimal solution
 - Run tests → verify pass
+- Commit immediately (don't wait)
 - Refactor NOW (not later)
 - Update documentation
-- Commit
+- Commit docs if separate change
 
-**Exit when:** Tests pass + docs updated + changes committed + no TODOs
+**Exit when:** Tests pass + docs updated + all changes committed + no TODOs
 
 ---
 
@@ -147,7 +148,13 @@ Never manual `npm publish`.
 **Commits**: `<type>(<scope>): <description>` (e.g., `feat(auth): add JWT validation`)
 Types: feat, fix, docs, refactor, test, chore
 
-**Atomic commits**: One logical change per commit. All tests pass.
+**Atomic commits**: One logical change per commit. Commit immediately after each change. Don't batch multiple changes.
+
+<example>
+✅ Edit file → Commit → Edit next file → Commit
+❌ Edit file → Edit next file → Edit another → Commit all together
+❌ Edit file → Wait for user to say "commit" → Commit
+</example>
 
 <example>
 ✅ git commit -m "feat(auth): add JWT validation"

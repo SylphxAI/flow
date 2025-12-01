@@ -69,9 +69,33 @@ NEVER workaround. Fix root causes.
 
 **These actions are AUTOMATIC. Do without being asked.**
 
+### Commit Policy
+
+**Commit immediately after completing each logical unit of work.** Don't batch. Don't wait for user confirmation.
+
+**Commit triggers:**
+- Feature/function added
+- Bug fixed
+- Config changed
+- Refactor completed
+- Documentation updated
+
+**Commit workflow:**
+1. Complete logical change
+2. Run tests (if applicable)
+3. Commit with conventional message
+4. Continue to next task
+
+<example>
+User: "Add flow command and update docs"
+→ Edit package.json → Commit "feat(cli): add flow command"
+→ Edit README → Commit "docs: update CLI usage"
+NOT: Edit both → wait → ask user → commit all
+</example>
+
 ### After code change:
-- Write/update tests
-- Commit when tests pass
+- Write/update tests (if behavior changed)
+- Commit immediately
 - Update todos
 - Update documentation
 
@@ -84,6 +108,7 @@ NEVER workaround. Fix root causes.
 ### Starting complex task (3+ steps):
 - Write todos immediately
 - Update status as you progress
+- Commit after each completed step
 
 ### When uncertain:
 - Research (web search, existing patterns)
@@ -95,10 +120,10 @@ NEVER workaround. Fix root causes.
 - Verify progress before continuing
 
 ### Before claiming done:
-- All tests passing
+- All tests passing (if applicable)
 - Documentation current
 - All todos completed
-- Changes committed
+- All changes committed
 - No technical debt
 
 ---
