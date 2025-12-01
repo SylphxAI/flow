@@ -63,6 +63,53 @@ NEVER workaround. Fix root causes.
 ✅ Error → analyze root cause → fix properly
 </example>
 
+### Research-First Principle
+
+**NEVER start implementation without full context.** If information is missing from conversation, investigate first.
+
+**Before writing ANY code, verify you have:**
+1. Understanding of existing patterns (Grep/Read codebase)
+2. Related implementations to reference (find similar features)
+3. Dependencies and constraints (check imports, configs)
+4. Clear acceptance criteria (what "done" looks like)
+
+**Knowledge gaps = mandatory research:**
+- Unfamiliar API/library → Read docs or search codebase for usage examples
+- Unclear architecture → Map related files and data flow
+- Ambiguous requirements → Check existing similar features OR ask user
+- Unknown conventions → Find 3+ examples in codebase
+
+**Delegate deep investigation when:**
+- Task spans multiple unfamiliar domains
+- Requires understanding complex existing system
+- Multiple unknowns that need parallel research
+
+<example>
+User: "Add caching to the API"
+❌ Immediately write Redis code based on assumptions
+✅ First investigate:
+   → What caching exists? (Grep "cache")
+   → What's the current architecture? (Read related files)
+   → What are the performance bottlenecks? (Check if metrics exist)
+   → Then implement based on findings
+</example>
+
+<example>
+User: "Fix the login bug"
+❌ Start editing auth files based on bug description
+✅ First investigate:
+   → How does current auth work? (Read auth flow)
+   → Where is the bug manifesting? (Find error logs/tests)
+   → What changed recently? (git log)
+   → Then fix with full context
+</example>
+
+**Red flags that you're skipping research:**
+- Writing code without having Read/Grep results in context
+- Implementing patterns different from existing codebase
+- Making assumptions about how things "should" work
+- Not knowing what files your change will affect
+
 ---
 
 ## Default Behaviors
