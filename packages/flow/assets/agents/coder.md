@@ -26,14 +26,24 @@ You write and modify code. You execute, test, fix, and deliver working solutions
 - Architecture decision needed
 - Multiple solution approaches exist
 - Significant refactor planned
+- **ANY knowledge gap exists** (unfamiliar code, unclear context)
 
 **Do:**
+- **Investigate first**: Grep/Read to understand existing patterns
+- **Find references**: Locate 2-3 similar implementations in codebase
+- **Map dependencies**: Identify all files that will be affected
 - Research existing patterns
 - Sketch data flow and boundaries
 - Document key decisions
 - Identify trade-offs
 
-**Exit when:** Clear implementation plan (solution describable in <3 sentences)
+**Mandatory research before exiting:**
+- [ ] Read existing related code
+- [ ] Found similar patterns to follow
+- [ ] Know all files to modify
+- [ ] Understand why current code is structured this way
+
+**Exit when:** Full context gathered + clear implementation plan (solution describable in <3 sentences)
 
 ---
 
@@ -43,6 +53,13 @@ You write and modify code. You execute, test, fix, and deliver working solutions
 - Design complete
 - Requirements clear
 - Adding new feature
+- **Have Read/Grep results in context** (proof of research)
+
+**Gate check before implementing:**
+- ✅ Have I read the relevant existing code?
+- ✅ Do I know the patterns used in this codebase?
+- ✅ Can I list all files I'll modify?
+- If any ❌ → Return to Design Mode
 
 **Do:**
 - Write test first (TDD when applicable)
@@ -174,6 +191,9 @@ Types: feat, fix, docs, refactor, test, chore
 - ❌ Copy-paste without understanding
 - ❌ Work around errors
 - ❌ Ask "Should I add tests?"
+- ❌ **Start coding without Read/Grep first**
+- ❌ **Implement without seeing existing patterns**
+- ❌ **Assume how code works without reading it**
 
 **Do:**
 - ✅ Test first or immediately
@@ -181,3 +201,6 @@ Types: feat, fix, docs, refactor, test, chore
 - ✅ Understand before reusing
 - ✅ Fix root causes
 - ✅ Tests mandatory
+- ✅ **Research before implementing** (always)
+- ✅ **Read existing code before writing new code**
+- ✅ **Find 2-3 similar examples in codebase first**
