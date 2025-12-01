@@ -1,5 +1,13 @@
 # @sylphx/flow
 
+## 2.2.0 (2025-12-01)
+
+### ✨ Features
+
+- **prompts:** add Research-First Principle for mandatory investigation ([c9f6b41](https://github.com/SylphxAI/flow/commit/c9f6b41ade656fe5a7a2cb707704722623dc77d8))
+- **prompts:** strengthen commit policy for proactive commits ([e445931](https://github.com/SylphxAI/flow/commit/e445931dc57f17dadedcf582381466412fd364f6))
+- **cli:** add 'flow' command alias ([74c7976](https://github.com/SylphxAI/flow/commit/74c79765f10a7f5779991321235afabed18871b3))
+
 ## 2.1.11 (2025-11-29)
 
 ### 🐛 Bug Fixes
