@@ -1,17 +1,14 @@
 <div align="center">
 
-# Sylphx Flow
+# 🚀 Sylphx Flow
 
-**One CLI to rule them all.**
+> One CLI to rule them all - unified orchestration for Claude Code, OpenCode, and all AI development tools
 
-The unified AI development platform that transcends boundaries. No more juggling between Claude Code, OpenCode, Cursor, or any other AI CLI. Flow orchestrates them all, intelligently adapting to your environment while delivering unparalleled power.
-
-[![npm version](https://img.shields.io/npm/v/@sylphx/flow.svg)](https://www.npmjs.com/package/@sylphx/flow)
+[![npm](https://img.shields.io/npm/v/@sylphx/flow)](https://www.npmjs.com/package/@sylphx/flow)
+[![downloads](https://img.shields.io/npm/dm/@sylphx/flow)](https://www.npmjs.com/package/@sylphx/flow)
+[![stars](https://img.shields.io/github/stars/SylphxAI/flow)](https://github.com/SylphxAI/flow)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/sylphxltd/flow/actions/workflows/ci.yml/badge.svg)](https://github.com/sylphxltd/flow/actions/workflows/ci.yml)
-[![GitHub Stars](https://img.shields.io/github/stars/sylphxltd/flow?style=social)](https://github.com/sylphxltd/flow)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
-[![Twitter Follow](https://img.shields.io/twitter/follow/SylphxAI?style=social)](https://x.com/SylphxAI)
 
 [Get Started](#-installation) • [Documentation](https://flow.sylphx.ai) • [npm](https://www.npmjs.com/package/@sylphx/flow) • [Twitter](https://x.com/SylphxAI)
 
@@ -852,7 +849,7 @@ Flow stands on the shoulders of giants:
 
 ---
 
-## 📦 Packages
+## Packages
 
 | Package | Version | Description |
 |---------|---------|-------------|
@@ -860,28 +857,24 @@ Flow stands on the shoulders of giants:
 
 ---
 
-## 🔧 Powered by Sylphx
-
-This project uses the following [@sylphx](https://github.com/SylphxAI) packages:
-
-- **[@sylphx/biome-config](https://www.npmjs.com/package/@sylphx/biome-config)** - Shared Biome configuration
-- **[@sylphx/bump](https://www.npmjs.com/package/@sylphx/bump)** - Version management and releases
-- **[@sylphx/doctor](https://www.npmjs.com/package/@sylphx/doctor)** - Project health checks and auto-fixes
-
----
-
-## 📄 License
+## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=SylphxAI/flow&type=Date)](https://star-history.com/#SylphxAI/flow&Date)
+
+## Powered by Sylphx
+
+- [@sylphx/biome-config](https://www.npmjs.com/package/@sylphx/biome-config)
+- [@sylphx/bump](https://www.npmjs.com/package/@sylphx/bump)
+- [@sylphx/doctor](https://www.npmjs.com/package/@sylphx/doctor)
+
+---
+
 <div align="center">
-
-**[⭐ Star us on GitHub](https://github.com/sylphxltd/flow)** • **[📖 Read the Docs](https://github.com/sylphxltd/flow/wiki)** • **[🐛 Report Issues](https://github.com/sylphxltd/flow/issues)**
-
-**One CLI to rule them all.**
-
-Made with ❤️ by [Sylphx Ltd](https://github.com/sylphxltd)
-
+<sub>Built with ❤️ by <a href="https://github.com/SylphxAI">Sylphx</a></sub>
 </div>
