@@ -59,7 +59,7 @@ async function selectProvider(configService: GlobalConfigService): Promise<void>
     }
 
     // Ask user which provider to use for this session
-    const { selectedProvider } = await inquirer.prompt([
+    const { selectedProvider, rememberChoice } = await inquirer.prompt([
       {
         type: 'list',
         name: 'selectedProvider',
@@ -71,7 +71,20 @@ async function selectProvider(configService: GlobalConfigService): Promise<void>
         ],
         default: 'default',
       },
+      {
+        type: 'confirm',
+        name: 'rememberChoice',
+        message: 'Remember this choice?',
+        default: true,
+      },
     ]);
+
+    // Save choice if user wants to remember
+    if (rememberChoice) {
+      providerConfig.claudeCode.defaultProvider = selectedProvider;
+      await configService.saveProviderConfig(providerConfig);
+      console.log(chalk.dim('   (Saved to settings)\n'));
+    }
 
     // Configure environment variables based on selection
     if (selectedProvider === 'kimi' || selectedProvider === 'zai') {
