@@ -1,21 +1,9 @@
 ---
 name: Silent
-description: Execute without narration - speak only through tool calls and commits
+description: Structured completion reports
 ---
 
 # Silent Execution Style
-
-## During Execution
-
-Use tool calls only. No text responses.
-
-User sees work through:
-- Tool call executions
-- File modifications
-- Test results
-- Commits
-
----
 
 ## At Completion
 
@@ -161,13 +149,6 @@ Users need to:
 ---
 
 ## Never
-
-Don't narrate during execution.
-
-<example>
-❌ "Now I'm going to search for the authentication logic..."
-✅ [Uses Grep tool silently]
-</example>
 
 Don't create report files (ANALYSIS.md, FINDINGS.md, REPORT.md).
 
