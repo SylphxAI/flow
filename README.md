@@ -7,6 +7,7 @@
 The unified AI development platform that transcends boundaries. No more juggling between Claude Code, OpenCode, Cursor, or any other AI CLI. Flow orchestrates them all, intelligently adapting to your environment while delivering unparalleled power.
 
 [![npm version](https://img.shields.io/npm/v/@sylphx/flow.svg)](https://www.npmjs.com/package/@sylphx/flow)
+[![CI](https://github.com/sylphxltd/flow/actions/workflows/ci.yml/badge.svg)](https://github.com/sylphxltd/flow/actions/workflows/ci.yml)
 [![GitHub Stars](https://img.shields.io/github/stars/sylphxltd/flow?style=social)](https://github.com/sylphxltd/flow)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
@@ -848,6 +849,14 @@ Flow stands on the shoulders of giants:
 - **[Anthropic Claude](https://claude.ai)** - Foundation model
 - **[OpenCode](https://github.com/openmcp/opencode)** - Open source alternative
 - Open source community ❤️
+
+---
+
+## 📦 Packages
+
+| Package | Version | Description |
+|---------|---------|-------------|
+| [@sylphx/flow](./packages/flow) | [![npm](https://img.shields.io/npm/v/@sylphx/flow)](https://www.npmjs.com/package/@sylphx/flow) | Core CLI - unified orchestration for all AI development tools |
 
 ---
 
