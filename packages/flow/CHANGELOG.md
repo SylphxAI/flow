@@ -1,5 +1,20 @@
 # @sylphx/flow
 
+## 2.3.0 (2025-12-02)
+
+### ✨ Features
+
+- **prompts:** add doc update requirements to coder modes ([c489f71](https://github.com/SylphxAI/flow/commit/c489f716d7415f1f077c9318f9cc5fc72fd097ed))
+- **prompts:** add mode transition announcement to core rules ([19b18b0](https://github.com/SylphxAI/flow/commit/19b18b0adc49c6eb9da80e61ccdb2a8ce04ac425))
+
+### 🐛 Bug Fixes
+
+- **cli:** save provider selection to prevent repeated prompts ([757a6c9](https://github.com/SylphxAI/flow/commit/757a6c90620cc475f381d0c0a37bf20f1be32438))
+
+### ♻️ Refactoring
+
+- **prompts:** remove silent execution constraint from output style ([6fe64d3](https://github.com/SylphxAI/flow/commit/6fe64d322ac1f670f7fbb3a4d80d5b5ed2186267))
+
 ## 2.2.0 (2025-12-01)
 
 ### ✨ Features
