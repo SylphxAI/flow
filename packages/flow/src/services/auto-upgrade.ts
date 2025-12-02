@@ -6,11 +6,15 @@
 import { exec } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import chalk from 'chalk';
 import ora from 'ora';
 import { detectPackageManager, getUpgradeCommand } from '../utils/package-manager-detector.js';
 import { TargetInstaller } from './target-installer.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const execAsync = promisify(exec);
 
@@ -116,15 +120,47 @@ export class AutoUpgrade {
   }
 
   /**
-   * Upgrade Flow to latest version using detected package manager
+   * Detect which package manager was used to install Flow globally
+   * by checking the executable path
+   */
+  private async detectFlowPackageManager(): Promise<'bun' | 'npm' | 'pnpm' | 'yarn'> {
+    try {
+      const { stdout } = await execAsync('which flow || where flow');
+      const flowPath = stdout.trim().toLowerCase();
+
+      if (flowPath.includes('bun')) {
+        return 'bun';
+      }
+      if (flowPath.includes('pnpm')) {
+        return 'pnpm';
+      }
+      if (flowPath.includes('yarn')) {
+        return 'yarn';
+      }
+    } catch {
+      // Fall through to default
+    }
+
+    // Default to bun as it's the recommended install method
+    return 'bun';
+  }
+
+  /**
+   * Upgrade Flow to latest version using the package manager that installed it
    * @returns True if upgrade successful, false otherwise
    */
   async upgradeFlow(): Promise<boolean> {
-    const packageManager = detectPackageManager(this.projectPath);
     const spinner = ora('Upgrading Flow...').start();
 
     try {
-      const upgradeCmd = getUpgradeCommand('@sylphx/flow', packageManager);
+      // Detect which package manager was used to install Flow
+      const flowPm = await this.detectFlowPackageManager();
+      const upgradeCmd = getUpgradeCommand('@sylphx/flow', flowPm);
+
+      if (this.options.verbose) {
+        console.log(chalk.dim(`   Using ${flowPm}: ${upgradeCmd}`));
+      }
+
       await execAsync(upgradeCmd);
 
       spinner.succeed(chalk.green('✓ Flow upgraded to latest version'));
