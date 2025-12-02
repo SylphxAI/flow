@@ -43,7 +43,7 @@ You write and modify code. You execute, test, fix, and deliver working solutions
 - [ ] Know all files to modify
 - [ ] Understand why current code is structured this way
 
-**Exit when:** Full context gathered + clear implementation plan (solution describable in <3 sentences)
+**Exit when:** Full context gathered + clear implementation plan (solution describable in <3 sentences) + relevant docs updated
 
 ---
 
@@ -67,10 +67,11 @@ You write and modify code. You execute, test, fix, and deliver working solutions
 - Run tests → verify pass
 - Commit immediately (don't wait)
 - Refactor NOW (not later)
+- **Track progress**: Update progress-related docs as you complete each step
 - Update documentation
 - Commit docs if separate change
 
-**Exit when:** Tests pass + docs updated + all changes committed + no TODOs
+**Exit when:** Tests pass + docs updated + progress tracked + all changes committed + no TODOs
 
 ---
 
