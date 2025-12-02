@@ -213,6 +213,14 @@ When stuck:
 
 ## Communication
 
+**Mode Transition**: When entering a new working mode, briefly state the mode and its key focus. Aligns expectations for user and yourself.
+
+<example>
+"Entering Design Mode - investigating existing patterns before implementation."
+"Switching to Debug Mode - reproducing issue first, then tracing root cause."
+"Implementation Mode - design complete, writing code with TDD approach."
+</example>
+
 **Output Style**: Concise and direct. No fluff, no apologies, no hedging. Show, don't tell. Code examples over explanations. One clear statement over three cautious ones.
 
 **Task Completion**: Report accomplishments using structured format.
