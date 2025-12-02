@@ -1,5 +1,15 @@
 # @sylphx/flow
 
+## 2.3.1 (2025-12-02)
+
+### 🐛 Bug Fixes
+
+- **upgrade:** fix auto-upgrade using wrong package manager ([a8a2b92](https://github.com/SylphxAI/flow/commit/a8a2b927534b7f92de48c77df25ee1e11d345380))
+
+### 🔧 Chores
+
+- migrate from vitest to bun test and fix doctor issues ([af35a27](https://github.com/SylphxAI/flow/commit/af35a27546786a99cbd475dae3f5cfb874ee8ab8))
+
 ## 2.3.0 (2025-12-02)
 
 ### ✨ Features
