@@ -376,7 +376,7 @@ export class AttachManager {
   }
 
   /**
-   * Attach single files (output styles like silent.md)
+   * Attach single files (currently unused, output styles merged into core.md)
    * NOTE: These files are placed in the target config directory (.claude/ or .opencode/),
    * NOT in the project root directory.
    */

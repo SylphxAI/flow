@@ -16,7 +16,7 @@ import {
 export interface GlobalSettings {
   version: string;
   defaultTarget?: 'claude-code' | 'opencode' | 'ask-every-time';
-  defaultAgent?: string; // Default agent to use (e.g., 'coder', 'writer', 'reviewer', 'orchestrator')
+  defaultAgent?: string; // Default agent to use (e.g., 'coder', 'writer', 'reviewer')
   firstRun: boolean;
   lastUpdated: string;
 }
@@ -36,8 +36,8 @@ export interface OutputStyleConfig {
 export interface FlowConfig {
   version: string;
   agents: Record<string, AgentConfig>; // e.g., { coder: { enabled: true }, writer: { enabled: false } }
-  rules: Record<string, RuleConfig>; // e.g., { core: { enabled: true }, workspace: { enabled: true } }
-  outputStyles: Record<string, OutputStyleConfig>; // e.g., { silent: { enabled: true } }
+  rules: Record<string, RuleConfig>; // e.g., { core: { enabled: true }, 'code-standards': { enabled: true } }
+  outputStyles: Record<string, OutputStyleConfig>; // Currently unused, merged into core.md
 }
 
 export interface ProviderConfig {
@@ -271,16 +271,12 @@ export class GlobalConfigService {
           coder: { enabled: true },
           writer: { enabled: true },
           reviewer: { enabled: true },
-          orchestrator: { enabled: true },
         },
         rules: {
           core: { enabled: true },
           'code-standards': { enabled: true },
-          workspace: { enabled: true },
         },
-        outputStyles: {
-          silent: { enabled: true },
-        },
+        outputStyles: {},
       };
     }
 

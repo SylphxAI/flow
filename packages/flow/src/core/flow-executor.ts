@@ -230,9 +230,9 @@ export class FlowExecutor {
       }
     }
 
-    // 6. Clear single files (output styles like silent.md)
-    // These are in the configDir
-    const singleFiles = ['silent.md']; // Add other known single files here
+    // 6. Clear single files (output styles) - currently none
+    // These would be in the configDir if we had any
+    const singleFiles: string[] = [];
     for (const fileName of singleFiles) {
       const filePath = path.join(projectPath, target.config.configDir, fileName);
       if (existsSync(filePath)) {
@@ -242,7 +242,7 @@ export class FlowExecutor {
 
     // 7. Clean up any Flow-created files in project root (legacy bug cleanup)
     // This handles files that were incorrectly created in project root
-    const legacySingleFiles = ['silent.md'];
+    const legacySingleFiles = ['silent.md']; // Keep for cleanup of legacy installations
     for (const fileName of legacySingleFiles) {
       const filePath = path.join(projectPath, fileName);
       if (existsSync(filePath)) {

@@ -136,7 +136,9 @@ async function main() {
 /**
  * Helper function to extract session state from result
  */
-function extractSessionState(result: { response?: { headers?: Record<string, string> } }): SessionState {
+function extractSessionState(result: {
+  response?: { headers?: Record<string, string> };
+}): SessionState {
   const headers = result.response?.headers || {};
   return {
     sessionId: headers['x-claude-code-session-id'],

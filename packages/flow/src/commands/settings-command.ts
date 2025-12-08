@@ -123,7 +123,6 @@ async function configureAgents(configService: GlobalConfigService): Promise<void
     coder: 'Coder - Write and modify code',
     writer: 'Writer - Documentation and explanation',
     reviewer: 'Reviewer - Code review and critique',
-    orchestrator: 'Orchestrator - Task coordination',
   };
 
   const { selected, updated } = await handleCheckboxConfig({
@@ -171,7 +170,6 @@ async function configureRules(configService: GlobalConfigService): Promise<void>
     available: {
       core: 'Core - Identity, personality, execution',
       'code-standards': 'Code Standards - Quality, patterns, anti-patterns',
-      workspace: 'Workspace - Documentation management',
     },
     current: flowConfig.rules || {},
     itemType: 'Rules',
@@ -192,7 +190,7 @@ async function configureOutputStyles(configService: GlobalConfigService): Promis
     icon: '🎨',
     message: 'Select output styles to enable:',
     available: {
-      silent: 'Silent - Execution without narration',
+      // Output styles merged into core.md - no separate files
     },
     current: flowConfig.outputStyles || {},
     itemType: 'Output styles',
