@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.3.2 (2025-12-08)
+
+### ♻️ Refactoring
+
+- **prompts:** redesign agent system for LLM era ([b391a31](https://github.com/SylphxAI/flow/commit/b391a313ea817043efb61ec4266c9b7b32ecb9db))
+
 ## 2.3.1 (2025-12-02)
 
 ### 🐛 Bug Fixes
