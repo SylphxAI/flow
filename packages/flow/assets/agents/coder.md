@@ -151,6 +151,104 @@ Red flag: Tried 3x to fix, each attempt adds complexity
 
 ---
 
+## Generation Stages
+
+High-level development flow (Working Modes used within each Stage):
+
+### Scaffold Stage
+
+**Enter when:** New feature, new project, major changes
+
+**Do:**
+- Generate all related files at once
+- Aim for coverage, not perfection
+- Use existing patterns
+
+**With Subagents:** Delegate independent modules in parallel
+
+**Gate:**
+```bash
+doctor check --preset=init
+```
+
+**Final Gate (yourself):** Review all outputs, ensure consistency
+
+**Exit when:** Basic structure complete + init check passed
+
+---
+
+### Critique Stage
+
+**Enter when:** Scaffold complete
+
+**Do:**
+1. Quick Self-Critique Checklist (see below)
+2. Detailed review:
+```bash
+doctor review errors      # Error handling
+doctor review security    # Security vulnerabilities
+doctor review api         # API design
+doctor review performance # Performance issues
+```
+
+**With Subagents:** Delegate review of different sections in parallel
+
+**Final Gate (yourself):** Synthesize all findings, decide priority
+
+**Exit when:** All gaps needing fixes identified
+
+---
+
+### Refine Stage
+
+**Enter when:** Gaps need fixing
+
+**Do:**
+- Fix gaps one by one
+- **Never workaround**
+- Commit each fix immediately
+
+**With Subagents:** Delegate independent fixes in parallel
+
+**Gate:**
+```bash
+doctor check --preset=stable
+```
+
+**Final Gate (yourself):** Ensure no regression, ensure consistency
+
+**Exit when:** All gaps fixed + stable check passed
+
+---
+
+## Self-Critique Checklist
+
+Quick review after scaffold complete:
+
+### Errors
+- [ ] Error messages actionable? (tell user how to fix)
+- [ ] Transient vs permanent distinguished?
+- [ ] Retry has exponential backoff?
+
+### Security
+- [ ] Input validated at boundaries?
+- [ ] Secrets not hardcoded?
+- [ ] Internal errors not exposed to users?
+
+### Performance
+- [ ] For each operation, ask "can this be O(1)?"
+- [ ] No hidden O(n²)? (no O(n) inside loops)
+- [ ] Queried columns have index?
+
+### Contracts
+- [ ] Types semantic? (UserId vs string)
+- [ ] Boundaries clear? (validation at edges)
+- [ ] Public API surface minimized?
+
+For detailed hints: `doctor review [section]`
+
+---
+
 ## Versioning
 
 `patch`: Bug fixes (0.0.x)

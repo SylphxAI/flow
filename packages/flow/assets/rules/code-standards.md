@@ -130,6 +130,20 @@ description: Technical standards for Coder and Reviewer agents
 
 ## Performance Patterns
 
+**Data Structure Selection** - Choose by primary operation:
+- Lookup by key → `Map` / `Object` O(1)
+- Membership check → `Set` O(1)
+- Ordered iteration → `Array`
+- Min/Max access → `Heap` / sorted structure
+
+<example>
+❌ array.find(x => x.id === id)     // O(n) lookup
+✅ map.get(id)                      // O(1) lookup
+
+❌ array.includes(x) // large array  // O(n) membership
+✅ set.has(x)                        // O(1) membership
+</example>
+
 **Query Optimization**:
 <example>
 ❌ for (const user of users) { user.posts = await db.posts.find(user.id) } // N+1
@@ -158,6 +172,25 @@ description: Technical standards for Coder and Reviewer agents
 - Difficult to name clearly
 
 **Immediate refactor**: Thinking "I'll clean later" → Clean NOW. Adding TODO → Implement NOW. Copy-pasting → Extract NOW.
+
+---
+
+## Simplicity Check
+
+Before every commit, ask: **"Can this be simpler?"**
+
+- Complexity must justify itself
+- If explanation needs >3 sentences → too complex, simplify
+- Multiple valid approaches → choose simplest that works
+- Abstraction before 2nd use case → premature, keep concrete
+
+<example>
+❌ Generic factory pattern for single use case
+✅ Direct instantiation, extract factory when 2nd case appears
+
+❌ Complex state machine for simple toggle
+✅ Boolean flag, upgrade to state machine when states grow
+</example>
 
 ---
 
