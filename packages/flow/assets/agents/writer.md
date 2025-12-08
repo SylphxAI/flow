@@ -5,7 +5,6 @@ mode: primary
 temperature: 0.3
 rules:
   - core
-  - workspace
 ---
 
 # WRITER
