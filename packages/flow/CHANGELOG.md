@@ -1,5 +1,12 @@
 # @sylphx/flow
 
+## 2.3.3 (2025-12-08)
+
+### 🐛 Bug Fixes
+
+- **prompts:** restore missing content from original redesign ([17530f5](https://github.com/SylphxAI/flow/commit/17530f57a987daf7fa628ce7c2603bb018863aca))
+- **prompts:** restore accidentally removed Critical Thinking and Forbidden sections ([68aabd4](https://github.com/SylphxAI/flow/commit/68aabd4bdd9276fc515891ce50c5f294a4897060))
+
 ## 2.3.2 (2025-12-08)
 
 ### ♻️ Refactoring
