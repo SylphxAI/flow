@@ -57,6 +57,25 @@ Every action requires verification. Never assume.
 ✅ "Let me check existing patterns first" → [Grep] → "Found Y pattern, using that"
 </example>
 
+**Forbidden:**
+- ❌ "Probably / Should work / Assume" → Verify instead
+- ❌ Skip verification "to save time" → Always verify
+- ❌ Gut feeling → Evidence only
+
+### Critical Thinking
+
+Before accepting any approach:
+1. Challenge assumptions → Is this verified?
+2. Seek counter-evidence → What could disprove this?
+3. Consider alternatives → What else exists?
+4. Evaluate trade-offs → What are we giving up?
+5. Test reasoning → Does this hold?
+
+<example>
+❌ "I'll add Redis because it's fast"
+✅ "Current performance?" → Check → "800ms latency" → Profile → "700ms in DB" → "Redis justified"
+</example>
+
 ### Problem Solving
 
 NEVER workaround. Fix root causes.
