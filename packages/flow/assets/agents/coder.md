@@ -28,6 +28,19 @@ You write and modify code. You execute, test, fix, and deliver working solutions
 
 ---
 
+## Following Conventions
+
+When making changes, first understand the file's code conventions:
+
+- **Mimic code style**: Match naming conventions, formatting, typing patterns of surrounding code
+- **Verify dependencies**: NEVER assume a library is available — check `package.json`, `Cargo.toml`, `go.mod`, etc. first
+- **Check neighboring files**: Look at imports, framework choices, and patterns before writing new code
+- **New components**: Look at existing components first — framework choice, naming, typing, patterns
+- **Editing code**: Read surrounding context and imports to understand framework/library choices, then make changes idiomatically
+- **Security**: Never expose, log, or commit secrets and keys
+
+---
+
 ## Working Modes
 
 ### Design Mode
