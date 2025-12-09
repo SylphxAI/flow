@@ -14,42 +14,28 @@ description: Technical standards for Coder and Reviewer agents
 ❌ {api, hooks, components, utils}/auth
 </example>
 
-**File size limits**: Component <250 lines, Module <300 lines. Larger → split by feature or responsibility.
+**File size limits**: Component <250 lines, Module <300 lines. Larger → split.
 
 ---
 
 ## Programming Patterns
 
-**Pragmatic Functional Programming**:
-- Business logic pure. Local mutations acceptable.
-- I/O explicit (comment when impure)
+**Pragmatic Functional**:
+- Business logic pure, local mutations acceptable
 - Composition default, inheritance when natural (1 level max)
 - Declarative when clearer, imperative when simpler
 
-<example>
-✅ users.filter(u => u.active)
-✅ for (const user of users) process(user)
-✅ class UserRepo extends BaseRepo {}
-❌ let shared = {}; fn() { shared.x = 1 }
-</example>
-
 **Named args (3+ params)**: `update({ id, email, role })`
-
-**Event-driven when appropriate**: Decouple via events/messages
 
 ---
 
 ## Quality Principles
 
-**YAGNI**: Build what's needed now, not hypothetical futures.
-
-**KISS**: Simple > complex. Solution needs >3 sentences to explain → find simpler approach.
-
-**DRY**: Extract on 3rd duplication. Balance with readability.
-
-**Single Responsibility**: One reason to change per module. File does multiple things → split.
-
-**Dependency Inversion**: Depend on abstractions, not implementations.
+- **YAGNI**: Build what's needed now, not hypothetical futures
+- **KISS**: Solution needs >3 sentences to explain → simplify
+- **DRY**: Extract on 3rd duplication
+- **Single Responsibility**: One reason to change per module
+- **Dependency Inversion**: Depend on abstractions, not implementations
 
 ---
 
@@ -59,208 +45,98 @@ description: Technical standards for Coder and Reviewer agents
 - Functions: verbs (getUserById, calculateTotal)
 - Booleans: is/has/can (isActive, hasPermission)
 - Classes: nouns (UserService, AuthManager)
-- Constants: UPPER_SNAKE_CASE
 - No abbreviations unless universal (req/res ok, usr/calc not ok)
 
-**Type Safety**:
-- Make illegal states unrepresentable
-- No `any` without justification
-- Null/undefined handled explicitly
-- Union types over loose types
+**Type Safety**: Make illegal states unrepresentable. No `any` without justification. Handle null/undefined explicitly.
 
-**Comments**: Explain WHY, not WHAT. Non-obvious decisions documented. TODOs forbidden (implement or delete).
+**Comments**: Explain WHY, not WHAT. TODOs forbidden (implement or delete).
 
-<example>
-✅ // Retry 3x because API rate limits after burst
-❌ // Retry the request
-</example>
-
-**Testing**: Critical paths 100% coverage. Business logic 80%+. Edge cases and error paths tested. Test names describe behavior, not implementation.
+**Testing**: Critical paths 100%. Business logic 80%+. Test names describe behavior.
 
 ---
 
 ## Security Standards
 
-**Input Validation**: Validate at boundaries (API, forms, file uploads). Whitelist > blacklist. Sanitize before storage/display. Use schema validation (Zod, Yup).
+**Input Validation**: Validate at boundaries. Whitelist > blacklist. Use schema validation (Zod).
 
 <example>
 ✅ const input = UserInputSchema.parse(req.body)
 ❌ const input = req.body // trusting user input
 </example>
 
-**Authentication/Authorization**: Auth required by default (opt-in to public). Deny by default. Check permissions at every entry point. Never trust client-side validation.
+**Auth**: Required by default. Deny by default. Check permissions at every entry point.
 
-**Data Protection**: Never log: passwords, tokens, API keys, PII. Encrypt sensitive data at rest. HTTPS only. Secure cookie flags (httpOnly, secure, sameSite).
-
-<example>
-❌ logger.info('User login', { email, password }) // NEVER log passwords
-✅ logger.info('User login', { email })
-</example>
-
-**Risk Mitigation**: Rollback plan for risky changes. Feature flags for gradual rollout. Circuit breakers for external services.
+**Data Protection**: Never log passwords, tokens, API keys, PII. Encrypt at rest. HTTPS only.
 
 ---
 
 ## Error Handling
 
-**At Boundaries**:
-<example>
-✅ try { return Ok(data) } catch { return Err(error) }
-❌ const data = await fetchUser(id) // let it bubble unhandled
-</example>
+**At Boundaries**: Catch and transform to Result types or domain errors.
 
-**Expected Failures**: Result types or explicit exceptions. Never throw for control flow.
-
-<example>
-✅ return Result.err(error)
-✅ throw new DomainError(msg)
-❌ throw "error" // control flow
-</example>
-
-**Logging**: Include context (user id, request id). Actionable messages. Appropriate severity. Never mask failures.
+**Logging**: Include context (userId, requestId). Actionable messages. Never mask failures.
 
 <example>
 ✅ logger.error('Payment failed', { userId, orderId, error: err.message })
 ❌ logger.error('Error') // no context
 </example>
 
-**Retry Logic**: Transient failures (network, rate limits) → retry with exponential backoff. Permanent failures (validation, auth) → fail fast. Max retries: 3-5 with jitter.
+**Retry**: Transient failures → exponential backoff. Permanent failures → fail fast.
 
 ---
 
 ## Performance Patterns
 
-**Data Structure Selection** - Choose by primary operation:
-- Lookup by key → `Map` / `Object` O(1)
+**Data Structure Selection**:
+- Lookup by key → `Map` O(1)
 - Membership check → `Set` O(1)
 - Ordered iteration → `Array`
-- Min/Max access → `Heap` / sorted structure
 
 <example>
-❌ array.find(x => x.id === id)     // O(n) lookup
-✅ map.get(id)                      // O(1) lookup
-
-❌ array.includes(x) // large array  // O(n) membership
-✅ set.has(x)                        // O(1) membership
+❌ array.find(x => x.id === id)  // O(n)
+✅ map.get(id)                   // O(1)
 </example>
 
-**Query Optimization**:
-<example>
-❌ for (const user of users) { user.posts = await db.posts.find(user.id) } // N+1
-✅ const posts = await db.posts.findByUserIds(users.map(u => u.id)) // single query
-</example>
+**Query Optimization**: Avoid N+1. Use JOINs or batch queries.
 
-**Algorithm Complexity**: O(n²) in hot paths → reconsider algorithm. Nested loops on large datasets → use hash maps. Repeated calculations → memoize.
+**Algorithm Complexity**: O(n²) in hot paths → reconsider. Nested loops → use hash maps.
 
-**Data Transfer**: Large payloads → pagination or streaming. API responses → only return needed fields. Images/assets → lazy load, CDN.
-
-**When to Optimize**: Only with data showing bottleneck. Profile before optimizing. Measure impact. No premature optimization.
+**When to Optimize**: Only with data. Profile first. Measure impact.
 
 ---
 
-## Refactoring Triggers
+## Code Organization
 
-**Extract function when**:
-- 3rd duplication appears
-- Function >20 lines
-- >3 levels of nesting
-- Cognitive load high
+**Extract function when**: 3rd duplication, >20 lines, >3 nesting levels.
 
-**Extract module when**:
-- File >300 lines
-- Multiple unrelated responsibilities
-- Difficult to name clearly
+**Extract module when**: >300 lines, multiple responsibilities.
 
-**Immediate refactor**: Thinking "I'll clean later" → Clean NOW. Adding TODO → Implement NOW. Copy-pasting → Extract NOW.
-
----
-
-## Simplicity Check
-
-Before every commit, ask: **"Can this be simpler?"**
-
+**Simplicity Check**: Before every commit, ask "Can this be simpler?"
 - Complexity must justify itself
-- If explanation needs >3 sentences → too complex, simplify
-- Multiple valid approaches → choose simplest that works
-- Abstraction before 2nd use case → premature, keep concrete
+- Abstraction before 2nd use case → premature
 
 <example>
-❌ Generic factory pattern for single use case
-✅ Direct instantiation, extract factory when 2nd case appears
-
-❌ Complex state machine for simple toggle
-✅ Boolean flag, upgrade to state machine when states grow
+❌ Generic factory for single use case
+✅ Direct instantiation, extract when 2nd case appears
 </example>
-
----
-
-## Anti-Patterns
-
-**Technical Debt**:
-- ❌ "I'll clean this later" → You won't
-- ❌ "Just one more TODO" → Compounds
-- ❌ "Tests slow me down" → Bugs slow more
-- ✅ Refactor AS you work, not after
-
-**Reinventing the Wheel**:
-
-Before ANY feature: research best practices + search codebase + check package registry + check framework built-ins.
-
-<example>
-✅ import { Result } from 'neverthrow'
-✅ try/catch with typed errors
-✅ import { z } from 'zod'
-✅ import { format } from 'date-fns'
-❌ Custom Result/validation/date implementations
-</example>
-
-**Premature Abstraction**:
-- ❌ Interfaces before 2nd use case
-- ❌ Generic solutions for specific problems
-- ✅ Solve specific first, extract when pattern emerges
-
-**Copy-Paste Without Understanding**:
-- ❌ Stack Overflow → paste → hope
-- ✅ Stack Overflow → understand → adapt
-
-**Working Around Errors**:
-- ❌ Suppress error, add fallback
-- ✅ Fix root cause
 
 ---
 
 ## Code Smells
 
-**Complexity**: Function >20 lines → extract. >3 nesting levels → flatten or extract. >5 parameters → use object or split. Deeply nested ternaries → use if/else or early returns.
+**Complexity**: Function >20 lines, >3 nesting, >5 parameters → refactor.
 
-**Coupling**: Circular dependencies → redesign. Import chains >3 levels → reconsider architecture. Tight coupling to external APIs → add adapter layer.
+**Coupling**: Circular deps → redesign. Tight coupling to external APIs → add adapter.
 
-**Data**: Mutable shared state → make immutable or encapsulate. Global variables → dependency injection. Magic numbers → named constants. Stringly typed → use enums/types.
+**Data**: Mutable shared state → encapsulate. Magic numbers → named constants.
 
-**Naming**: Generic names (data, info, manager, utils) → be specific. Misleading names → rename immediately. Inconsistent naming → align with conventions.
+**Naming**: Generic names (data, info, utils) → be specific. Misleading → rename immediately.
 
 ---
 
 ## Data Handling
 
-**Self-Healing at Read**:
-<example>
-function loadConfig(raw: unknown): Config {
-  const parsed = ConfigSchema.safeParse(raw)
-  if (!parsed.success) {
-    const fixed = applyDefaults(raw)
-    const retry = ConfigSchema.safeParse(fixed)
-    if (retry.success) {
-      logger.info('Config auto-fixed', { issues: parsed.error })
-      return retry.data
-    }
-  }
-  if (!parsed.success) throw new ConfigError(parsed.error)
-  return parsed.data
-}
-</example>
-
-**Single Source of Truth**: Configuration → Environment + config files. State → Single store (Redux, Zustand, Context). Derived data → Compute from source, don't duplicate.
+**Single Source of Truth**: Config → env + files. State → single store. Derived data → compute, don't duplicate.
 
 **Data Flow**:
 ```
