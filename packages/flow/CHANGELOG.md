@@ -1,5 +1,23 @@
 # @sylphx/flow
 
+## 2.4.0 (2025-12-09)
+
+### ✨ Features
+
+- **prompts:** add Following Conventions section to coder.md ([4352b13](https://github.com/SylphxAI/flow/commit/4352b1300b1308137bc6c6310b56e31a9af9f3ea))
+
+### 🐛 Bug Fixes
+
+- remove hardcoded references to deleted asset files ([a7ae02c](https://github.com/SylphxAI/flow/commit/a7ae02ce93d449d64cc8e4ac007359ba2799516c))
+
+### ♻️ Refactoring
+
+- **prompts:** simplify code-standards.md from 272 to 147 lines ([5bfa9c6](https://github.com/SylphxAI/flow/commit/5bfa9c6043a8d36f956a2d45061aafd1bf251c9f))
+- **prompts:** simplify writer.md from 174 to 120 lines ([0b25de2](https://github.com/SylphxAI/flow/commit/0b25de2ec7477c730072bdeac18042c4087d11e1))
+- **prompts:** simplify reviewer.md from 166 to 123 lines ([8c5e1b7](https://github.com/SylphxAI/flow/commit/8c5e1b733a448808533d29ac6d436c138af51915))
+- **prompts:** simplify core.md from 348 to 188 lines ([ec4cbfd](https://github.com/SylphxAI/flow/commit/ec4cbfd2bf751c6ee6c0a0eab17f3a280d884d90))
+- **prompts:** simplify coder.md from 330 to 128 lines ([c9569c3](https://github.com/SylphxAI/flow/commit/c9569c347b8925e95f1f5844cfa5434db4991a6d))
+
 ## 2.3.3 (2025-12-08)
 
 ### 🐛 Bug Fixes
