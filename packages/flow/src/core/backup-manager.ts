@@ -128,12 +128,26 @@ export class BackupManager {
 
       await fs.writeFile(path.join(backupPath, 'manifest.json'), JSON.stringify(manifest, null, 2));
 
-      // Create symlink to latest
+      // Create symlink to latest (with fallback for Windows)
       const latestLink = paths.latestBackup;
       if (existsSync(latestLink)) {
         await fs.unlink(latestLink);
       }
-      await fs.symlink(sessionId, latestLink);
+      try {
+        await fs.symlink(sessionId, latestLink);
+      } catch (symlinkError: unknown) {
+        // Windows without admin/Developer Mode can't create symlinks
+        // Fall back to writing session ID to a file
+        if (
+          symlinkError instanceof Error &&
+          'code' in symlinkError &&
+          symlinkError.code === 'EPERM'
+        ) {
+          await fs.writeFile(latestLink, sessionId, 'utf-8');
+        } else {
+          throw symlinkError;
+        }
+      }
 
       spinner.succeed(`Backup created: ${sessionId}`);
 
