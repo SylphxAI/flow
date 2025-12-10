@@ -6,6 +6,17 @@
 import type { MCPServerConfigUnion } from '../../types.js';
 
 // ============================================================================
+// Platform Detection
+// ============================================================================
+
+const isWindows = process.platform === 'win32';
+
+/**
+ * Commands that require cmd /c wrapper on Windows
+ */
+const WINDOWS_WRAPPED_COMMANDS = ['npx', 'npm', 'pnpm', 'yarn', 'bun', 'node'];
+
+// ============================================================================
 // Types
 // ============================================================================
 
@@ -37,6 +48,38 @@ export interface RemoteConfig {
 }
 
 // ============================================================================
+// Windows Command Wrapper
+// ============================================================================
+
+/**
+ * Wrap command for Windows if needed
+ * On Windows, npx/npm/etc. need to be executed via cmd /c
+ */
+const wrapCommandForWindows = (
+  command: string,
+  args?: string[]
+): { command: string; args: string[] } => {
+  if (!isWindows) {
+    return { command, args: args || [] };
+  }
+
+  // Check if command needs wrapping
+  const needsWrapper = WINDOWS_WRAPPED_COMMANDS.some(
+    (cmd) => command === cmd || command.endsWith(`\\${cmd}`) || command.endsWith(`/${cmd}`)
+  );
+
+  if (needsWrapper) {
+    // Wrap with cmd /c
+    return {
+      command: 'cmd',
+      args: ['/c', command, ...(args || [])],
+    };
+  }
+
+  return { command, args: args || [] };
+};
+
+// ============================================================================
 // Pure Transform Functions
 // ============================================================================
 
@@ -51,13 +94,16 @@ export const stdioToLocal = (config: StdioConfig): LocalConfig => ({
 
 /**
  * Convert local format to stdio format (OpenCode → Claude Code)
+ * On Windows, wraps npx/npm/etc. with cmd /c
  */
 export const localToStdio = (config: LocalConfig): StdioConfig => {
   const [command, ...args] = config.command;
+  const wrapped = wrapCommandForWindows(command, args);
+
   return {
     type: 'stdio',
-    command,
-    ...(args.length > 0 && { args }),
+    command: wrapped.command,
+    ...(wrapped.args.length > 0 && { args: wrapped.args }),
     ...(config.environment && { env: config.environment }),
   };
 };
@@ -82,13 +128,18 @@ export const remoteToHttp = (config: RemoteConfig): HttpConfig => ({
 
 /**
  * Normalize stdio config (ensure consistent structure)
+ * On Windows, wraps npx/npm/etc. with cmd /c
  */
-export const normalizeStdio = (config: StdioConfig): StdioConfig => ({
-  type: 'stdio',
-  command: config.command,
-  ...(config.args && config.args.length > 0 && { args: config.args }),
-  ...(config.env && { env: config.env }),
-});
+export const normalizeStdio = (config: StdioConfig): StdioConfig => {
+  const wrapped = wrapCommandForWindows(config.command, config.args);
+
+  return {
+    type: 'stdio',
+    command: wrapped.command,
+    ...(wrapped.args.length > 0 && { args: wrapped.args }),
+    ...(config.env && { env: config.env }),
+  };
+};
 
 /**
  * Normalize http config (ensure consistent structure)
