@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.4.2 (2025-12-10)
+
+### 🐛 Bug Fixes
+
+- **mcp:** wrap npx/npm commands with cmd /c on Windows ([e37b126](https://github.com/SylphxAI/flow/commit/e37b1262c4002341df32de92f84ccdc1bf359d4b))
+
 ## 2.4.1 (2025-12-10)
 
 ### 🐛 Bug Fixes
