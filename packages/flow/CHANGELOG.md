@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.4.1 (2025-12-10)
+
+### 🐛 Bug Fixes
+
+- **backup:** handle Windows symlink permission error ([8f1337f](https://github.com/SylphxAI/flow/commit/8f1337f6d1381ecceebc8751460a6cf710a62978))
+
 ## 2.4.0 (2025-12-09)
 
 ### ✨ Features
