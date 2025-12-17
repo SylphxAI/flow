@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.12.0 (2025-12-17)
+
+### ✨ Features
+
+- **commands:** add trust-safety and fill SSOT gaps ([fe67913](https://github.com/SylphxAI/flow/commit/fe67913db8183ae6c16070825f61744cf44acafa))
+
 ## 2.11.0 (2025-12-17)
 
 ### ✨ Features
