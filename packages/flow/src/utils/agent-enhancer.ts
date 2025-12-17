@@ -59,8 +59,7 @@ async function loadRules(ruleNames?: string[]): Promise<string> {
         const stripped = await yamlUtils.stripFrontMatter(content);
         sections.push(stripped);
       } catch (_error) {
-        // Log warning if rule file not found, but continue with other rules
-        console.warn(`Warning: Rule file not found: ${ruleName}.md`);
+        // Silent - rule file not found, continue with other rules
       }
     }
 
@@ -89,7 +88,7 @@ async function loadOutputStyles(styleNames?: string[]): Promise<string> {
           const stripped = await yamlUtils.stripFrontMatter(content);
           sections.push(stripped);
         } catch (_error) {
-          console.warn(`Warning: Output style file not found: ${styleName}.md`);
+          // Silent - output style file not found, continue
         }
       }
     } else {

@@ -242,12 +242,12 @@ export async function executeFlowV2(
   const autoUpgrade = new AutoUpgrade(projectPath);
   const upgradeResult = await autoUpgrade.runAutoUpgrade(selectedTargetId);
 
-  // Show upgrade status (only if something was upgraded)
+  // Show upgrade notice (minimal - only if upgraded)
   if (upgradeResult.flowUpgraded && upgradeResult.flowVersion) {
-    console.log(chalk.cyan(`  ↑ Flow ${upgradeResult.flowVersion.latest} (next run)`));
+    console.log(chalk.dim(`↑ flow ${upgradeResult.flowVersion.latest}`));
   }
   if (upgradeResult.targetUpgraded && upgradeResult.targetVersion) {
-    console.log(chalk.cyan(`  ↑ ${targetName} ${upgradeResult.targetVersion.latest}`));
+    console.log(chalk.dim(`↑ ${targetName.toLowerCase()} ${upgradeResult.targetVersion.latest}`));
   }
 
   // Create executor
@@ -262,15 +262,6 @@ export async function executeFlowV2(
       skipSecrets: false,
       merge: options.merge || false,
     });
-
-    // Show attach summary (single line)
-    if (!attachResult.joined) {
-      console.log(
-        chalk.green(
-          `  ✓ Attached ${attachResult.agents} agents, ${attachResult.commands} commands, ${attachResult.mcp} MCP`
-        )
-      );
-    }
 
     const targetId = selectedTargetId;
 
@@ -288,9 +279,6 @@ export async function executeFlowV2(
       const enabledAgents = await configService.getEnabledAgents();
       agent = enabledAgents.length > 0 ? enabledAgents[0] : 'coder';
     }
-
-    // Show running agent
-    console.log(chalk.dim(`\n  Running: ${agent}\n`));
 
     // Load agent content
     const enabledRules = await configService.getEnabledRules();

@@ -8,7 +8,6 @@ import { exec } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
-import chalk from 'chalk';
 
 const execAsync = promisify(exec);
 
@@ -93,14 +92,8 @@ export class GitStashManager {
           // File might not exist or not tracked, skip it
         }
       }
-
-      if (this.skipWorktreeFiles.length > 0) {
-        console.log(
-          chalk.dim(`   ✓ Hiding ${this.skipWorktreeFiles.length} settings file(s) from git\n`)
-        );
-      }
     } catch (_error) {
-      console.log(chalk.yellow('   ⚠️  Could not hide settings from git\n'));
+      // Silent fail
     }
   }
 
@@ -123,15 +116,9 @@ export class GitStashManager {
         }
       }
 
-      console.log(
-        chalk.dim(`   ✓ Restored git tracking for ${this.skipWorktreeFiles.length} file(s)\n`)
-      );
       this.skipWorktreeFiles = [];
-    } catch {
-      console.log(chalk.yellow('   ⚠️  Could not restore git tracking'));
-      console.log(
-        chalk.yellow('   Run manually: git update-index --no-skip-worktree .claude/* .opencode/*\n')
-      );
+    } catch (_error) {
+      // Silent fail
     }
   }
 

@@ -7,7 +7,6 @@
 import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import ora from 'ora';
 import type { Target } from '../types/target.types.js';
 import type { ProjectManager } from './project-manager.js';
 import { targetManager } from './target-manager.js';
@@ -96,72 +95,63 @@ export class BackupManager {
     // Ensure backup directory exists
     await fs.mkdir(backupPath, { recursive: true });
 
-    const spinner = ora('Creating backup...').start();
+    // Get target config directory
+    const targetConfigDir = this.projectManager.getTargetConfigDir(projectPath, target);
 
-    try {
-      // Get target config directory
-      const targetConfigDir = this.projectManager.getTargetConfigDir(projectPath, target);
-
-      // Backup entire target directory if it exists
-      if (existsSync(targetConfigDir)) {
-        // Use configDir from target config (e.g., '.claude', '.opencode')
-        const backupTargetDir = path.join(backupPath, target.config.configDir);
-        await this.copyDirectory(targetConfigDir, backupTargetDir);
-      }
-
-      // Create manifest (store target ID as string for JSON serialization)
-      const manifest: BackupManifest = {
-        sessionId,
-        timestamp,
-        projectPath,
-        target: targetId,
-        backup: {
-          agents: { user: [], flow: [] },
-          commands: { user: [], flow: [] },
-          singleFiles: {},
-        },
-        secrets: {
-          mcpEnvExtracted: false,
-          storedAt: '',
-        },
-      };
-
-      await fs.writeFile(path.join(backupPath, 'manifest.json'), JSON.stringify(manifest, null, 2));
-
-      // Create symlink to latest (with fallback for Windows)
-      const latestLink = paths.latestBackup;
-      if (existsSync(latestLink)) {
-        await fs.unlink(latestLink);
-      }
-      try {
-        await fs.symlink(sessionId, latestLink);
-      } catch (symlinkError: unknown) {
-        // Windows without admin/Developer Mode can't create symlinks
-        // Fall back to writing session ID to a file
-        if (
-          symlinkError instanceof Error &&
-          'code' in symlinkError &&
-          symlinkError.code === 'EPERM'
-        ) {
-          await fs.writeFile(latestLink, sessionId, 'utf-8');
-        } else {
-          throw symlinkError;
-        }
-      }
-
-      spinner.succeed(`Backup created: ${sessionId}`);
-
-      return {
-        sessionId,
-        timestamp,
-        projectPath,
-        target: targetId,
-        backupPath,
-      };
-    } catch (error) {
-      spinner.fail('Backup failed');
-      throw error;
+    // Backup entire target directory if it exists
+    if (existsSync(targetConfigDir)) {
+      // Use configDir from target config (e.g., '.claude', '.opencode')
+      const backupTargetDir = path.join(backupPath, target.config.configDir);
+      await this.copyDirectory(targetConfigDir, backupTargetDir);
     }
+
+    // Create manifest (store target ID as string for JSON serialization)
+    const manifest: BackupManifest = {
+      sessionId,
+      timestamp,
+      projectPath,
+      target: targetId,
+      backup: {
+        agents: { user: [], flow: [] },
+        commands: { user: [], flow: [] },
+        singleFiles: {},
+      },
+      secrets: {
+        mcpEnvExtracted: false,
+        storedAt: '',
+      },
+    };
+
+    await fs.writeFile(path.join(backupPath, 'manifest.json'), JSON.stringify(manifest, null, 2));
+
+    // Create symlink to latest (with fallback for Windows)
+    const latestLink = paths.latestBackup;
+    if (existsSync(latestLink)) {
+      await fs.unlink(latestLink);
+    }
+    try {
+      await fs.symlink(sessionId, latestLink);
+    } catch (symlinkError: unknown) {
+      // Windows without admin/Developer Mode can't create symlinks
+      // Fall back to writing session ID to a file
+      if (
+        symlinkError instanceof Error &&
+        'code' in symlinkError &&
+        symlinkError.code === 'EPERM'
+      ) {
+        await fs.writeFile(latestLink, sessionId, 'utf-8');
+      } else {
+        throw symlinkError;
+      }
+    }
+
+    return {
+      sessionId,
+      timestamp,
+      projectPath,
+      target: targetId,
+      backupPath,
+    };
   }
 
   /**
@@ -175,38 +165,29 @@ export class BackupManager {
       throw new Error(`Backup not found: ${sessionId}`);
     }
 
-    const spinner = ora('Restoring backup...').start();
+    // Read manifest
+    const manifestPath = path.join(backupPath, 'manifest.json');
+    const manifest: BackupManifest = JSON.parse(await fs.readFile(manifestPath, 'utf-8'));
 
-    try {
-      // Read manifest
-      const manifestPath = path.join(backupPath, 'manifest.json');
-      const manifest: BackupManifest = JSON.parse(await fs.readFile(manifestPath, 'utf-8'));
+    const projectPath = manifest.projectPath;
+    const targetId = manifest.target;
 
-      const projectPath = manifest.projectPath;
-      const targetId = manifest.target;
+    // Resolve target to get config
+    const target = this.resolveTarget(targetId);
 
-      // Resolve target to get config
-      const target = this.resolveTarget(targetId);
+    // Get target config directory
+    const targetConfigDir = this.projectManager.getTargetConfigDir(projectPath, target);
 
-      // Get target config directory
-      const targetConfigDir = this.projectManager.getTargetConfigDir(projectPath, target);
+    // Remove current target directory
+    if (existsSync(targetConfigDir)) {
+      await fs.rm(targetConfigDir, { recursive: true, force: true });
+    }
 
-      // Remove current target directory
-      if (existsSync(targetConfigDir)) {
-        await fs.rm(targetConfigDir, { recursive: true, force: true });
-      }
+    // Restore from backup using target config's configDir
+    const backupTargetDir = path.join(backupPath, target.config.configDir);
 
-      // Restore from backup using target config's configDir
-      const backupTargetDir = path.join(backupPath, target.config.configDir);
-
-      if (existsSync(backupTargetDir)) {
-        await this.copyDirectory(backupTargetDir, targetConfigDir);
-      }
-
-      spinner.succeed('Backup restored');
-    } catch (error) {
-      spinner.fail('Restore failed');
-      throw error;
+    if (existsSync(backupTargetDir)) {
+      await this.copyDirectory(backupTargetDir, targetConfigDir);
     }
   }
 

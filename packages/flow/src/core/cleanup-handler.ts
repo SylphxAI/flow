@@ -4,7 +4,6 @@
  * Handles process signals and ensures backup restoration
  */
 
-import chalk from 'chalk';
 import type { BackupManager } from './backup-manager.js';
 import type { ProjectManager } from './project-manager.js';
 import type { SessionManager } from './session-manager.js';
@@ -43,30 +42,26 @@ export class CleanupHandler {
 
     // SIGINT (Ctrl+C)
     process.on('SIGINT', async () => {
-      console.log(chalk.yellow('\n⚠️  Interrupted by user, cleaning up...'));
       await this.onSignal('SIGINT');
       process.exit(0);
     });
 
     // SIGTERM
     process.on('SIGTERM', async () => {
-      console.log(chalk.yellow('\n⚠️  Terminated, cleaning up...'));
       await this.onSignal('SIGTERM');
       process.exit(0);
     });
 
     // Uncaught exceptions
     process.on('uncaughtException', async (error) => {
-      console.error(chalk.red('\n✗ Uncaught Exception:'));
-      console.error(error);
+      console.error('\nUncaught Exception:', error);
       await this.onSignal('uncaughtException');
       process.exit(1);
     });
 
     // Unhandled rejections
     process.on('unhandledRejection', async (reason) => {
-      console.error(chalk.red('\n✗ Unhandled Rejection:'));
-      console.error(reason);
+      console.error('\nUnhandled Rejection:', reason);
       await this.onSignal('unhandledRejection');
       process.exit(1);
     });
@@ -97,6 +92,7 @@ export class CleanupHandler {
 
   /**
    * Signal-based cleanup (SIGINT, SIGTERM, etc.) with multi-session support
+   * Silent operation - no console output
    */
   private async onSignal(_signal: string): Promise<void> {
     if (!this.currentProjectHash) {
@@ -104,29 +100,22 @@ export class CleanupHandler {
     }
 
     try {
-      console.log(chalk.cyan('🧹 Cleaning up...'));
-
       const { shouldRestore, session } = await this.sessionManager.endSession(
         this.currentProjectHash
       );
 
       if (shouldRestore && session) {
-        // Last session - restore environment
-        console.log(chalk.cyan('   Restoring environment...'));
         await this.backupManager.restoreBackup(this.currentProjectHash, session.sessionId);
-        console.log(chalk.green('✓ Environment restored'));
-      } else if (!shouldRestore && session) {
-        // Other sessions still running
-        console.log(chalk.yellow(`   ${session.refCount} session(s) still running`));
       }
-    } catch (error) {
-      console.error(chalk.red('✗ Cleanup failed:'), error);
+    } catch (_error) {
+      // Silent fail
     }
   }
 
   /**
    * Recover on startup (for all projects)
    * Checks for orphaned sessions from crashes
+   * Silent operation - no console output
    */
   async recoverOnStartup(): Promise<void> {
     const orphanedSessions = await this.sessionManager.detectOrphanedSessions();
@@ -135,21 +124,12 @@ export class CleanupHandler {
       return;
     }
 
-    console.log(chalk.cyan(`\n🔧 Recovering ${orphanedSessions.size} crashed session(s)...\n`));
-
     for (const [projectHash, session] of orphanedSessions) {
-      console.log(chalk.dim(`   Project: ${session.projectPath}`));
-
       try {
-        // Restore backup
         await this.backupManager.restoreBackup(projectHash, session.sessionId);
-
-        // Clean up session
         await this.sessionManager.recoverSession(projectHash, session);
-
-        console.log(chalk.green('   ✓ Environment restored\n'));
-      } catch (error) {
-        console.error(chalk.red('   ✗ Recovery failed:'), error);
+      } catch (_error) {
+        // Silent fail - don't interrupt startup
       }
     }
   }
