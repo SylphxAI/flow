@@ -89,6 +89,29 @@ Run through these scenarios mentally or via code paths:
    - Run tests after each significant change
    - Commit atomically per logical fix
 
+4. **Deep Dive with /review** (when needed):
+   If issues cluster in a specific domain, invoke `/review <domain>` for thorough analysis:
+
+   | Domain | When to Invoke |
+   |--------|----------------|
+   | `auth` | Auth flow issues, session bugs, SSO problems |
+   | `security` | Validation gaps, injection risks, secrets exposure |
+   | `billing` | Payment bugs, subscription issues, webhook failures |
+   | `performance` | Slow pages, bundle bloat, unnecessary re-renders |
+   | `database` | Schema issues, missing indexes, N+1 queries |
+   | `observability` | Missing logs, no alerts, debugging blind spots |
+   | `i18n` | Hardcoded strings, locale issues, RTL bugs |
+
+   Full domain list: auth, account-security, privacy, billing, pricing, ledger, security, trust-safety, uiux, seo, pwa, performance, i18n, database, data-architecture, storage, observability, operability, delivery, growth, referral, support, admin, discovery, code-quality
+
+5. **Loop: Re-invoke /continue**:
+   After completing fixes, **invoke `/continue` again** to:
+   - Verify fixes didn't introduce new issues
+   - Discover issues that were hidden by previous bugs
+   - Continue until no Critical/High items remain
+
+   **Exit condition**: No Critical or High severity items found.
+
 ## Output Format
 
 ### Discovery Summary
@@ -112,6 +135,19 @@ Run through these scenarios mentally or via code paths:
 ```
 ✓ Fixed: [description] (file:line)
 ⚠ Blocked: [description] - needs [reason]
+→ Deep dive: invoking /review [domain]
+↻ Loop: re-invoking /continue
+```
+
+### Completion
+```
+## Continue Complete
+
+✓ X issues fixed
+⚠ X issues need manual intervention
+→ Invoked /review for: [domains]
+
+Next: [/continue again | no further action needed]
 ```
 
 ## Driving Questions
