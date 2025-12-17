@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.8.0 (2025-12-17)
+
+### ✨ Features
+
+- **commands:** add /saas-admin for admin platform review ([f67b74f](https://github.com/SylphxAI/flow/commit/f67b74f2cac978274ad546cc7c70912f3cd4700c))
+
 ## 2.7.0 (2025-12-17)
 
 ### ✨ Features
