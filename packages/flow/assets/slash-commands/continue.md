@@ -16,55 +16,64 @@ Scan codebase for incomplete work. Prioritize. Finish.
 * **Single-pass delivery**: no deferrals; deliver complete implementation.
 * **Be thorough**: incomplete work hides in comments, stubs, error messages, and "temporary" solutions.
 
-## Incomplete Work Categories
+## Discovery Approach
 
-### 1. Code Markers
-- `TODO`, `FIXME`, `XXX`, `HACK`, `BUG`
-- `@todo`, `@fixme` in doc comments
+### Phase 1: Code Analysis
+Scan for explicit incomplete markers:
+- `TODO`, `FIXME`, `XXX`, `HACK`, `BUG`, `@todo`
 - `NotImplementedError`, `throw new Error('not implemented')`
-- `console.log`, `console.warn` debug statements
-- Commented-out code blocks
+- Stub implementations (hardcoded returns, empty catches, `pass`)
+- `test.skip`, `it.skip`, empty test files
+- Commented-out code, debug statements
 
-### 2. Stub Implementations
-- Functions returning hardcoded values
-- Empty catch blocks
-- Methods with only `pass` or `return null`
-- Placeholder return values (`return []`, `return {}`, `return 'TODO'`)
+### Phase 2: Role-Based Simulation
 
-### 3. Missing Error Handling
-- Unhandled promise rejections
-- Missing try/catch around I/O operations
-- Generic error messages ("Something went wrong")
-- Missing input validation
+**👤 User Perspective** — Walk through every user-facing flow:
+- Onboarding: Can a new user complete setup without confusion?
+- Happy path: Does the core feature work end-to-end?
+- Error states: What happens when things go wrong? Are messages helpful?
+- Edge cases: Empty states, first-time use, account limits, expired sessions
+- Accessibility: Keyboard nav, screen readers, color contrast
+- Mobile/responsive: Does it work on all devices?
 
-### 4. Incomplete Features
-- Dead code paths (unreachable conditions)
-- Unused imports/exports
-- Incomplete switch/case statements
-- Missing else branches
-- Partial implementations referenced but not called
+**🔧 Developer Perspective** — Evaluate DX and maintainability:
+- Setup: Can someone clone and run in < 5 minutes?
+- Documentation: Are APIs documented? Examples provided?
+- Error messages: Do stack traces help identify root cause?
+- Debugging: Are there logs at appropriate levels?
+- Testing: Can tests run locally? Are mocks available?
+- Dependencies: Any outdated, deprecated, or vulnerable packages?
 
-### 5. Test Gaps
-- `test.skip`, `it.skip`, `describe.skip`
-- `@pytest.mark.skip`
-- Empty test files
-- Tests with only `expect(true).toBe(true)`
-- Missing edge case tests
+**🛡️ Admin/Ops Perspective** — Consider operational readiness:
+- Monitoring: Can you tell if the system is healthy?
+- Logging: Is there enough info to debug production issues?
+- Configuration: Can settings be changed without code deploy?
+- Backup/Recovery: Can data be restored if something fails?
+- Security: Are admin actions audited? Permissions enforced?
+- Scaling: What happens under 10x load?
 
-### 6. Documentation Debt
-- Missing JSDoc/docstrings on public APIs
-- Outdated README sections
-- TODO comments in docs
-- Missing CHANGELOG entries
+### Phase 3: Scenario Simulation
+
+Run through these scenarios mentally or via code paths:
+
+| Scenario | Questions to Answer |
+|----------|---------------------|
+| New user signup | Every step works? Validation clear? Email sent? |
+| Returning user login | Session handling? Password reset works? |
+| Core action fails | Error shown? User knows what to do? Data preserved? |
+| Network offline | Graceful degradation? Retry logic? |
+| Concurrent users | Race conditions? Locks? Optimistic updates? |
+| Bad actor attempts | Input sanitized? Rate limited? Logged? |
+| Admin intervention | Can support help user? Audit trail exists? |
 
 ## Execution Process
 
 1. **Parallel Discovery** (delegate to workers):
-   - Worker 1: Scan for code markers (TODO, FIXME, etc.)
-   - Worker 2: Find stub implementations and placeholders
-   - Worker 3: Identify missing error handling
-   - Worker 4: Detect incomplete features and dead code
-   - Worker 5: Find test gaps and skipped tests
+   - Worker 1: Code markers & stubs (grep TODO, FIXME, placeholders)
+   - Worker 2: User journey simulation (trace main flows, find dead ends)
+   - Worker 3: Developer experience audit (setup, docs, error messages)
+   - Worker 4: Ops readiness check (logging, monitoring, config)
+   - Worker 5: Test coverage & edge cases (skipped tests, missing scenarios)
 
 2. **Synthesize & Prioritize**:
    - Collect all findings
@@ -107,8 +116,9 @@ Scan codebase for incomplete work. Prioritize. Finish.
 
 ## Driving Questions
 
-1. What are the highest-impact incomplete items blocking users?
-2. Are there any security-related TODOs or incomplete validations?
-3. What features are partially implemented but not functional?
-4. Are there any "temporary" solutions that became permanent?
-5. What tests are skipped and why?
+1. **User**: What flows break or confuse real users? Where do they get stuck?
+2. **Developer**: What would frustrate someone onboarding to this codebase?
+3. **Admin/Ops**: What would make a 3am incident harder to debug?
+4. **Security**: What incomplete validation could be exploited?
+5. **Quality**: What "temporary" solutions became permanent debt?
+6. **Scale**: What works now but will break at 10x growth?
