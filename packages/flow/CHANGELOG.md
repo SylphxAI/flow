@@ -1,5 +1,21 @@
 # @sylphx/flow
 
+## 2.15.1 (2025-12-17)
+
+### Improvements
+
+- **cli**: Make CLI output truly minimal and modern
+  - Remove all verbose status messages (backup, restore, session recovery)
+  - Remove emoji icons (🔧, ✔) for cleaner output
+  - Remove "Attached" and "Running" status lines
+  - Silent git worktree operations
+  - Silent crash recovery on startup
+  - Only show header: `flow {version} → {target}`
+
+### ♻️ Refactoring
+
+- **cli:** make output truly minimal and modern ([3315e41](https://github.com/SylphxAI/flow/commit/3315e41fa34839d7c866af1ebbe3b6f2d9e3ee71))
+
 ## 2.15.0 (2025-12-17)
 
 ### Features
