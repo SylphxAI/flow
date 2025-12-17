@@ -18,9 +18,23 @@ import { failure, success, tryCatch } from '../../core/functional/result.js';
  * Claude Code settings structure
  */
 export interface ClaudeCodeSettings {
+  /** Environment variables for Claude Code */
+  env?: {
+    CLAUDE_CODE_MAX_OUTPUT_TOKENS?: string;
+    [key: string]: string | undefined;
+  };
+  /** Attribution settings (empty strings to hide) */
+  attribution?: {
+    commit?: string;
+    pr?: string;
+  };
+  /** Enable extended thinking mode */
+  alwaysThinkingEnabled?: boolean;
+  /** Hook configurations */
   hooks?: Record<
     string,
     Array<{
+      matcher?: string;
       hooks: Array<{
         type: string;
         command: string;
@@ -29,6 +43,20 @@ export interface ClaudeCodeSettings {
   >;
   [key: string]: unknown;
 }
+
+/**
+ * Default Claude Code settings for optimal experience
+ */
+export const DEFAULT_CLAUDE_CODE_SETTINGS: Partial<ClaudeCodeSettings> = {
+  env: {
+    CLAUDE_CODE_MAX_OUTPUT_TOKENS: '128000',
+  },
+  attribution: {
+    commit: '',
+    pr: '',
+  },
+  alwaysThinkingEnabled: true,
+};
 
 export interface HookConfig {
   notificationCommand?: string;
@@ -89,7 +117,8 @@ export const buildHookConfiguration = (
 };
 
 /**
- * Merge settings with new hooks (pure)
+ * Merge settings with defaults and new hooks (pure)
+ * Preserves existing values while adding missing defaults
  */
 export const mergeSettings = (
   existingSettings: ClaudeCodeSettings,
@@ -98,7 +127,20 @@ export const mergeSettings = (
   const newHooks = buildHookConfiguration(hookConfig);
 
   return {
+    // Apply defaults first, then existing settings override
+    ...DEFAULT_CLAUDE_CODE_SETTINGS,
     ...existingSettings,
+    // Deep merge env variables
+    env: {
+      ...DEFAULT_CLAUDE_CODE_SETTINGS.env,
+      ...(existingSettings.env || {}),
+    },
+    // Deep merge attribution
+    attribution: {
+      ...DEFAULT_CLAUDE_CODE_SETTINGS.attribution,
+      ...(existingSettings.attribution || {}),
+    },
+    // Merge hooks
     hooks: {
       ...(existingSettings.hooks || {}),
       ...newHooks,
@@ -107,10 +149,12 @@ export const mergeSettings = (
 };
 
 /**
- * Create settings with hooks (pure)
+ * Create settings with defaults and hooks (pure)
+ * Includes optimal Claude Code settings for extended output, thinking mode, and clean attribution
  */
 export const createSettings = (hookConfig: HookConfig = DEFAULT_HOOKS): ClaudeCodeSettings => {
   return {
+    ...DEFAULT_CLAUDE_CODE_SETTINGS,
     hooks: buildHookConfiguration(hookConfig),
   };
 };
