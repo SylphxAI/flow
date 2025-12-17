@@ -1,5 +1,15 @@
 # @sylphx/flow
 
+## 2.13.0 (2025-12-17)
+
+### ✨ Features
+
+- **commands:** add trust-safety and fill SSOT gaps ([fe67913](https://github.com/SylphxAI/flow/commit/fe67913db8183ae6c16070825f61744cf44acafa))
+
+### ♻️ Refactoring
+
+- **commands:** restructure all 25 review commands for open exploration ([822da5a](https://github.com/SylphxAI/flow/commit/822da5a13f7b8e3d9d448e900c8ad8615c46a918))
+
 ## 2.12.0 (2025-12-17)
 
 ### ✨ Features
