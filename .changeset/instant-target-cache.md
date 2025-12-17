@@ -2,8 +2,9 @@
 "@sylphx/flow": patch
 ---
 
-perf: cache target CLI current version
+perf: simplify version check - no TTL, always background
 
-- Target current version (`claude --version`) now cached
-- Removes 0.5s blocking call on startup
-- All version checks now instant from 24-hour cache
+- Remove 24-hour cache TTL
+- Background check runs every time (always fresh for next run)
+- All version info stored in ~/.sylphx-flow/versions.json
+- Startup always instant, update notice on next run

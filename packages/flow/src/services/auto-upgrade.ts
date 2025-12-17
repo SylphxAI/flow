@@ -19,15 +19,13 @@ import { TargetInstaller } from './target-installer.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Cache file for version checks (24 hour TTL)
-const CACHE_FILE = path.join(os.homedir(), '.sylphx-flow', 'version-cache.json');
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+// Version info file (stores last background check result)
+const VERSION_FILE = path.join(os.homedir(), '.sylphx-flow', 'versions.json');
 
-interface VersionCache {
+interface VersionInfo {
   flowLatest?: string;
   targetLatest?: Record<string, string>;
   targetCurrent?: Record<string, string>;
-  checkedAt: number;
 }
 
 const execAsync = promisify(exec);
@@ -57,14 +55,14 @@ export class AutoUpgrade {
   }
 
   /**
-   * Read version cache (instant, no network)
+   * Read version info from last background check
    */
-  private async readCache(): Promise<VersionCache | null> {
+  private async readVersionInfo(): Promise<VersionInfo | null> {
     try {
-      if (!existsSync(CACHE_FILE)) {
+      if (!existsSync(VERSION_FILE)) {
         return null;
       }
-      const data = await fs.readFile(CACHE_FILE, 'utf-8');
+      const data = await fs.readFile(VERSION_FILE, 'utf-8');
       return JSON.parse(data);
     } catch {
       return null;
@@ -72,13 +70,13 @@ export class AutoUpgrade {
   }
 
   /**
-   * Write version cache
+   * Write version info
    */
-  private async writeCache(cache: VersionCache): Promise<void> {
+  private async writeVersionInfo(info: VersionInfo): Promise<void> {
     try {
-      const dir = path.dirname(CACHE_FILE);
+      const dir = path.dirname(VERSION_FILE);
       await fs.mkdir(dir, { recursive: true });
-      await fs.writeFile(CACHE_FILE, JSON.stringify(cache, null, 2));
+      await fs.writeFile(VERSION_FILE, JSON.stringify(info, null, 2));
     } catch {
       // Silent fail
     }
@@ -98,18 +96,18 @@ export class AutoUpgrade {
   }
 
   /**
-   * Check for available upgrades using CACHE (instant, no network)
-   * Returns cached results from previous background check
+   * Check for available upgrades (instant, reads from last background check)
+   * Background check runs every time for fresh data next run
    */
   async checkForUpgrades(targetId?: string): Promise<UpgradeStatus> {
-    const cache = await this.readCache();
+    const info = await this.readVersionInfo();
     const currentVersion = await this.getCurrentFlowVersion();
 
-    // Trigger background check for next run (non-blocking)
+    // Trigger background check for next run (non-blocking, every time)
     this.checkInBackground(targetId);
 
-    // No cache or expired = no upgrade info yet
-    if (!cache) {
+    // No previous check = no upgrade info yet
+    if (!info) {
       return {
         flowNeedsUpgrade: false,
         targetNeedsUpgrade: false,
@@ -118,17 +116,17 @@ export class AutoUpgrade {
       };
     }
 
-    // Check if Flow needs upgrade based on cache
+    // Check if Flow needs upgrade
     const flowVersion =
-      cache.flowLatest && cache.flowLatest !== currentVersion
-        ? { current: currentVersion, latest: cache.flowLatest }
+      info.flowLatest && info.flowLatest !== currentVersion
+        ? { current: currentVersion, latest: info.flowLatest }
         : null;
 
-    // Check if target needs upgrade based on cache (instant, no local command)
+    // Check if target needs upgrade
     let targetVersion: { current: string; latest: string } | null = null;
-    if (targetId && cache.targetLatest?.[targetId] && cache.targetCurrent?.[targetId]) {
-      const current = cache.targetCurrent[targetId];
-      const latest = cache.targetLatest[targetId];
+    if (targetId && info.targetLatest?.[targetId] && info.targetCurrent?.[targetId]) {
+      const current = info.targetCurrent[targetId];
+      const latest = info.targetLatest[targetId];
       if (current !== latest) {
         targetVersion = { current, latest };
       }
@@ -144,7 +142,7 @@ export class AutoUpgrade {
 
   /**
    * Check versions in background (non-blocking)
-   * Updates cache for next run
+   * Runs every time, updates info for next run
    */
   private checkInBackground(targetId?: string): void {
     // Fire and forget - don't await
@@ -157,26 +155,20 @@ export class AutoUpgrade {
    * Perform the actual version check (called in background)
    */
   private async performBackgroundCheck(targetId?: string): Promise<void> {
-    const cache = await this.readCache();
+    const oldInfo = await this.readVersionInfo();
 
-    // Skip if checked recently (within TTL)
-    if (cache && Date.now() - cache.checkedAt < CACHE_TTL_MS) {
-      return;
-    }
-
-    const newCache: VersionCache = {
-      checkedAt: Date.now(),
-      targetLatest: cache?.targetLatest || {},
-      targetCurrent: cache?.targetCurrent || {},
+    const newInfo: VersionInfo = {
+      targetLatest: oldInfo?.targetLatest || {},
+      targetCurrent: oldInfo?.targetCurrent || {},
     };
 
     // Check Flow version from npm (with timeout)
     try {
       const { stdout } = await execAsync('npm view @sylphx/flow version', { timeout: 5000 });
-      newCache.flowLatest = stdout.trim();
+      newInfo.flowLatest = stdout.trim();
     } catch {
-      // Keep old cache value if check fails
-      newCache.flowLatest = cache?.flowLatest;
+      // Keep old value if check fails
+      newInfo.flowLatest = oldInfo?.flowLatest;
     }
 
     // Check target version from npm and local (with timeout)
@@ -188,10 +180,10 @@ export class AutoUpgrade {
           const { stdout } = await execAsync(`npm view ${installation.package} version`, {
             timeout: 5000,
           });
-          newCache.targetLatest = newCache.targetLatest || {};
-          newCache.targetLatest[targetId] = stdout.trim();
+          newInfo.targetLatest = newInfo.targetLatest || {};
+          newInfo.targetLatest[targetId] = stdout.trim();
         } catch {
-          // Keep old cache value
+          // Keep old value
         }
 
         // Check current installed version (local command)
@@ -199,16 +191,16 @@ export class AutoUpgrade {
           const { stdout } = await execAsync(installation.checkCommand, { timeout: 5000 });
           const match = stdout.match(/v?(\d+\.\d+\.\d+)/);
           if (match) {
-            newCache.targetCurrent = newCache.targetCurrent || {};
-            newCache.targetCurrent[targetId] = match[1];
+            newInfo.targetCurrent = newInfo.targetCurrent || {};
+            newInfo.targetCurrent[targetId] = match[1];
           }
         } catch {
-          // Keep old cache value
+          // Keep old value
         }
       }
     }
 
-    await this.writeCache(newCache);
+    await this.writeVersionInfo(newInfo);
   }
 
   /**
