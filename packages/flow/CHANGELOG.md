@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.6.0 (2025-12-17)
+
+### ✨ Features
+
+- **commands:** add Vercel Blob upload governance to saas-review ([aabcd25](https://github.com/SylphxAI/flow/commit/aabcd25eb7d19725173db0b08018626b91b95daa))
+
 ## 2.5.0 (2025-12-17)
 
 ### ✨ Features
