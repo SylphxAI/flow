@@ -66,6 +66,13 @@ agent: coder
 * Deterministic precision (no floats), idempotent posting, concurrency safety, transactional integrity, and auditability are required.
 * Monetary flows must be currency-based and reconcilable with Stripe; credits (if used) must be governed as non-cash entitlements.
 
+### 4.4 Vercel Blob Upload Governance (Hard Requirement)
+
+* All uploads must be **intent-based and server-verified**.
+* The client must upload to Vercel Blob first using short-lived, server-issued authorization (e.g., signed upload URL / token), then call a server finalize endpoint to persist the resulting Blob URL/key.
+* The server must validate the Blob URL/key ownership and namespace, and must match it against the originating upload intent (who/what/where/expiry/constraints) before attaching it to any resource.
+* The system must support safe retries and idempotent finalize; expired/abandoned intents must be cleanable and auditable.
+
 ## 5) Internationalization, Routing, and Canonicalization (Keep Precise)
 
 ### 5.1 Supported Locales
