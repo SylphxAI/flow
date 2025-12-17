@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.5.0 (2025-12-17)
+
+### ✨ Features
+
+- **commands:** add /saas-review for full-stack SaaS product review ([bcd004c](https://github.com/SylphxAI/flow/commit/bcd004cf4e34a34a4325652088c54882fa0c327d))
+
 ## 2.4.2 (2025-12-10)
 
 ### 🐛 Bug Fixes
