@@ -58,27 +58,17 @@ These questions reveal incompleteness that checklists miss.
 
 5. **Fix completely** — Don't patch. Understand root cause. Implement proper solution. Test it works.
 
-## When to Go Deeper
+## Skills
 
-If issues cluster in a domain, use the **SlashCommand tool** to run a focused review:
+Domain knowledge auto-activates when relevant. Available skills:
 
-```
-SlashCommand: /review auth        — Auth flow issues
-SlashCommand: /review security    — Validation gaps, injection risks
-SlashCommand: /review database    — Schema issues, missing indexes
-SlashCommand: /review performance — Slow paths, bundle bloat
-```
-
-**Important**: Use the SlashCommand tool, don't just read the guideline files.
-
-Full list: auth, account-security, privacy, billing, pricing, ledger, security, trust-safety, uiux, seo, pwa, performance, i18n, database, data-architecture, storage, observability, operability, delivery, growth, referral, support, admin, discovery, code-quality
+auth, account-security, privacy, billing, pricing, ledger, security, trust-safety, uiux, seo, pwa, performance, i18n, database, data-architecture, storage, observability, operability, delivery, growth, referral, support, admin, discovery, code-quality
 
 ## Loop
 
-After fixing, ask: "Did my fixes introduce new gaps? Did fixing X reveal Y was also broken?"
+After fixing: "Did my fixes introduce new gaps? Did fixing X reveal Y was also broken?"
 
-If yes → use **SlashCommand tool** to run `/continue` again.
-If no Critical/High issues remain → done.
+If yes → run `/continue` again. If no Critical/High issues remain → done.
 
 ## Output
 
@@ -97,5 +87,5 @@ If no Critical/High issues remain → done.
 
 ## Next
 
-[/continue again | /review <domain> | done]
+[/continue again | done]
 ```
