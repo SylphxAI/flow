@@ -1,5 +1,17 @@
 # @sylphx/flow
 
+## 2.16.0 (2025-12-17)
+
+### ✨ Features
+
+- **commands:** add closed-loop to /continue ([dca7b76](https://github.com/SylphxAI/flow/commit/dca7b7612c65febef242549ad965289a189ce5e4))
+- **commands:** enhance /continue with role-based simulation ([ca3ebfe](https://github.com/SylphxAI/flow/commit/ca3ebfe06a73f3db722ff8f88c353202067e18f6))
+- **commands:** add /continue slash command for finishing incomplete work ([16c8aaf](https://github.com/SylphxAI/flow/commit/16c8aaf22337713c39395e4465d5bcdf1bfaafd9))
+
+### ♻️ Refactoring
+
+- **commands:** split review into mandate + guidelines ([16754bc](https://github.com/SylphxAI/flow/commit/16754bc7403d13dd329b2097c3c8f25e360a7c59))
+
 ## 2.15.3 (2025-12-17)
 
 ### ⚡️ Performance
