@@ -45,15 +45,15 @@ agent: coder
 
 ## Review Execution
 
-### Phase 1: Domain Reviews (Parallel)
+### Phase 1: All Reviews (Parallel)
 
-Spawn **all domain workers in parallel** using the Task tool. Each worker runs its domain slash command and returns findings.
+Spawn **all workers in parallel** using the Task tool. Each worker runs its slash command and returns findings.
 
 **Delegation pattern:**
 ```
-Use Task tool with subagent_type: "Coder" for each domain.
-Spawn ALL workers in a single message (parallel execution).
-Each worker prompt: "Run /{command} to review this domain. Return findings."
+Use Task tool with subagent_type: "Coder" for each worker.
+Spawn ALL 8 workers in a single message (parallel execution).
+Each worker prompt: "Run /{command} and return findings."
 ```
 
 | Worker | Command | Focus |
@@ -65,21 +65,9 @@ Each worker prompt: "Run /{command} to review this domain. Return findings."
 | Security | `/saas-security` | OWASP, privacy, consent, observability, operability |
 | Growth | `/saas-growth` | Onboarding, referral, retention, guidance |
 | Admin | `/saas-admin` | RBAC, bootstrap, config, feature flags, ops tooling |
-
-### Phase 2: Strategic Discovery
-
-After Phase 1 completes, spawn discovery worker:
-
-```
-Use Task tool with subagent_type: "Coder".
-Worker prompt: "Run /saas-discovery for strategic analysis. Return findings."
-```
-
-| Worker | Command | Focus |
-|--------|---------|-------|
 | Discovery | `/saas-discovery` | Feature opportunities, pricing optimization, competitive research |
 
-### Phase 3: Final Gate (You)
+### Phase 2: Final Gate (You)
 
 Synthesize all domain findings and discovery insights:
 
@@ -183,8 +171,7 @@ Checklist with pass/fail for each gate
 ## Completion Criteria
 
 Complete only when:
-- [ ] All domain reviews finished
-- [ ] Discovery phase completed
+- [ ] All 8 workers finished (domains + discovery)
 - [ ] All findings synthesized
 - [ ] Delivery gates verified
 - [ ] Integrated report produced
