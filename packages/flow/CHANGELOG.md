@@ -1,5 +1,15 @@
 # @sylphx/flow
 
+## 2.14.0 (2025-12-17)
+
+### ✨ Features
+
+- **claude-code:** add default settings for optimal experience ([9b097bd](https://github.com/SylphxAI/flow/commit/9b097bdbe1db9770a7afd92aff9533259983a697))
+
+### 🔧 Chores
+
+- add bump file for v2.14.0 release ([8246ac2](https://github.com/SylphxAI/flow/commit/8246ac21da6398dcdb7e88e7d82949a4688a8b1b))
+
 ## 2.13.0 (2025-12-17)
 
 ### ✨ Features
