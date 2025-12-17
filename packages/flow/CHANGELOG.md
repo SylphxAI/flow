@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.16.1 (2025-12-17)
+
+### ♻️ Refactoring
+
+- **commands:** simplify /continue and /review - think, don't checklist ([754eec1](https://github.com/SylphxAI/flow/commit/754eec1211719fc68f25ce47510e5797a33e1469))
+
 ## 2.16.0 (2025-12-17)
 
 ### ✨ Features
