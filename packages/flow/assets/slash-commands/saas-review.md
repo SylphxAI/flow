@@ -47,7 +47,14 @@ agent: coder
 
 ### Phase 1: Domain Reviews (Parallel)
 
-Delegate each domain to a worker agent. Workers should review compliance with spec AND identify domain-specific improvement opportunities.
+Spawn **all domain workers in parallel** using the Task tool. Each worker runs its domain slash command and returns findings.
+
+**Delegation pattern:**
+```
+Use Task tool with subagent_type: "Coder" for each domain.
+Spawn ALL workers in a single message (parallel execution).
+Each worker prompt: "Run /{command} to review this domain. Return findings."
+```
 
 | Worker | Command | Focus |
 |--------|---------|-------|
@@ -61,7 +68,12 @@ Delegate each domain to a worker agent. Workers should review compliance with sp
 
 ### Phase 2: Strategic Discovery
 
-After domain reviews complete, run cross-domain strategic analysis:
+After Phase 1 completes, spawn discovery worker:
+
+```
+Use Task tool with subagent_type: "Coder".
+Worker prompt: "Run /saas-discovery for strategic analysis. Return findings."
+```
 
 | Worker | Command | Focus |
 |--------|---------|-------|
