@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.7.0 (2025-12-17)
+
+### ✨ Features
+
+- **commands:** split saas-review into domain-specific commands ([bef500f](https://github.com/SylphxAI/flow/commit/bef500f1eeb450ee6790084354ff015ad6179f7d))
+
 ## 2.6.0 (2025-12-17)
 
 ### ✨ Features
