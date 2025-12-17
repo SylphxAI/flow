@@ -1,25 +1,20 @@
 /**
  * Banner Display Utilities
- * Welcome messages and branding
+ * Minimal, modern CLI output
  */
 
-import boxen from 'boxen';
 import chalk from 'chalk';
 
 /**
- * Display welcome banner
+ * Show minimal header: flow {version} → {target}
+ */
+export function showHeader(version: string, target: string): void {
+  console.log(`\n${chalk.cyan('flow')} ${chalk.dim(version)} ${chalk.dim('→')} ${target}\n`);
+}
+
+/**
+ * @deprecated Use showHeader instead
  */
 export function showWelcome(): void {
-  console.log(
-    boxen(
-      `${chalk.cyan.bold('Sylphx Flow')} ${chalk.dim('- AI-Powered Development Framework')}\n` +
-        `${chalk.dim('Auto-initialization • Smart upgrades • One-click launch')}`,
-      {
-        padding: 1,
-        margin: { bottom: 1 },
-        borderStyle: 'round',
-        borderColor: 'cyan',
-      }
-    )
-  );
+  // No-op for backward compatibility during migration
 }

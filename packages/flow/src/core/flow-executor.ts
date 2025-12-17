@@ -6,7 +6,7 @@
 
 import chalk from 'chalk';
 import type { Target } from '../types/target.types.js';
-import { AttachManager, type AttachResult } from './attach-manager.js';
+import { AttachManager } from './attach-manager.js';
 import { BackupManager } from './backup-manager.js';
 import { CleanupHandler } from './cleanup-handler.js';
 import { GitStashManager } from './git-stash-manager.js';
@@ -50,8 +50,12 @@ export class FlowExecutor {
 
   /**
    * Execute complete flow with attach mode (with multi-session support)
+   * Returns summary for caller to display
    */
-  async execute(projectPath: string, options: FlowExecutorOptions = {}): Promise<void> {
+  async execute(
+    projectPath: string,
+    options: FlowExecutorOptions = {}
+  ): Promise<{ joined: boolean; agents?: number; commands?: number; mcp?: number }> {
     // Initialize Flow directories
     await this.projectManager.initialize();
 
@@ -72,44 +76,30 @@ export class FlowExecutor {
     const existingSession = await this.sessionManager.getActiveSession(projectHash);
 
     if (existingSession) {
-      // Joining existing session
-      console.log(chalk.cyan('🔗 Joining existing session...'));
-
-      const { session } = await this.sessionManager.startSession(
+      // Joining existing session - silent
+      await this.sessionManager.startSession(
         projectPath,
         projectHash,
         target,
         existingSession.backupPath
       );
-
-      // Register cleanup hooks
       this.cleanupHandler.registerCleanupHooks(projectHash);
-
-      console.log(chalk.green(`   ✓ Joined session (${session.refCount} active session(s))\n`));
-      console.log(chalk.green('✓ Flow environment ready!\n'));
-      return;
+      return { joined: true };
     }
 
-    // First session - stash settings changes, then create backup and attach
-    // Step 3: Stash git changes to hide Flow's modifications from git status
-    console.log(chalk.cyan('🔍 Checking git status...'));
+    // First session - stash, backup, attach (all silent)
     await this.gitStashManager.stashSettingsChanges(projectPath);
-
-    console.log(chalk.cyan('💾 Creating backup...'));
     const backup = await this.backupManager.createBackup(projectPath, projectHash, target);
 
-    // Step 4: Extract and save secrets
+    // Extract and save secrets (silent)
     if (!options.skipSecrets) {
-      console.log(chalk.cyan('🔐 Extracting secrets...'));
       const secrets = await this.secretsManager.extractMCPSecrets(projectPath, projectHash, target);
-
       if (Object.keys(secrets.servers).length > 0) {
         await this.secretsManager.saveSecrets(projectHash, secrets);
-        console.log(chalk.green(`   ✓ Saved ${Object.keys(secrets.servers).length} MCP secret(s)`));
       }
     }
 
-    // Step 5: Start session (use backup's sessionId to ensure consistency)
+    // Start session
     const { session } = await this.sessionManager.startSession(
       projectPath,
       projectHash,
@@ -118,21 +108,14 @@ export class FlowExecutor {
       backup.sessionId
     );
 
-    // Step 6: Register cleanup hooks
     this.cleanupHandler.registerCleanupHooks(projectHash);
 
-    // Step 7: Default replace mode - clear user files before attaching (unless merge flag is set)
+    // Clear and attach (silent)
     if (!options.merge) {
-      console.log(chalk.cyan('🔄 Clearing existing settings...'));
       await this.clearUserSettings(projectPath, target);
     }
 
-    // Step 8: Load templates
-    console.log(chalk.cyan('📦 Loading Flow templates...'));
     const templates = await this.templateLoader.loadTemplates(target);
-
-    // Step 9: Attach Flow environment
-    console.log(chalk.cyan('🚀 Attaching Flow environment...'));
     const manifest = await this.backupManager.getManifest(projectHash, session.sessionId);
 
     if (!manifest) {
@@ -147,13 +130,15 @@ export class FlowExecutor {
       manifest
     );
 
-    // Update manifest with attach results
     await this.backupManager.updateManifest(projectHash, session.sessionId, manifest);
 
-    // Show summary
-    this.showAttachSummary(attachResult);
-
-    console.log(chalk.green('\n✓ Flow environment ready!\n'));
+    // Return summary for caller to display
+    return {
+      joined: false,
+      agents: attachResult.agentsAdded.length,
+      commands: attachResult.commandsAdded.length,
+      mcp: attachResult.mcpServersAdded.length,
+    };
   }
 
   /**
@@ -260,65 +245,12 @@ export class FlowExecutor {
   }
 
   /**
-   * Cleanup after execution
+   * Cleanup after execution (silent)
    */
   async cleanup(projectPath: string): Promise<void> {
     const projectHash = this.projectManager.getProjectHash(projectPath);
-
-    console.log(chalk.cyan('\n🧹 Cleaning up...'));
-
     await this.cleanupHandler.cleanup(projectHash);
-
-    // Restore stashed git changes
     await this.gitStashManager.popSettingsChanges(projectPath);
-
-    console.log(chalk.green('   ✓ Environment restored'));
-    console.log(chalk.green('   ✓ Secrets preserved for next run\n'));
-  }
-
-  /**
-   * Show attach summary
-   */
-  private showAttachSummary(result: AttachResult): void {
-    const items = [];
-
-    if (result.agentsAdded.length > 0) {
-      items.push(`${result.agentsAdded.length} agent${result.agentsAdded.length > 1 ? 's' : ''}`);
-    }
-
-    if (result.commandsAdded.length > 0) {
-      items.push(
-        `${result.commandsAdded.length} command${result.commandsAdded.length > 1 ? 's' : ''}`
-      );
-    }
-
-    if (result.mcpServersAdded.length > 0) {
-      items.push(
-        `${result.mcpServersAdded.length} MCP server${result.mcpServersAdded.length > 1 ? 's' : ''}`
-      );
-    }
-
-    if (result.hooksAdded.length > 0) {
-      items.push(`${result.hooksAdded.length} hook${result.hooksAdded.length > 1 ? 's' : ''}`);
-    }
-
-    if (result.rulesAppended) {
-      items.push('rules');
-    }
-
-    if (items.length > 0) {
-      console.log(chalk.green(`   ✓ Added: ${items.join(', ')}`));
-    }
-
-    const overridden =
-      result.agentsOverridden.length +
-      result.commandsOverridden.length +
-      result.mcpServersOverridden.length +
-      result.hooksOverridden.length;
-
-    if (overridden > 0) {
-      console.log(chalk.yellow(`   ⚠ Overridden: ${overridden} item${overridden > 1 ? 's' : ''}`));
-    }
   }
 
   /**

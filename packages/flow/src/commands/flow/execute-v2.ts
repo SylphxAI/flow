@@ -1,8 +1,11 @@
 /**
  * Execution Logic for Flow Command (V2 - Attach Mode)
- * New execution flow with attach-mode lifecycle
+ * Minimal, modern CLI output design
  */
 
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { FlowExecutor } from '../../core/flow-executor.js';
@@ -12,12 +15,28 @@ import { GlobalConfigService } from '../../services/global-config.js';
 import { TargetInstaller } from '../../services/target-installer.js';
 import type { RunCommandOptions } from '../../types.js';
 import { extractAgentInstructions, loadAgentContent } from '../../utils/agent-enhancer.js';
-import { showWelcome } from '../../utils/display/banner.js';
+import { showHeader } from '../../utils/display/banner.js';
 import { CLIError } from '../../utils/error-handler.js';
 import { UserCancelledError } from '../../utils/errors.js';
 import { ensureTargetInstalled, promptForTargetSelection } from '../../utils/target-selection.js';
 import { resolvePrompt } from './prompt.js';
 import type { FlowOptions } from './types.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+/**
+ * Get Flow version from package.json
+ */
+async function getFlowVersion(): Promise<string> {
+  try {
+    const packageJsonPath = path.join(__dirname, '..', '..', '..', 'package.json');
+    const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'));
+    return packageJson.version;
+  } catch {
+    return 'unknown';
+  }
+}
 
 /**
  * Configure provider environment variables
@@ -40,14 +59,14 @@ function configureProviderEnv(provider: 'kimi' | 'zai', apiKey: string): void {
 }
 
 /**
- * Select and configure provider for Claude Code
+ * Select and configure provider for Claude Code (silent unless prompting)
  */
 async function selectProvider(configService: GlobalConfigService): Promise<void> {
   try {
     const providerConfig = await configService.loadProviderConfig();
     const defaultProvider = providerConfig.claudeCode.defaultProvider;
 
-    // If not "ask-every-time", use the default provider
+    // If not "ask-every-time", use the default provider silently
     if (defaultProvider !== 'ask-every-time') {
       if (defaultProvider === 'kimi' || defaultProvider === 'zai') {
         const provider = providerConfig.claudeCode.providers[defaultProvider];
@@ -63,7 +82,7 @@ async function selectProvider(configService: GlobalConfigService): Promise<void>
       {
         type: 'list',
         name: 'selectedProvider',
-        message: 'Select provider for this session:',
+        message: 'Select provider:',
         choices: [
           { name: 'Default (Claude Code built-in)', value: 'default' },
           { name: 'Kimi', value: 'kimi' },
@@ -83,7 +102,6 @@ async function selectProvider(configService: GlobalConfigService): Promise<void>
     if (rememberChoice) {
       providerConfig.claudeCode.defaultProvider = selectedProvider;
       await configService.saveProviderConfig(providerConfig);
-      console.log(chalk.dim('   (Saved to settings)\n'));
     }
 
     // Configure environment variables based on selection
@@ -91,16 +109,11 @@ async function selectProvider(configService: GlobalConfigService): Promise<void>
       const provider = providerConfig.claudeCode.providers[selectedProvider];
 
       if (!provider?.apiKey) {
-        console.log(chalk.yellow('⚠ API key not configured. Use: sylphx-flow settings\n'));
+        console.log(chalk.yellow('  API key not configured. Use: sylphx-flow settings'));
         return;
       }
 
       configureProviderEnv(selectedProvider, provider.apiKey);
-
-      const providerName = selectedProvider === 'kimi' ? 'Kimi' : 'Z.ai';
-      console.log(chalk.green(`✓ Using ${providerName} provider\n`));
-    } else {
-      console.log(chalk.green('✓ Using default Claude Code provider\n'));
     }
   } catch (error: unknown) {
     // Handle user cancellation (Ctrl+C)
@@ -140,7 +153,7 @@ function executeTargetCommand(
 }
 
 /**
- * Main flow execution with attach mode (V2)
+ * Main flow execution with attach mode (V2) - Minimal output design
  */
 export async function executeFlowV2(
   prompt: string | undefined,
@@ -148,39 +161,29 @@ export async function executeFlowV2(
 ): Promise<void> {
   const projectPath = process.cwd();
 
-  // Show welcome banner
-  showWelcome();
-
   // Initialize config service early to check for saved preferences
   const configService = new GlobalConfigService();
   await configService.initialize();
 
-  // Step 1: Determine target
+  // Step 1: Determine target (silent auto-detect, only prompt when necessary)
   const targetInstaller = new TargetInstaller(projectPath);
   const installedTargets = await targetInstaller.detectInstalledTargets();
   const settings = await configService.loadSettings();
 
   let selectedTargetId: string | null = null;
 
-  // Distinguish between three cases:
-  // 1. User explicitly set "ask-every-time" → always prompt
-  // 2. User has no setting (undefined/null) → allow auto-detect
-  // 3. User has specific target → use that target
   const isAskEveryTime = settings.defaultTarget === 'ask-every-time';
   const hasNoSetting = !settings.defaultTarget;
   const hasSpecificTarget = settings.defaultTarget && settings.defaultTarget !== 'ask-every-time';
 
   if (isAskEveryTime) {
-    // User explicitly wants to be asked every time - ALWAYS prompt, never auto-detect
-    console.log(chalk.cyan('🔍 Detecting installed AI CLIs...\n'));
-
+    // User explicitly wants to be asked every time
     selectedTargetId = await promptForTargetSelection(
       installedTargets,
-      'Select AI CLI to use:',
+      'Select AI CLI:',
       'execution'
     );
 
-    const installation = targetInstaller.getInstallationInfo(selectedTargetId);
     const installed = await ensureTargetInstalled(
       selectedTargetId,
       targetInstaller,
@@ -190,28 +193,17 @@ export async function executeFlowV2(
     if (!installed) {
       process.exit(1);
     }
-
-    if (installedTargets.includes(selectedTargetId)) {
-      console.log(chalk.green(`✓ Using ${installation?.name}\n`));
-    }
   } else if (hasNoSetting) {
-    // No setting - use auto-detection (smart default behavior)
+    // No setting - use auto-detection
     if (installedTargets.length === 1) {
-      // Exactly 1 target found - use it automatically
       selectedTargetId = installedTargets[0];
-      const installation = targetInstaller.getInstallationInfo(selectedTargetId);
-      console.log(chalk.green(`✓ Using ${installation?.name} (auto-detected)\n`));
     } else {
-      // 0 or multiple targets - prompt for selection
-      console.log(chalk.cyan('🔍 Detecting installed AI CLIs...\n'));
-
       selectedTargetId = await promptForTargetSelection(
         installedTargets,
-        'Select AI CLI to use:',
+        'Select AI CLI:',
         'execution'
       );
 
-      const installation = targetInstaller.getInstallationInfo(selectedTargetId);
       const installed = await ensureTargetInstalled(
         selectedTargetId,
         targetInstaller,
@@ -221,110 +213,89 @@ export async function executeFlowV2(
       if (!installed) {
         process.exit(1);
       }
-
-      if (installedTargets.includes(selectedTargetId)) {
-        console.log(chalk.green(`✓ Using ${installation?.name}\n`));
-      }
     }
   } else if (hasSpecificTarget) {
-    // User has a specific target preference - ALWAYS use it
+    // User has a specific target preference
     selectedTargetId = settings.defaultTarget;
-    const installation = targetInstaller.getInstallationInfo(selectedTargetId);
 
-    // Check if the preferred target is installed
-    if (installedTargets.includes(selectedTargetId)) {
-      console.log(chalk.green(`✓ Using ${installation?.name} (from settings)\n`));
-    } else {
-      // Preferred target not installed - try to install it
-      console.log(chalk.yellow(`⚠️  ${installation?.name} is set as default but not installed\n`));
+    if (!installedTargets.includes(selectedTargetId)) {
+      const installation = targetInstaller.getInstallationInfo(selectedTargetId);
+      console.log(chalk.yellow(`\n  ${installation?.name} not installed`));
       const installed = await targetInstaller.install(selectedTargetId, true);
 
       if (!installed) {
-        // Installation failed - show error and exit
-        console.log(
-          chalk.red(
-            `\n✗ Cannot proceed: ${installation?.name} is not installed and auto-install failed`
-          )
-        );
-        console.log(chalk.yellow('   Please either:'));
-        console.log(chalk.cyan('   1. Install manually (see instructions above)'));
-        console.log(chalk.cyan('   2. Change default target: sylphx-flow settings\n'));
+        console.log(chalk.red(`  Cannot proceed: installation failed\n`));
         process.exit(1);
       }
-
-      console.log();
     }
   }
 
-  // Step 2: Auto-upgrade Flow and target CLI
-  const autoUpgrade = new AutoUpgrade(projectPath);
-  await autoUpgrade.runAutoUpgrade(selectedTargetId);
+  // Get version and target name for header
+  const version = await getFlowVersion();
+  const targetInstallation = targetInstaller.getInstallationInfo(selectedTargetId);
+  const targetName = targetInstallation?.name || selectedTargetId;
 
-  // Mode info
-  if (options.merge) {
-    console.log(
-      chalk.cyan('🔗 Merge mode: Flow settings will be merged with your existing settings')
-    );
-    console.log(chalk.dim('   Settings will be restored after execution\n'));
-  } else {
-    console.log(
-      chalk.yellow('🔄 Replace mode (default): All settings will use Flow configuration')
-    );
-    console.log(chalk.dim('   Use --merge to keep your existing settings\n'));
+  // Show minimal header
+  showHeader(version, targetName);
+
+  // Step 2: Auto-upgrade (silent, returns status)
+  const autoUpgrade = new AutoUpgrade(projectPath);
+  const upgradeResult = await autoUpgrade.runAutoUpgrade(selectedTargetId);
+
+  // Show upgrade status (only if something was upgraded)
+  if (upgradeResult.flowUpgraded && upgradeResult.flowVersion) {
+    console.log(chalk.cyan(`  ↑ Flow ${upgradeResult.flowVersion.latest} (next run)`));
+  }
+  if (upgradeResult.targetUpgraded && upgradeResult.targetVersion) {
+    console.log(chalk.cyan(`  ↑ ${targetName} ${upgradeResult.targetVersion.latest}`));
   }
 
   // Create executor
   const executor = new FlowExecutor();
-  const _projectManager = executor.getProjectManager();
 
-  // Step 2: Execute attach mode lifecycle
+  // Step 3: Execute attach mode lifecycle
   try {
     // Attach Flow environment (backup → attach → register cleanup)
-    await executor.execute(projectPath, {
+    const attachResult = await executor.execute(projectPath, {
       verbose: options.verbose,
       skipBackup: false,
       skipSecrets: false,
       merge: options.merge || false,
     });
 
-    // Step 3: Use the target we already selected (don't re-detect)
-    // selectedTargetId was determined earlier based on settings/auto-detect/prompt
+    // Show attach summary (single line)
+    if (!attachResult.joined) {
+      console.log(
+        chalk.green(
+          `  ✓ Attached ${attachResult.agents} agents, ${attachResult.commands} commands, ${attachResult.mcp} MCP`
+        )
+      );
+    }
+
     const targetId = selectedTargetId;
 
-    // Step 3.5: Provider selection (Claude Code only)
+    // Provider selection (Claude Code only, silent unless prompting)
     if (targetId === 'claude-code') {
       await selectProvider(configService);
     }
 
-    // Step 3.6: Load Flow settings and determine agent to use
-    const settings = await configService.loadSettings();
+    // Determine which agent to use
     const flowConfig = await configService.loadFlowConfig();
+    let agent = options.agent || settings.defaultAgent || 'coder';
 
-    // Determine which agent to use (CLI option > settings default > 'coder')
-    const agent = options.agent || settings.defaultAgent || 'coder';
-
-    // Check if agent is enabled
+    // Check if agent is enabled (silent fallback)
     if (!flowConfig.agents[agent]?.enabled) {
-      console.log(chalk.yellow(`⚠️  Agent '${agent}' is not enabled in settings`));
-      console.log(chalk.yellow(`   Enable it with: sylphx-flow settings`));
-      console.log(chalk.yellow(`   Using 'coder' agent instead\n`));
-      // Fallback to first enabled agent or coder
       const enabledAgents = await configService.getEnabledAgents();
-      const fallbackAgent = enabledAgents.length > 0 ? enabledAgents[0] : 'coder';
-      options.agent = fallbackAgent;
+      agent = enabledAgents.length > 0 ? enabledAgents[0] : 'coder';
     }
 
-    console.log(chalk.cyan(`🤖 Running agent: ${agent}\n`));
+    // Show running agent
+    console.log(chalk.dim(`\n  Running: ${agent}\n`));
 
-    // Load enabled rules and output styles from config
+    // Load agent content
     const enabledRules = await configService.getEnabledRules();
     const enabledOutputStyles = await configService.getEnabledOutputStyles();
 
-    console.log(chalk.dim(`   Enabled rules: ${enabledRules.join(', ')}`));
-    console.log(chalk.dim(`   Enabled output styles: ${enabledOutputStyles.join(', ')}\n`));
-
-    // Load agent content with enabled rules and output styles
-    // Rules are filtered: intersection of agent's frontmatter rules and globally enabled rules
     const agentContent = await loadAgentContent(
       agent,
       options.agentFile,
@@ -334,7 +305,6 @@ export async function executeFlowV2(
     const agentInstructions = extractAgentInstructions(agentContent);
 
     const systemPrompt = `AGENT INSTRUCTIONS:\n${agentInstructions}`;
-
     const userPrompt = prompt?.trim() || '';
 
     // Prepare run options
@@ -352,30 +322,27 @@ export async function executeFlowV2(
     // Step 4: Execute command
     await executeTargetCommand(targetId, systemPrompt, userPrompt, runOptions);
 
-    // Step 5: Cleanup (restore environment)
+    // Step 5: Cleanup (silent)
     await executor.cleanup(projectPath);
-
-    console.log(chalk.green('✓ Session complete\n'));
   } catch (error) {
     // Handle user cancellation gracefully
     if (error instanceof UserCancelledError) {
-      console.log(chalk.yellow('\n⚠️  Operation cancelled by user'));
+      console.log(chalk.yellow('\n  Cancelled'));
       try {
         await executor.cleanup(projectPath);
-        console.log(chalk.green('   ✓ Settings restored\n'));
-      } catch (cleanupError) {
-        console.error(chalk.red('   ✗ Cleanup failed:'), cleanupError);
+      } catch {
+        // Silent cleanup failure
       }
       process.exit(0);
     }
 
-    console.error(chalk.red.bold('\n✗ Execution failed:'), error);
+    console.error(chalk.red('\n  Error:'), error);
 
     // Ensure cleanup even on error
     try {
       await executor.cleanup(projectPath);
-    } catch (cleanupError) {
-      console.error(chalk.red('✗ Cleanup failed:'), cleanupError);
+    } catch {
+      // Silent cleanup failure
     }
 
     throw error;

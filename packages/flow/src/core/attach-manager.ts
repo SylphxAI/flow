@@ -8,7 +8,6 @@ import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import chalk from 'chalk';
 import { MCP_SERVER_REGISTRY, type MCPServerID } from '../config/servers.js';
 import { GlobalConfigService } from '../services/global-config.js';
 import type { Target } from '../types/target.types.js';
@@ -183,9 +182,6 @@ export class AttachManager {
     if (templates.singleFiles.length > 0) {
       await this.attachSingleFiles(projectPath, templates.singleFiles, result, manifest);
     }
-
-    // Show conflict warnings
-    this.showConflictWarnings(result);
 
     return result;
   }
@@ -420,22 +416,5 @@ export class AttachManager {
 
       result.singleFilesMerged.push(file.path);
     }
-  }
-
-  /**
-   * Show conflict warnings to user
-   */
-  private showConflictWarnings(result: AttachResult): void {
-    if (result.conflicts.length === 0) {
-      return;
-    }
-
-    console.log(chalk.yellow('\n⚠️  Conflicts detected:\n'));
-
-    for (const conflict of result.conflicts) {
-      console.log(chalk.yellow(`   • ${conflict.type}: ${conflict.name} - ${conflict.action}`));
-    }
-
-    console.log(chalk.dim("\n   Don't worry! All overridden content will be restored on exit.\n"));
   }
 }

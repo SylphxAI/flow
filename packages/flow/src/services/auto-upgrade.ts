@@ -232,54 +232,84 @@ export class AutoUpgrade {
   }
 
   /**
-   * Run auto-upgrade check and upgrade if needed
-   * Shows upgrade status and performs upgrades automatically
+   * Run auto-upgrade check and upgrade if needed (silent)
    * @param targetId - Optional target CLI ID to check and upgrade
+   * @returns Upgrade result with status info
    */
-  async runAutoUpgrade(targetId?: string): Promise<void> {
-    console.log(chalk.cyan('🔄 Checking for updates...\n'));
-
+  async runAutoUpgrade(targetId?: string): Promise<{
+    flowUpgraded: boolean;
+    flowVersion?: { current: string; latest: string };
+    targetUpgraded: boolean;
+    targetVersion?: { current: string; latest: string };
+  }> {
     const status = await this.checkForUpgrades(targetId);
+    const result = {
+      flowUpgraded: false,
+      flowVersion: status.flowVersion ?? undefined,
+      targetUpgraded: false,
+      targetVersion: status.targetVersion ?? undefined,
+    };
 
-    // Show upgrade status
-    if (status.flowNeedsUpgrade && status.flowVersion) {
-      console.log(
-        chalk.yellow(
-          `📦 Flow update available: ${status.flowVersion.current} → ${status.flowVersion.latest}`
-        )
-      );
-    } else if (!this.options.skipFlow) {
-      console.log(chalk.green('✓ Flow is up to date'));
+    // Perform upgrades silently
+    if (status.flowNeedsUpgrade) {
+      result.flowUpgraded = await this.upgradeFlowSilent();
     }
 
-    if (status.targetNeedsUpgrade && status.targetVersion && targetId) {
-      const installation = this.targetInstaller.getInstallationInfo(targetId);
-      console.log(
-        chalk.yellow(
-          `📦 ${installation?.name} update available: ${status.targetVersion.current} → ${status.targetVersion.latest}`
-        )
-      );
-    } else if (!this.options.skipTarget && targetId) {
-      const installation = this.targetInstaller.getInstallationInfo(targetId);
-      console.log(chalk.green(`✓ ${installation?.name} is up to date`));
+    if (status.targetNeedsUpgrade && targetId) {
+      result.targetUpgraded = await this.upgradeTargetSilent(targetId);
     }
 
-    // Perform upgrades if needed
-    if (status.flowNeedsUpgrade || status.targetNeedsUpgrade) {
-      console.log(chalk.cyan('\n📦 Installing updates...\n'));
+    return result;
+  }
 
-      if (status.flowNeedsUpgrade) {
-        await this.upgradeFlow();
-        // Don't restart - continue with current version, new version used on next run
+  /**
+   * Upgrade Flow silently (no spinner/output)
+   */
+  private async upgradeFlowSilent(): Promise<boolean> {
+    try {
+      const flowPm = await this.detectFlowPackageManager();
+      const upgradeCmd = getUpgradeCommand('@sylphx/flow', flowPm);
+      await execAsync(upgradeCmd);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Upgrade target CLI silently (no spinner/output)
+   */
+  private async upgradeTargetSilent(targetId: string): Promise<boolean> {
+    const installation = this.targetInstaller.getInstallationInfo(targetId);
+    if (!installation) {
+      return false;
+    }
+
+    try {
+      if (targetId === 'claude-code') {
+        try {
+          await execAsync('claude update');
+          return true;
+        } catch {
+          // Fall back to npm
+        }
       }
 
-      if (status.targetNeedsUpgrade && targetId) {
-        await this.upgradeTarget(targetId);
+      if (targetId === 'opencode') {
+        try {
+          await execAsync('opencode upgrade');
+          return true;
+        } catch {
+          // Fall back to npm
+        }
       }
 
-      console.log(chalk.green('\n✓ All tools upgraded\n'));
-    } else {
-      console.log();
+      const packageManager = detectPackageManager(this.projectPath);
+      const upgradeCmd = getUpgradeCommand(installation.package, packageManager);
+      await execAsync(upgradeCmd);
+      return true;
+    } catch {
+      return false;
     }
   }
 }
