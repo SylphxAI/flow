@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.11.0 (2025-12-17)
+
+### ✨ Features
+
+- **commands:** add tech stack and replace checklists with exploration questions ([0772b1d](https://github.com/SylphxAI/flow/commit/0772b1d788ddf2074729d04e67ef3d94b138de10))
+
 ## 2.10.0 (2025-12-17)
 
 Replace saas-* commands with 24 focused /review-* commands.
