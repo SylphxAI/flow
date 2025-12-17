@@ -1,5 +1,12 @@
 # @sylphx/flow
 
+## 2.15.3 (2025-12-17)
+
+### ⚡️ Performance
+
+- **auto-upgrade:** simplify - no TTL, always background check ([5621a21](https://github.com/SylphxAI/flow/commit/5621a21ab2a3eeb54f3fecadd32c19269bd22312))
+- **auto-upgrade:** cache target current version too ([229a400](https://github.com/SylphxAI/flow/commit/229a4002bde6da3540c014eb39e8a941e072a4db))
+
 ## 2.15.2 (2025-12-17)
 
 ### ⚡️ Performance
