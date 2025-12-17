@@ -26,6 +26,7 @@ const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 interface VersionCache {
   flowLatest?: string;
   targetLatest?: Record<string, string>;
+  targetCurrent?: Record<string, string>;
   checkedAt: number;
 }
 
@@ -123,20 +124,13 @@ export class AutoUpgrade {
         ? { current: currentVersion, latest: cache.flowLatest }
         : null;
 
-    // Check if target needs upgrade based on cache
+    // Check if target needs upgrade based on cache (instant, no local command)
     let targetVersion: { current: string; latest: string } | null = null;
-    if (targetId && cache.targetLatest?.[targetId]) {
-      const installation = this.targetInstaller.getInstallationInfo(targetId);
-      if (installation) {
-        try {
-          const { stdout } = await execAsync(installation.checkCommand);
-          const match = stdout.match(/v?(\d+\.\d+\.\d+)/);
-          if (match && match[1] !== cache.targetLatest[targetId]) {
-            targetVersion = { current: match[1], latest: cache.targetLatest[targetId] };
-          }
-        } catch {
-          // Silent
-        }
+    if (targetId && cache.targetLatest?.[targetId] && cache.targetCurrent?.[targetId]) {
+      const current = cache.targetCurrent[targetId];
+      const latest = cache.targetLatest[targetId];
+      if (current !== latest) {
+        targetVersion = { current, latest };
       }
     }
 
@@ -173,6 +167,7 @@ export class AutoUpgrade {
     const newCache: VersionCache = {
       checkedAt: Date.now(),
       targetLatest: cache?.targetLatest || {},
+      targetCurrent: cache?.targetCurrent || {},
     };
 
     // Check Flow version from npm (with timeout)
@@ -184,16 +179,29 @@ export class AutoUpgrade {
       newCache.flowLatest = cache?.flowLatest;
     }
 
-    // Check target version from npm (with timeout)
+    // Check target version from npm and local (with timeout)
     if (targetId) {
       const installation = this.targetInstaller.getInstallationInfo(targetId);
       if (installation) {
+        // Check latest version from npm
         try {
           const { stdout } = await execAsync(`npm view ${installation.package} version`, {
             timeout: 5000,
           });
           newCache.targetLatest = newCache.targetLatest || {};
           newCache.targetLatest[targetId] = stdout.trim();
+        } catch {
+          // Keep old cache value
+        }
+
+        // Check current installed version (local command)
+        try {
+          const { stdout } = await execAsync(installation.checkCommand, { timeout: 5000 });
+          const match = stdout.match(/v?(\d+\.\d+\.\d+)/);
+          if (match) {
+            newCache.targetCurrent = newCache.targetCurrent || {};
+            newCache.targetCurrent[targetId] = match[1];
+          }
         } catch {
           // Keep old cache value
         }
