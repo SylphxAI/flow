@@ -1,5 +1,31 @@
 # @sylphx/flow
 
+## 2.15.0 (2025-12-17)
+
+### Features
+
+- **cli**: Redesign CLI output with modern, minimalist interface
+  - Single-line header: `flow {version} → {target}`
+  - Consolidated status: `✓ Attached {n} agents, {n} commands, {n} MCP`
+  - Silent operations by default (backup, cleanup, provider selection)
+  - Upgrade notification: `↑ Flow {version} (next run)`
+
+### Bug Fixes
+
+- **auto-upgrade**: Remove auto-restart after Flow upgrade - new version used on next run instead
+
+### ✨ Features
+
+- **cli:** redesign output with modern minimalist interface ([654146d](https://github.com/SylphxAI/flow/commit/654146d3ba7a635b39a599125300e60cfdba2bec))
+
+### 🐛 Bug Fixes
+
+- **auto-upgrade:** don't restart after Flow upgrade ([8207417](https://github.com/SylphxAI/flow/commit/8207417921dc60357e97a2ed8db7d6d79f0b5a3e))
+
+### 🔧 Chores
+
+- fix package.json formatting ([1e9d940](https://github.com/SylphxAI/flow/commit/1e9d94086e7186fa2a3e80c8f6c98483840d865d))
+
 ## 2.14.1 (2025-12-17)
 
 ### Documentation
