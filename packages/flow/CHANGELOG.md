@@ -1,5 +1,19 @@
 # @sylphx/flow
 
+## 2.14.1 (2025-12-17)
+
+### Documentation
+
+- Add bundle constraints guidance for next-intl in review-i18n command
+
+### 📚 Documentation
+
+- **review-i18n:** add bundle constraints for next-intl ([c16d6c0](https://github.com/SylphxAI/flow/commit/c16d6c03284d2215d0e29cb98500d71f04fa01a7))
+
+### 🔧 Chores
+
+- trigger release workflow ([ee60f39](https://github.com/SylphxAI/flow/commit/ee60f3967f07a576f79ffe926770fb36414d78c7))
+
 ## 2.14.0 (2025-12-17)
 
 ### ✨ Features
