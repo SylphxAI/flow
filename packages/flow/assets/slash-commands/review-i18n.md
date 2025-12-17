@@ -24,6 +24,7 @@ agent: coder
 * `/en/*` must not exist (permanently redirect to non-prefixed)
 * Missing translation keys must fail build
 * No hardcoded user-facing strings outside localization
+* Translation bundles must be split by namespace or route (no monolithic language files)
 
 ## Context
 
@@ -39,3 +40,11 @@ Consider: dates, numbers, currency, pluralization, text direction, cultural norm
 * How painful is the translation workflow for adding new strings?
 * What locales are we missing that represent real market opportunity?
 * Where do we fall back to English in ways users would notice?
+* How large are the translation bundles, and what's being sent to the client?
+
+## Bundle Constraints
+
+* No monolithic language files — split by namespace (`common`, `auth`, `dashboard`, etc.)
+* Server Components for translations wherever possible — client bundles must not include translations that could stay on server
+* Each route should load only its required namespaces
+* Measure client bundle size impact of translations
