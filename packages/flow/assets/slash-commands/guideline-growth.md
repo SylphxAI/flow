@@ -1,18 +1,10 @@
 ---
-name: review-growth
-description: Review growth - activation, retention, virality
+name: guideline-growth
+description: Guideline: growth - activation, retention, virality
 agent: coder
 ---
 
-# Growth Review
-
-## Mandate
-
-* Perform a **deep, thorough review** of growth systems in this codebase.
-* **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
-* **Review then Act**: identify issues, then **implement fixes directly**. Don't just report — fix.
-* **Single-pass delivery**: no deferrals; deliver complete implementation.
-* **Explore beyond the spec**: identify growth opportunities that don't yet exist.
+# Growth Guideline
 
 ## Tech Stack
 

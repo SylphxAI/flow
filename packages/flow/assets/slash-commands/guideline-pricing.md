@@ -1,18 +1,10 @@
 ---
-name: review-pricing
-description: Review pricing - strategy, packaging, monetization
+name: guideline-pricing
+description: Guideline: pricing - strategy, packaging, monetization
 agent: coder
 ---
 
-# Pricing Review
-
-## Mandate
-
-* Perform a **deep, thorough review** of pricing in this codebase.
-* **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
-* **Review then Act**: identify issues, then **implement fixes directly**. Don't just report — fix.
-* **Single-pass delivery**: no deferrals; deliver complete implementation.
-* **Explore beyond the spec**: identify monetization opportunities and pricing friction.
+# Pricing Guideline
 
 ## Tech Stack
 

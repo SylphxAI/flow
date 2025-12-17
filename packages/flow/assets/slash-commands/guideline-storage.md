@@ -1,18 +1,10 @@
 ---
-name: review-storage
-description: Review storage - uploads, file handling, security
+name: guideline-storage
+description: Guideline: storage - uploads, file handling, security
 agent: coder
 ---
 
-# Storage Review
-
-## Mandate
-
-* Perform a **deep, thorough review** of file storage and uploads in this codebase.
-* **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
-* **Review then Act**: identify issues, then **implement fixes directly**. Don't just report — fix.
-* **Single-pass delivery**: no deferrals; deliver complete implementation.
-* **Explore beyond the spec**: identify security risks and cost optimization opportunities.
+# Storage Guideline
 
 ## Tech Stack
 

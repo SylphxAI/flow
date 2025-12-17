@@ -1,18 +1,10 @@
 ---
-name: review-performance
-description: Review performance - speed, Core Web Vitals, bottlenecks
+name: guideline-performance
+description: Guideline: performance - speed, Core Web Vitals, bottlenecks
 agent: coder
 ---
 
-# Performance Review
-
-## Mandate
-
-* Perform a **deep, thorough review** of performance in this codebase.
-* **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
-* **Review then Act**: identify issues, then **implement fixes directly**. Don't just report — fix.
-* **Single-pass delivery**: no deferrals; deliver complete implementation.
-* **Explore beyond the spec**: identify what's making the product feel slow.
+# Performance Guideline
 
 ## Tech Stack
 

@@ -1,18 +1,10 @@
 ---
-name: review-admin
-description: Review admin - RBAC, bootstrap, audit, operational tools
+name: guideline-admin
+description: Guideline: admin - RBAC, bootstrap, audit, operational tools
 agent: coder
 ---
 
-# Admin Platform Review
-
-## Mandate
-
-* Perform a **deep, thorough review** of the admin platform in this codebase.
-* **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
-* **Review then Act**: identify issues, then **implement fixes directly**. Don't just report — fix.
-* **Single-pass delivery**: no deferrals; deliver complete implementation.
-* **Explore beyond the spec**: identify operational gaps and safety improvements.
+# Admin Guideline
 
 ## Tech Stack
 

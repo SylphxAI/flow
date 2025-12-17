@@ -1,18 +1,10 @@
 ---
-name: review-seo
-description: Review SEO - discoverability, metadata, search rankings
+name: guideline-seo
+description: Guideline: SEO - discoverability, metadata, search rankings
 agent: coder
 ---
 
-# SEO Review
-
-## Mandate
-
-* Perform a **deep, thorough review** of SEO in this codebase.
-* **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
-* **Review then Act**: identify issues, then **implement fixes directly**. Don't just report — fix.
-* **Single-pass delivery**: no deferrals; deliver complete implementation.
-* **Explore beyond the spec**: identify what would make this product dominate search results.
+# SEO Guideline
 
 ## Tech Stack
 

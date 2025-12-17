@@ -1,18 +1,10 @@
 ---
-name: review-database
-description: Review database - schema, migrations, performance, reliability
+name: guideline-database
+description: Guideline: database - schema, migrations, performance, reliability
 agent: coder
 ---
 
-# Database Review
-
-## Mandate
-
-* Perform a **deep, thorough review** of the database in this codebase.
-* **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
-* **Review then Act**: identify issues, then **implement fixes directly**. Don't just report — fix.
-* **Single-pass delivery**: no deferrals; deliver complete implementation.
-* **Explore beyond the spec**: identify schema problems that will hurt at scale.
+# Database Guideline
 
 ## Tech Stack
 

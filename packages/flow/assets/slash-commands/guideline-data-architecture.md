@@ -1,18 +1,10 @@
 ---
-name: review-data-architecture
-description: Review data architecture - boundaries, consistency, state machines
+name: guideline-data-architecture
+description: Guideline: data architecture - boundaries, consistency, state machines
 agent: coder
 ---
 
-# Data Architecture Review
-
-## Mandate
-
-* Perform a **deep, thorough review** of data architecture in this codebase.
-* **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
-* **Review then Act**: identify issues, then **implement fixes directly**. Don't just report — fix.
-* **Single-pass delivery**: no deferrals; deliver complete implementation.
-* **Explore beyond the spec**: identify architectural weaknesses that will cause problems at scale.
+# Data Architecture Guideline
 
 ## Tech Stack
 

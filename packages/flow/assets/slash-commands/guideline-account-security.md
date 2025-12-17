@@ -1,18 +1,10 @@
 ---
-name: review-account-security
-description: Review account security - sessions, MFA, devices, security events
+name: guideline-account-security
+description: Guideline: account security - sessions, MFA, devices, security events
 agent: coder
 ---
 
-# Account Security Review
-
-## Mandate
-
-* Perform a **deep, thorough review** of account security in this codebase.
-* **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
-* **Review then Act**: identify issues, then **implement fixes directly**. Don't just report — fix.
-* **Single-pass delivery**: no deferrals; deliver complete implementation.
-* **Explore beyond the spec**: identify threats users can't protect themselves from.
+# Account Security Guideline
 
 ## Tech Stack
 

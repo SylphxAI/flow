@@ -1,18 +1,10 @@
 ---
-name: review-observability
-description: Review observability - logging, tracing, alerting, debugging
+name: guideline-observability
+description: Guideline: observability - logging, tracing, alerting, debugging
 agent: coder
 ---
 
-# Observability Review
-
-## Mandate
-
-* Perform a **deep, thorough review** of observability in this codebase.
-* **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
-* **Review then Act**: identify issues, then **implement fixes directly**. Don't just report — fix.
-* **Single-pass delivery**: no deferrals; deliver complete implementation.
-* **Explore beyond the spec**: identify the production issues we can't debug today.
+# Observability Guideline
 
 ## Tech Stack
 

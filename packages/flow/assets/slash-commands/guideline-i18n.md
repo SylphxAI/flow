@@ -1,18 +1,10 @@
 ---
-name: review-i18n
-description: Review i18n - localization, routing, translation quality
+name: guideline-i18n
+description: Guideline: i18n - localization, routing, translation quality
 agent: coder
 ---
 
-# Internationalization Review
-
-## Mandate
-
-* Perform a **deep, thorough review** of internationalization in this codebase.
-* **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
-* **Review then Act**: identify issues, then **implement fixes directly**. Don't just report — fix.
-* **Single-pass delivery**: no deferrals; deliver complete implementation.
-* **Explore beyond the spec**: identify what would make the product feel native to each locale.
+# i18n Guideline
 
 ## Tech Stack
 

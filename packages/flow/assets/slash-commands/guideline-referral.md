@@ -1,18 +1,10 @@
 ---
-name: review-referral
-description: Review referral - attribution, rewards, fraud prevention
+name: guideline-referral
+description: Guideline: referral - attribution, rewards, fraud prevention
 agent: coder
 ---
 
-# Referral Review
-
-## Mandate
-
-* Perform a **deep, thorough review** of the referral system in this codebase.
-* **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
-* **Review then Act**: identify issues, then **implement fixes directly**. Don't just report — fix.
-* **Single-pass delivery**: no deferrals; deliver complete implementation.
-* **Explore beyond the spec**: identify growth opportunities and fraud vectors.
+# Referral Guideline
 
 ## Tech Stack
 

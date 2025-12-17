@@ -1,18 +1,10 @@
 ---
-name: review-ledger
-description: Review ledger - balance systems, financial integrity, reconciliation
+name: guideline-ledger
+description: Guideline: ledger - balance systems, financial integrity, reconciliation
 agent: coder
 ---
 
-# Ledger Review
-
-## Mandate
-
-* Perform a **deep, thorough review** of any balance/credits/wallet system in this codebase.
-* **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
-* **Review then Act**: identify issues, then **implement fixes directly**. Don't just report — fix.
-* **Single-pass delivery**: no deferrals; deliver complete implementation.
-* **Explore beyond the spec**: identify financial integrity risks before they become real problems.
+# Ledger Guideline
 
 ## Tech Stack
 

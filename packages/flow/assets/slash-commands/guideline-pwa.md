@@ -1,18 +1,10 @@
 ---
-name: review-pwa
-description: Review PWA - offline experience, installation, engagement
+name: guideline-pwa
+description: Guideline: PWA - offline experience, installation, engagement
 agent: coder
 ---
 
-# PWA Review
-
-## Mandate
-
-* Perform a **deep, thorough review** of PWA implementation in this codebase.
-* **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
-* **Review then Act**: identify issues, then **implement fixes directly**. Don't just report — fix.
-* **Single-pass delivery**: no deferrals; deliver complete implementation.
-* **Explore beyond the spec**: identify what would make the web experience feel native.
+# PWA Guideline
 
 ## Tech Stack
 

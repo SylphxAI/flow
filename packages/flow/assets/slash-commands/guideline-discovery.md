@@ -1,18 +1,10 @@
 ---
-name: review-discovery
-description: Review discovery - competitive research, opportunities, market positioning
+name: guideline-discovery
+description: Guideline: discovery - competitive research, opportunities, market positioning
 agent: coder
 ---
 
-# Discovery Review
-
-## Mandate
-
-* Perform a **deep, thorough review** to discover opportunities for this product.
-* **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
-* **Review then Act**: identify opportunities, then **implement improvements directly**. Don't just report — build.
-* **Single-pass delivery**: no deferrals; deliver complete implementation.
-* **This review IS exploration** — think broadly and creatively about what could be.
+# Discovery Guideline
 
 ## Tech Stack
 
