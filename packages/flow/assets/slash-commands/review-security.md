@@ -1,6 +1,6 @@
 ---
 name: review-security
-description: Review security - OWASP, CSP/HSTS, CSRF, anti-bot, rate limiting
+description: Review security - OWASP, headers, authentication, secrets
 agent: coder
 ---
 
@@ -8,11 +8,11 @@ agent: coder
 
 ## Mandate
 
-* Perform a **deep, thorough review** of security controls in this codebase.
+* Perform a **deep, thorough review** of security in this codebase.
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: identify vulnerabilities and hardening opportunities.
+* **Explore beyond the spec**: identify vulnerabilities and hardening opportunities not listed here.
 
 ## Tech Stack
 
@@ -20,35 +20,27 @@ agent: coder
 * **Framework**: Next.js
 * **Platform**: Vercel
 
-## Review Scope
+## Non-Negotiables
 
-### Security Baseline
+* OWASP Top 10:2025 vulnerabilities must be addressed
+* CSP, HSTS, X-Frame-Options, X-Content-Type-Options headers must be present
+* CSRF protection on state-changing requests
+* No plaintext passwords in logs, returns, storage, or telemetry
+* MFA required for Admin/SUPER_ADMIN roles
+* Required configuration must fail-fast at build/startup if missing
+* Secrets must not be hardcoded or committed
 
-* OWASP Top 10:2025 taxonomy; OWASP ASVS (L2/L3) verification baseline.
-* Password UX masked + temporary reveal; no plaintext passwords in logs/returns/storage/telemetry.
-* MFA for Admin/SUPER_ADMIN; step-up for high-risk.
-* Risk-based anti-bot for auth and high-cost endpoints; integrate rate limits + consent gating.
+## Context
 
-### Baseline Controls
+Security isn't a feature — it's a foundational property. A single vulnerability can compromise everything else. The review should think like an attacker: where are the weak points? What would I exploit?
 
-* CSP/HSTS/headers
-* CSRF where applicable
-* Upstash-backed rate limiting
-* PII scrubbing
-* Supply-chain hygiene
-* Measurable security
+Beyond fixing vulnerabilities, consider the security architecture holistically. Is defense-in-depth implemented? Are there single points of failure? Would you trust this system with your own data?
 
-### Configuration and Secrets Governance
+## Driving Questions
 
-* Required configuration must fail-fast at build/startup
-* Strict environment isolation (dev/stage/prod)
-* Rotation and incident remediation posture must be auditable and exercisable
-
-## Key Areas to Explore
-
-* What OWASP Top 10 vulnerabilities exist in the current implementation?
-* How comprehensive are the security headers (CSP, HSTS, etc.)?
+* What would an attacker target first?
 * Where is rate limiting missing or insufficient?
-* How are secrets managed and what is the rotation strategy?
-* What attack vectors exist for the authentication flows?
-* How does the system detect and respond to security incidents?
+* What attack vectors exist in authentication flows?
+* How are secrets managed and what's the rotation strategy?
+* What happens when a secret is compromised — is incident response exercisable?
+* Where does "security by obscurity" substitute for real controls?

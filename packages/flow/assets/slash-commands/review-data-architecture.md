@@ -1,6 +1,6 @@
 ---
 name: review-data-architecture
-description: Review data architecture - boundaries, consistency model, server enforcement
+description: Review data architecture - boundaries, consistency, state machines
 agent: coder
 ---
 
@@ -12,7 +12,7 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: identify improvements for consistency, reliability, and scalability.
+* **Explore beyond the spec**: identify architectural weaknesses that will cause problems at scale.
 
 ## Tech Stack
 
@@ -21,23 +21,24 @@ agent: coder
 * **Database**: Neon (Postgres)
 * **ORM**: Drizzle
 
-## Review Scope
+## Non-Negotiables
 
-### Boundaries, Server Enforcement, and Consistency Model (Hard Requirement)
+* All authorization must be server-enforced (no client-trust)
+* No dual-write: billing/entitlement truth comes from Stripe events only
+* UI must never contradict server-truth
+* High-value mutations must have audit trail (who/when/why/before/after)
 
-* Define clear boundaries: domain rules, use-cases, integrations, UI.
-* All authorization/entitlements are **server-enforced**; no client-trust.
-* Runtime constraints (serverless/edge) must be explicit and validated.
-* **Consistency model is mandatory for high-value state**: for billing, entitlements, ledger, admin privilege grants, and security posture, the system must define and enforce an explicit consistency model (source-of-truth, allowed delay windows, retry/out-of-order handling, and acceptable eventual consistency bounds).
-* **Billing and access state machine is mandatory**: define and validate the mapping **Stripe state → internal subscription state → entitlements**, including trial, past_due, unpaid, canceled, refund, and dispute outcomes. UI must only present interpretable, non-ambiguous states derived from server-truth.
-* **No dual-write (hard requirement)**: subscription/payment truth must be derived from Stripe-driven events; internal systems must not directly rewrite billing truth or authorize entitlements based on non-Stripe truth, except for explicitly defined admin remediation flows that are fully server-enforced and fully audited.
-* **Server-truth is authoritative**: UI state must never contradict server-truth. Where asynchronous confirmation exists, UI must represent that state unambiguously and remain explainable.
-* **Auditability chain is mandatory** for any high-value mutation: who/when/why, before/after state, and correlation to the triggering request/job/webhook must be recorded and queryable.
+## Context
 
-## Key Areas to Explore
+Data architecture determines what's possible and what's painful. Good architecture makes new features easy; bad architecture makes everything hard. The question isn't "does it work today?" but "will it work when requirements change?"
 
-* How well are domain boundaries defined and enforced?
-* Where does client-side trust leak into authorization decisions?
-* What consistency guarantees exist and are they sufficient?
-* How does the system handle eventual consistency edge cases?
-* What would break if a webhook is processed out of order?
+Consider the boundaries between domains, the flow of data through the system, and the consistency guarantees at each step. Where are implicit assumptions that will break? Where is complexity hidden that will cause bugs?
+
+## Driving Questions
+
+* If we were designing this from scratch, what would be different?
+* Where will the current architecture break as the product scales?
+* What implicit assumptions are waiting to cause bugs?
+* How do we know when state is inconsistent, and how do we recover?
+* Where is complexity hiding that makes the system hard to reason about?
+* What architectural decisions are we avoiding that we shouldn't?

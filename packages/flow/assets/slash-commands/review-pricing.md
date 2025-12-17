@@ -1,6 +1,6 @@
 ---
 name: review-pricing
-description: Review pricing - pricing governance, grandfathering, migrations
+description: Review pricing - strategy, packaging, monetization
 agent: coder
 ---
 
@@ -8,38 +8,33 @@ agent: coder
 
 ## Mandate
 
-* Perform a **deep, thorough review** of pricing governance in this codebase.
+* Perform a **deep, thorough review** of pricing in this codebase.
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: identify monetization opportunities and pricing strategy improvements.
+* **Explore beyond the spec**: identify monetization opportunities and pricing friction.
 
 ## Tech Stack
 
 * **Payments**: Stripe
 
-## Review Scope
+## Non-Negotiables
 
-### Stripe Pricing Governance (Stripe-first, not Dashboard-first)
+* Stripe is system-of-record; internal systems must not contradict Stripe truth
+* Pricing changes must create new Stripe Prices (historical prices immutable)
+* Non-admin Stripe Dashboard changes must be detectable (drift)
 
-* Stripe is the system-of-record for products, prices, subscriptions, invoices, and disputes; internal systems must not contradict Stripe truth.
-* Pricing changes must be performed by creating new Stripe Prices and updating the "active sellable price" policy; historical prices must remain immutable for existing subscriptions unless an approved migration is executed.
-* Default pricing change policy is **grandfathering**: existing subscribers keep their current price; new customers use the currently active sellable price.
+## Context
 
-### Pricing Admin Requirements
+Pricing is strategy, not just configuration. The right pricing captures value, reduces friction, and aligns incentives. The wrong pricing leaves money on the table or drives users away.
 
-* An operational-grade Pricing Admin must exist to manage:
-  * Creation of new Stripe Prices
-  * Activation/deactivation of sellable prices
-  * Controlled bulk subscription migrations (optional)
-* All actions must be governed by RBAC, step-up controls, and audit logs.
-* Stripe Dashboard is treated as monitoring/emergency access; non-admin Stripe changes must be detectable (drift), alertable, and remediable.
+Consider the entire monetization journey: how users discover value, how they decide to pay, how they upgrade/downgrade. Where is there friction? Where are we undercharging? Where are we losing conversions?
 
-## Key Areas to Explore
+## Driving Questions
 
-* How does the pricing model compare to competitors?
-* What friction exists in the upgrade/downgrade paths?
-* How is grandfathering implemented and communicated?
-* What tools exist for pricing experimentation (A/B tests)?
-* How are pricing changes rolled out safely?
-* What analytics exist for pricing optimization decisions?
+* How does our pricing compare to competitors?
+* Where do users abandon the upgrade flow?
+* What would make upgrading feel like an obvious decision?
+* How do we communicate value at each pricing tier?
+* What pricing experiments would teach us the most?
+* If we could change one thing about pricing, what would have the biggest impact?

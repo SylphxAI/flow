@@ -1,6 +1,6 @@
 ---
 name: review-code-quality
-description: Review code quality - linting, TypeScript, testing, CI
+description: Review code quality - architecture, types, testing, maintainability
 agent: coder
 ---
 
@@ -12,7 +12,7 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: identify maintainability issues and technical debt.
+* **Explore beyond the spec**: identify code that works but shouldn't exist in its current form.
 
 ## Tech Stack
 
@@ -21,24 +21,23 @@ agent: coder
 * **Testing**: Bun test
 * **Language**: TypeScript (strict)
 
-## Review Scope
+## Non-Negotiables
 
-### Non-Negotiable Engineering Principles
+* No TODOs, hacks, or workarounds in production code
+* Strict TypeScript with end-to-end type safety (DB → API → UI)
+* No dead or unused code
 
-* No workarounds, hacks, or TODOs.
-* Feature-first with clean architecture; designed for easy extension; no "god files".
-* Type-first, strict end-to-end correctness (**DB → API → UI**).
-* Serverless-first and server-first; edge-compatible where feasible without sacrificing correctness, security, or observability.
-* Mobile-first responsive design; desktop-second.
-* Precise naming; remove dead/unused code.
-* Upgrade all packages to latest stable; avoid deprecated patterns.
+## Context
 
-## Key Areas to Explore
+Code quality isn't about following rules — it's about making the codebase a place where good work is easy and bad work is hard. High-quality code is readable, testable, and changeable. Low-quality code fights you on every change.
 
-* What areas of the codebase have the most technical debt?
-* Where are types weak or using `any` inappropriately?
-* What test coverage gaps exist for critical paths?
-* What code patterns are inconsistent across the codebase?
-* What dependencies are outdated or have known vulnerabilities?
-* Where do "god files" or overly complex modules exist?
-* What naming inconsistencies make the code harder to understand?
+Don't just look for rule violations. Look for code that technically works but is confusing, fragile, or painful to modify. Look for patterns that will cause bugs. Look for complexity that doesn't need to exist.
+
+## Driving Questions
+
+* What code would you be embarrassed to show a senior engineer?
+* Where is complexity hiding that makes the codebase hard to understand?
+* What would break if someone new tried to make changes here?
+* Where are types lying (as any, incorrect generics, missing null checks)?
+* What test coverage gaps exist for code that really matters?
+* If we could rewrite one part of this codebase, what would have the highest impact?

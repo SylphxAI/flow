@@ -1,6 +1,6 @@
 ---
 name: review-auth
-description: Review authentication - SSO providers, passkeys, verification, sign-in
+description: Review authentication - sign-in, SSO, passkeys, verification
 agent: coder
 ---
 
@@ -12,31 +12,30 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: identify improvements for security, usability, and reliability.
+* **Explore beyond the spec**: identify security gaps and UX friction in auth flows.
 
 ## Tech Stack
 
 * **Auth**: better-auth
 * **Framework**: Next.js
 
-## Review Scope
+## Non-Negotiables
 
-### Identity, Verification, and Sign-in
+* All authorization decisions must be server-enforced (no client-trust)
+* Email verification required for high-impact capabilities
+* If SSO provider secrets are missing, hide the option (no broken UI)
 
-* SSO providers (minimum): **Google, Apple, Facebook, Microsoft, GitHub** (prioritize by audience).
-* If provider env/secrets are missing, **hide** the login option (no broken/disabled UI).
-* Allow linking multiple providers and safe unlinking; server-enforced and abuse-protected.
-* Passkeys (WebAuthn) are first-class with secure enrollment/usage/recovery.
+## Context
 
-### Verification Requirements
+Authentication is the front door to every user's data. It needs to be both secure and frictionless — a difficult balance. Users abandon products with painful sign-in flows, but weak auth leads to compromised accounts.
 
-* **Email verification is mandatory** baseline for high-impact capabilities.
-* **Phone verification is optional** and used as risk-based step-up (anti-abuse, higher-trust flows, recovery); consent-aware and data-minimizing.
+Consider the entire auth journey: first sign-up, return visits, account linking, recovery flows. Where is there unnecessary friction? Where are there security gaps? What would make auth both more secure AND easier?
 
-## Key Areas to Explore
+## Driving Questions
 
-* How does the current auth implementation compare to best practices?
-* What security vulnerabilities exist in the sign-in flows?
-* How can the user experience be improved while maintaining security?
-* What edge cases are not handled (account recovery, provider outages, etc.)?
-* How does session management handle concurrent devices?
+* What's the sign-in experience for a first-time user vs. returning user?
+* Where do users get stuck or abandon the auth flow?
+* What happens when a user loses access to their primary auth method?
+* How does the system handle auth provider outages gracefully?
+* What would passwordless-first auth look like here?
+* Where is auth complexity hiding bugs or security issues?

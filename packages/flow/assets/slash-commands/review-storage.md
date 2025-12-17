@@ -1,6 +1,6 @@
 ---
 name: review-storage
-description: Review storage - Vercel Blob upload governance, intent-based uploads
+description: Review storage - uploads, file handling, security
 agent: coder
 ---
 
@@ -12,27 +12,30 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: identify improvements for security, reliability, and cost efficiency.
+* **Explore beyond the spec**: identify security risks and cost optimization opportunities.
 
 ## Tech Stack
 
 * **Storage**: Vercel Blob
 * **Platform**: Vercel
 
-## Review Scope
+## Non-Negotiables
 
-### Vercel Blob Upload Governance (Hard Requirement)
+* Uploads must be intent-based and server-verified (no direct client uploads to permanent storage)
+* Server must validate blob ownership before attaching to resources
+* Abandoned uploads must be cleanable
 
-* All uploads must be **intent-based and server-verified**.
-* The client must upload to Vercel Blob first using short-lived, server-issued authorization (e.g., signed upload URL / token), then call a server finalize endpoint to persist the resulting Blob URL/key.
-* The server must validate the Blob URL/key ownership and namespace, and must match it against the originating upload intent (who/what/where/expiry/constraints) before attaching it to any resource.
-* The system must support safe retries and idempotent finalize; expired/abandoned intents must be cleanable and auditable.
+## Context
 
-## Key Areas to Explore
+File uploads are a common attack vector. Users upload things you don't expect. Files live longer than you plan. Storage costs accumulate quietly. A well-designed upload system is secure, efficient, and maintainable.
 
-* How are uploads currently implemented and do they follow intent-based pattern?
-* What security vulnerabilities exist in the upload flow?
-* How are abandoned/orphaned uploads handled?
-* What is the cost implication of current storage patterns?
-* How does the system handle large files and upload failures?
-* What content validation (type, size, malware) exists?
+Consider: what could a malicious user upload? What happens to files when the referencing entity is deleted? How does storage cost scale with usage?
+
+## Driving Questions
+
+* What could a malicious user do through the upload flow?
+* What happens to orphaned files when entities are deleted?
+* How much are we spending on storage, and is it efficient?
+* What file types do we accept, and should we?
+* How do we handle upload failures gracefully?
+* What content validation exists (type, size, safety)?

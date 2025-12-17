@@ -1,6 +1,6 @@
 ---
 name: review-performance
-description: Review performance - budgets, Core Web Vitals, caching
+description: Review performance - speed, Core Web Vitals, bottlenecks
 agent: coder
 ---
 
@@ -12,7 +12,7 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: identify bottlenecks and optimization opportunities.
+* **Explore beyond the spec**: identify what's making the product feel slow.
 
 ## Tech Stack
 
@@ -20,28 +20,22 @@ agent: coder
 * **Platform**: Vercel
 * **Tooling**: Bun
 
-## Review Scope
+## Non-Negotiables
 
-### Performance Requirements
+* Core Web Vitals must meet thresholds (LCP < 2.5s, CLS < 0.1, INP < 200ms)
+* Performance regressions must be detectable
 
-* Performance must be **measurable and regression-resistant**:
-  * Define and enforce performance budgets for key journeys
-  * Define caching boundaries and correctness requirements across SSR/ISR/static and service worker behavior
-  * Monitor Core Web Vitals and server latency
-  * Alert on regressions
+## Context
 
-### Core Web Vitals Targets
+Performance is a feature. Slow products feel broken, even when they're correct. Users don't read loading spinners — they leave. Every 100ms of latency costs engagement.
 
-* LCP (Largest Contentful Paint) < 2.5s
-* FID (First Input Delay) < 100ms
-* CLS (Cumulative Layout Shift) < 0.1
-* INP (Interaction to Next Paint) < 200ms
+Don't just measure — understand. Where does time go? What's blocking the critical path? What would make the product feel instant? Sometimes small architectural changes have bigger impact than optimization.
 
-## Key Areas to Explore
+## Driving Questions
 
-* What are the current Core Web Vitals scores and where do they fall short?
-* Which pages or components are the biggest performance bottlenecks?
-* How effective is the current caching strategy?
-* What opportunities exist for code splitting and lazy loading?
-* How does the bundle size compare to industry benchmarks?
-* What database queries are slow and how can they be optimized?
+* What makes the product feel slow to users?
+* Where are the biggest bottlenecks in the critical user journeys?
+* What's in the critical rendering path that shouldn't be?
+* How large is the JavaScript bundle, and what's bloating it?
+* What database queries are slow, and why?
+* If we could make one thing 10x faster, what would have the most impact?

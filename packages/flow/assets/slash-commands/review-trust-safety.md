@@ -1,6 +1,6 @@
 ---
 name: review-trust-safety
-description: Review trust & safety - UGC moderation, abuse prevention, appeals
+description: Review trust & safety - abuse prevention, moderation, user protection
 agent: coder
 ---
 
@@ -8,11 +8,11 @@ agent: coder
 
 ## Mandate
 
-* Perform a **deep, thorough review** of trust and safety controls in this codebase.
+* Perform a **deep, thorough review** of trust and safety in this codebase.
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: identify abuse vectors and user safety improvements.
+* **Explore beyond the spec**: identify abuse vectors before bad actors find them.
 
 ## Tech Stack
 
@@ -20,55 +20,23 @@ agent: coder
 * **Database**: Neon (Postgres)
 * **Workflows**: Upstash Workflows + QStash
 
-## Review Scope
+## Non-Negotiables
 
-### Abuse/Fraud Posture (Hard Requirement)
+* All enforcement actions must be auditable (who/when/why)
+* Appeals process must exist for affected users
+* Graduated response levels must be defined (warn → restrict → suspend → ban)
 
-* Define prevention and enforcement measures for:
-  * **UGC abuse**: spam, harassment, illegal content, impersonation
-  * **Support abuse**: fake tickets, social engineering, support channel manipulation
-  * **Account abuse**: fake accounts, bot networks, coordinated inauthentic behavior
-* Risk signals must trigger protective actions and step-up verification where appropriate.
+## Context
 
-### Risk Signals and Enforcement
+Trust & safety is about protecting users — from each other and from malicious actors. Every platform eventually attracts abuse. The question is whether you're prepared for it or scrambling to react.
 
-* Define a minimum set of risk signals:
-  * Velocity controls (rate of actions)
-  * Account/device linkage posture
-  * Behavioral anomaly detection
-  * Risk-tiered enforcement (warn → restrict → suspend → ban)
+Consider: what would a bad actor try to do? How would we detect it? How would we respond? What about the false positives — innocent users caught by automated systems? A good T&S system is effective against abuse AND fair to legitimate users.
 
-### Content Moderation
+## Driving Questions
 
-* UGC moderation pipeline must be:
-  * Automated where possible (spam, obvious violations)
-  * Escalation path for edge cases
-  * Auditable with before/after state
-  * Localized for different content standards
-
-### Appeals and Manual Review
-
-* Appeals workflow must be:
-  * Discoverable and accessible to affected users
-  * Time-bound with SLA expectations
-  * Auditable with decision rationale
-  * Reversible where appropriate
-* Manual review queue must be operable and have visibility into backlog
-
-### Protective Actions
-
-* Define graduated response levels:
-  * Content removal/hiding
-  * Feature restriction
-  * Account suspension (temporary)
-  * Account termination (permanent)
-* All actions must be auditable with who/when/why
-
-## Key Areas to Explore
-
-* What abuse patterns exist and how are they currently detected?
-* Where are the gaps in automated moderation?
-* How do users report abuse and how effective is the response?
-* What is the false positive rate for automated enforcement?
-* How are appeals handled and what is the resolution time?
-* What visibility do operators have into abuse trends?
+* What would a motivated bad actor try to do on this platform?
+* How would we detect coordinated abuse or bot networks?
+* What happens when automated moderation gets it wrong?
+* How do affected users appeal decisions, and is it fair?
+* What abuse patterns exist that we haven't addressed?
+* What would make users trust that we're protecting them?

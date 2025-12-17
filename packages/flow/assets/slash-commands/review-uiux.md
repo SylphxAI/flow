@@ -1,6 +1,6 @@
 ---
 name: review-uiux
-description: Review UI/UX - design system, tokens, accessibility, guidance
+description: Review UI/UX - design system, accessibility, user experience
 agent: coder
 ---
 
@@ -12,38 +12,28 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: identify usability improvements and design inconsistencies.
+* **Explore beyond the spec**: if the current design needs fundamental rethinking, propose it.
 
 ## Tech Stack
 
 * **Framework**: Next.js
 * **Icons**: Iconify
 
-## Review Scope
+## Non-Negotiables
 
-### UX, Design System, and Guidance
+* WCAG AA accessibility compliance
 
-* Design-system driven UI (tokens)
-* Dark/light theme support
-* WCAG AA compliance
-* CLS-safe (no layout shifts)
-* Responsive design (mobile-first, desktop-second)
-* Iconify for icons; no emoji in UI content
+## Context
 
-### Guidance Requirements
+UI/UX determines how users perceive and interact with the product. A great UI isn't just "correct" — it's delightful, intuitive, and makes complex tasks feel simple.
 
-* Guidance is mandatory for all user-facing features and monetization flows:
-  * Discoverable
-  * Clear
-  * Dismissible with re-entry
-  * Localized and measurable
-  * Governed by eligibility and frequency controls
+The review should consider: does the current design truly serve users well? Or does it need fundamental rethinking? Small tweaks to a flawed design won't make it excellent. If redesign is warranted, propose it.
 
-## Key Areas to Explore
+## Driving Questions
 
-* How consistent is the design system across the application?
-* What accessibility issues exist and affect real users?
-* Where do users get confused or drop off in key flows?
-* How does the mobile experience compare to desktop?
-* What guidance/onboarding is missing for complex features?
-* How does the dark/light theme implementation handle edge cases?
+* Where do users get confused, frustrated, or give up?
+* If we were designing this from scratch today, what would be different?
+* What would make this experience genuinely delightful, not just functional?
+* How does the design system enable or constrain good UX?
+* What are competitors doing that users might expect?
+* Where is the UI just "okay" when it could be exceptional?

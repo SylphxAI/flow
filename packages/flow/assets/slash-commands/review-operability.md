@@ -1,6 +1,6 @@
 ---
 name: review-operability
-description: Review operability - async workflows, DLQ, retries, drift detection
+description: Review operability - workflows, retries, DLQ, incident response
 agent: coder
 ---
 
@@ -12,7 +12,7 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: identify operational risks and reliability improvements.
+* **Explore beyond the spec**: identify what will break at 3am and how we'd fix it.
 
 ## Tech Stack
 
@@ -20,31 +20,23 @@ agent: coder
 * **Cache**: Upstash Redis
 * **Platform**: Vercel
 
-## Review Scope
+## Non-Negotiables
 
-### Async/Workflows Governance (Hard Requirement)
+* Dead-letter handling must exist and be operable (visible, replayable)
+* Side-effects (email, billing, ledger) must be idempotent or safely re-entrant
+* Drift alerts must have remediation playbooks
 
-* Define idempotency and deduplication posture
-* Define controlled retries/backoff
-* **Dead-letter handling must exist and be observable and operable**
-* **Safe replay must be supported**
-* Side-effects (email/billing/ledger/entitlements) must be governed such that they are either proven effectively-once or safely re-entrant
+## Context
 
-### Drift Detection (Hard Requirement)
+Operability is about running the system in production — not just building it. Systems fail. Jobs get stuck. State drifts. The question is: when something goes wrong, can an operator fix it without deploying code?
 
-* Drift alerts must have a defined remediation playbook (automated fix or operator workflow)
-* Each remediation must be auditable and support post-incident traceability
+Consider the operator experience during an incident. What tools do they have? What runbooks exist? Can they safely retry failed jobs? Can they detect and fix drift?
 
-### Release Safety
+## Driving Questions
 
-* Define safe rollout posture with backward compatibility
-* Rollback expectations for billing/ledger/auth changes
-
-## Key Areas to Explore
-
-* How does the system handle job failures and retries?
-* What happens to messages that fail permanently (DLQ)?
-* How are operators notified of and able to resolve stuck workflows?
-* What drift can occur between systems and how is it detected?
-* How safe is the deployment process for critical paths?
-* What runbooks exist for common operational issues?
+* What happens when a job fails permanently?
+* How would an operator know something is stuck?
+* Can failed workflows be safely replayed without duplicating side-effects?
+* What drift can occur between systems, and how would we detect it?
+* What's the rollback plan if a deploy breaks something critical?
+* What runbooks exist, and what runbooks should exist but don't?

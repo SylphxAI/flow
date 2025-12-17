@@ -1,6 +1,6 @@
 ---
 name: review-growth
-description: Review growth - onboarding, viral mechanics, retention
+description: Review growth - activation, retention, virality
 agent: coder
 ---
 
@@ -12,46 +12,29 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: identify growth opportunities and conversion improvements.
+* **Explore beyond the spec**: identify growth opportunities that don't yet exist.
 
 ## Tech Stack
 
 * **Analytics**: PostHog
 * **Framework**: Next.js
 
-## Review Scope
+## Non-Negotiables
 
-### Growth System (Onboarding, Share/Viral, Retention)
+* Sharing/virality mechanics must be consent-aware
+* Growth instrumentation must not violate privacy constraints
 
-* The review must produce a coherent, measurable growth system for activation, sharing/virality, and retention, aligned with compliance and anti-abuse constraints.
+## Context
 
-### Onboarding
+Growth isn't about tricks — it's about removing friction from value delivery. Users who quickly experience value stay; users who don't, leave.
 
-* Onboarding must be:
-  * Outcome-oriented
-  * Localized
-  * Accessible
-  * Instrumented
+The review should consider: what's preventing users from reaching their "aha moment" faster? What would make them want to share? What brings them back? These aren't features to add — they're fundamental product questions.
 
-### Sharing/Virality
+## Driving Questions
 
-* Sharing/virality must be:
-  * Consent-aware
-  * Abuse-resistant
-  * Measurable end-to-end
-
-### Retention
-
-* Retention must be:
-  * Intentionally engineered
-  * Monitored
-  * Protected against regressions
-
-## Key Areas to Explore
-
-* What is the current activation rate and where do users drop off?
-* How can time-to-value be reduced for new users?
-* What viral mechanics exist and how effective are they?
-* What retention patterns exist and what predicts churn?
-* How does the product re-engage dormant users?
-* What experiments could drive meaningful growth improvements?
+* Where do users drop off before experiencing value?
+* What would cut time-to-value in half?
+* Why would a user tell someone else about this product?
+* What brings users back after their first session?
+* What signals predict churn before it happens?
+* What would a 10x better onboarding look like?

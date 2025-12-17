@@ -1,6 +1,6 @@
 ---
 name: review-discovery
-description: Review discovery - competitive research, features, pricing opportunities
+description: Review discovery - competitive research, opportunities, market positioning
 agent: coder
 ---
 
@@ -8,27 +8,31 @@ agent: coder
 
 ## Mandate
 
-* Perform a **deep, thorough review** to discover opportunities in this codebase.
+* Perform a **deep, thorough review** to discover opportunities for this product.
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: this review IS the exploration—think broadly and creatively.
+* **This review IS exploration** — think broadly and creatively about what could be.
 
-## Review Scope
+## Tech Stack
 
-### Review Requirements: Explore Beyond the Spec
+* Research across the product's full stack as needed
 
-* **Feature design review**: define success criteria, journeys, state model, auth/entitlements, instrumentation; propose competitiveness improvements within constraints.
-* **Pricing/monetization review**: packaging/entitlements, lifecycle semantics, legal/tax/invoice implications; propose conversion/churn improvements within constraints.
-* **Competitive research**: features, extensibility, guidance patterns, pricing/packaging norms; convert insights into testable acceptance criteria.
+## Non-Negotiables
 
-## Key Areas to Explore
+* None — this is pure exploration
 
-* What features are competitors offering that we lack?
-* What pricing models are common in the market and how do we compare?
-* What UX patterns are users expecting based on industry standards?
+## Context
+
+Discovery is about finding what's missing, what's possible, and what would make the product significantly more competitive. It's not about fixing bugs — it's about identifying opportunities that don't yet exist.
+
+Look at competitors, market trends, user expectations, and technological possibilities. What would make users choose this product over alternatives? What capabilities would unlock new business models?
+
+## Driving Questions
+
+* What are competitors doing that we're not?
+* What do users expect based on industry standards that we lack?
 * What integrations would add significant value?
-* What automation opportunities exist to reduce manual work?
-* What self-service capabilities are users asking for?
+* What pricing models are common in the market and how do we compare?
 * What technical capabilities could enable new business models?
-* Where are the biggest gaps between current state and market expectations?
+* What would make this product a category leader rather than a follower?

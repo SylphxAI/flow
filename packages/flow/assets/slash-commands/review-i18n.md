@@ -1,6 +1,6 @@
 ---
 name: review-i18n
-description: Review i18n - locales, routing, canonicalization, UGC
+description: Review i18n - localization, routing, translation quality
 agent: coder
 ---
 
@@ -12,43 +12,30 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: identify improvements for coverage, quality, and user experience.
+* **Explore beyond the spec**: identify what would make the product feel native to each locale.
 
 ## Tech Stack
 
 * **i18n**: next-intl
 * **Framework**: Next.js
 
-## Review Scope
+## Non-Negotiables
 
-### Supported Locales
-
-`en`, `zh-Hans`, `zh-Hant`, `es`, `ja`, `ko`, `de`, `fr`, `pt-BR`, `it`, `nl`, `pl`, `tr`, `id`, `th`, `vi`
-
-### URL Strategy: Prefix Except Default
-
-* English is default and non-prefixed.
-* `/en/*` must not exist; permanently redirect to non-prefixed equivalent.
-* All non-default locales are `/<locale>/...`.
-
-### Globalization Rules
-
-* Intl formatting for dates, numbers, currency
-* Explicit fallback rules
+* `/en/*` must not exist (permanently redirect to non-prefixed)
 * Missing translation keys must fail build
 * No hardcoded user-facing strings outside localization
 
-### UGC Canonicalization
+## Context
 
-* Separate UI language from content language.
-* Exactly one canonical URL per UGC resource determined by content language.
-* No indexable locale-prefixed duplicates unless primary content is truly localized; otherwise redirect to canonical.
-* Canonical/hreflang/sitemap must reflect only true localized variants.
+Internationalization isn't just translation — it's making the product feel native to each market. Bad i18n is obvious to users and signals that they're second-class citizens. Good i18n is invisible.
 
-## Key Areas to Explore
+Consider: dates, numbers, currency, pluralization, text direction, cultural norms. Does the product feel like it was built for each locale, or does it feel like a translation of an English product?
 
-* How complete and consistent are the translations across all locales?
-* What user-facing strings are hardcoded and missing from localization?
-* How does the routing handle edge cases (unknown locales, malformed URLs)?
-* What is the translation workflow and how can it be improved?
-* How does the system handle RTL languages if needed in the future?
+## Driving Questions
+
+* What would make the product feel native to a non-English user?
+* Where do translations feel awkward or machine-generated?
+* What cultural assumptions are baked into the UX that don't translate?
+* How painful is the translation workflow for adding new strings?
+* What locales are we missing that represent real market opportunity?
+* Where do we fall back to English in ways users would notice?

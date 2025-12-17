@@ -1,6 +1,6 @@
 ---
 name: review-ledger
-description: Review ledger - financial-grade balance system, immutable ledger
+description: Review ledger - balance systems, financial integrity, reconciliation
 agent: coder
 ---
 
@@ -12,7 +12,7 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: identify improvements for accuracy, auditability, and reconciliation.
+* **Explore beyond the spec**: identify financial integrity risks before they become real problems.
 
 ## Tech Stack
 
@@ -20,19 +20,24 @@ agent: coder
 * **Database**: Neon (Postgres)
 * **ORM**: Drizzle
 
-## Review Scope
+## Non-Negotiables
 
-### Financial-Grade Balance System (Only if "balance/credits/wallet" exists)
+* Balances must be immutable ledger (append-only), not mutable fields
+* No floating-point for money (use deterministic precision)
+* All financial mutations must be idempotent
+* Monetary flows must be reconcilable with Stripe
 
-* Any balance concept must be implemented as an **immutable ledger** (append-only source of truth), not a mutable balance field.
-* Deterministic precision (no floats), idempotent posting, concurrency safety, transactional integrity, and auditability are required.
-* Monetary flows must be currency-based and reconcilable with Stripe; credits (if used) must be governed as non-cash entitlements.
+## Context
 
-## Key Areas to Explore
+Financial systems are unforgiving. A bug that creates or destroys money — even briefly — is a serious incident. Users trust us with their money; that trust is easily lost and hard to regain.
 
-* Is there a balance/credits system and how is it implemented?
-* If mutable balances exist, what are the risks and how to migrate to immutable ledger?
-* How does the system handle concurrent transactions?
-* What is the reconciliation process with Stripe?
-* How are edge cases handled (refunds, disputes, partial payments)?
-* What audit trail exists for financial mutations?
+If balance/credits/wallet exists, it must be bulletproof. If it doesn't exist yet, consider whether the current design would support adding it correctly. Retrofitting financial integrity is painful.
+
+## Driving Questions
+
+* Does a balance/credits system exist, and is it implemented correctly?
+* Where could money be created or destroyed by a bug?
+* What happens during concurrent transactions?
+* How would we detect if balances drifted from reality?
+* Can we prove every balance by replaying the ledger?
+* What financial edge cases (refunds, disputes, chargebacks) aren't handled?

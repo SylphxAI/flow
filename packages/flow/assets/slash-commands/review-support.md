@@ -1,6 +1,6 @@
 ---
 name: review-support
-description: Review support - contact, communications, newsletter
+description: Review support - help experience, communications, user satisfaction
 agent: coder
 ---
 
@@ -12,32 +12,30 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: identify user satisfaction improvements and support efficiency gains.
+* **Explore beyond the spec**: identify what would make users feel genuinely supported.
 
 ## Tech Stack
 
 * **Email**: Resend
 * **Framework**: Next.js
 
-## Review Scope
+## Non-Negotiables
 
-### Support and Communications
+* Unsubscribe must work reliably
+* Support contact must be discoverable
+* Newsletter/marketing must respect consent preferences
 
-* Support/Contact surface must be:
-  * Discoverable
-  * Localized
-  * WCAG AA compliant
-  * SEO-complete
-  * Privacy-safe
-  * Auditable where relevant
-* Newsletter subscription/preferences must be consent-aware
-* Unsubscribe enforcement must be reliable
+## Context
 
-## Key Areas to Explore
+Support is where user trust is won or lost. When something goes wrong, how easy is it to get help? When help arrives, does it actually solve the problem? Great support turns frustrated users into loyal advocates.
 
-* How do users find help when they need it?
-* What self-service support options exist (FAQ, help center)?
-* How are support requests tracked and resolved?
-* What is the email deliverability and engagement rate?
-* How does the newsletter system handle bounces and complaints?
-* What support tools do agents have for helping users?
+Consider the entire help-seeking journey: finding help, explaining the problem, getting resolution. Where is there friction? Where do users give up? What would make users feel genuinely cared for?
+
+## Driving Questions
+
+* When users need help, can they find it easily?
+* What problems do users have that they can't solve themselves?
+* How long does it take to resolve a typical support request?
+* What would reduce support volume without reducing user satisfaction?
+* Where do users get stuck and give up on getting help?
+* What would make the support experience genuinely delightful?

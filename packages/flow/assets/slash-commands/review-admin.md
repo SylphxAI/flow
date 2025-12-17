@@ -1,6 +1,6 @@
 ---
 name: review-admin
-description: Review admin - RBAC, bootstrap, config management, feature flags
+description: Review admin - RBAC, bootstrap, audit, operational tools
 agent: coder
 ---
 
@@ -12,7 +12,7 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: identify operational improvements and safety enhancements.
+* **Explore beyond the spec**: identify operational gaps and safety improvements.
 
 ## Tech Stack
 
@@ -20,39 +20,24 @@ agent: coder
 * **API**: tRPC
 * **Database**: Neon (Postgres)
 
-## Review Scope
+## Non-Negotiables
 
-### Admin Platform (Operational-Grade)
+* Admin bootstrap must use secure allowlist, not file seeding; must be permanently disabled after first admin
+* All privilege grants must be audited (who/when/why)
+* Actions affecting money/access/security require step-up controls
+* Secrets must never be exposed through admin UI
 
-* Baseline: RBAC (least privilege), audit logs, feature flags governance, optional impersonation with safeguards and auditing.
+## Context
 
-### Admin Bootstrap (Critical)
+The admin platform is where operational power lives — and where operational mistakes happen. A well-designed admin reduces the chance of human error while giving operators the tools they need to resolve issues quickly.
 
-* Admin bootstrap must not rely on file seeding:
-  * Use a secure, auditable **first-login allowlist** for the initial SUPER_ADMIN.
-  * Permanently disable bootstrap after completion.
-  * All privilege grants must be server-enforced and recorded in the audit log.
-  * The allowlist must be managed via secure configuration (environment/secret store), not code or DB seeding.
+Consider: what does an operator need at 3am when something is broken? What would prevent an admin from accidentally destroying data? How do we know if someone is misusing admin access?
 
-### Configuration Management (Mandatory)
+## Driving Questions
 
-* All **non-secret** product-level configuration must be manageable via admin (server-enforced), with validation and change history.
-* Secrets/credentials are environment-managed only; admin may expose safe readiness/health visibility, not raw secrets.
-
-### Admin Analytics and Reporting (Mandatory)
-
-* Provide comprehensive dashboards/reports for business, growth, billing, referral, support, and security/abuse signals, governed by RBAC.
-
-### Admin Operational Management (Mandatory)
-
-* Tools for user/account management, entitlements/access management, lifecycle actions, and issue resolution workflows.
-* Actions affecting access, money/credits, or security posture require appropriate step-up controls and must be fully auditable.
-
-## Key Areas to Explore
-
-* How secure is the admin bootstrap process?
-* What RBAC gaps exist that could lead to privilege escalation?
-* How comprehensive is the audit logging for sensitive operations?
-* What admin workflows are missing or painful?
-* How does impersonation work and what safeguards exist?
-* What visibility do admins have into system health and issues?
+* What would an operator need during an incident that doesn't exist today?
+* Where could an admin accidentally cause serious damage?
+* How would we detect if admin access was compromised or misused?
+* What repetitive admin tasks should be automated?
+* Where is audit logging missing or insufficient?
+* What would make the admin experience both safer and faster?

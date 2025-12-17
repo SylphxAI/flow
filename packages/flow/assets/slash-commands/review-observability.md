@@ -1,6 +1,6 @@
 ---
 name: review-observability
-description: Review observability - logs, Sentry, correlation IDs, alerting
+description: Review observability - logging, tracing, alerting, debugging
 agent: coder
 ---
 
@@ -12,7 +12,7 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: identify blind spots and debugging improvements.
+* **Explore beyond the spec**: identify the production issues we can't debug today.
 
 ## Tech Stack
 
@@ -20,24 +20,22 @@ agent: coder
 * **Analytics**: PostHog
 * **Platform**: Vercel
 
-## Review Scope
+## Non-Negotiables
 
-### Observability and Alerting (Mandatory)
+* Correlation IDs must exist end-to-end (request → job → webhook)
+* Alerts must exist for critical failures (webhook failures, auth attacks, drift)
 
-* Structured logs and correlation IDs must exist end-to-end (request/job/webhook) with consistent traceability
-* Define critical-path SLO/SLI posture
-* Define actionable alerts for:
-  * Webhook failures
-  * Ledger/entitlement drift
-  * Authentication attacks
-  * Abuse spikes
-  * Drift detection
+## Context
 
-## Key Areas to Explore
+Observability is about answering questions when things go wrong. It's 3am, something is broken, users are complaining — can you figure out what happened? How fast?
 
-* How easy is it to debug a production issue end-to-end?
+Good observability makes debugging easy. Bad observability means you're guessing, adding log lines, redeploying, and hoping. Consider: what questions would you need to answer during an incident, and can you answer them today?
+
+## Driving Questions
+
+* If something breaks in production right now, how would we find out?
 * What blind spots exist where errors go unnoticed?
-* How effective are the current alerts (signal vs noise)?
-* What SLOs/SLIs are defined and are they meaningful?
-* How does log correlation work across async boundaries?
-* What dashboards exist and do they answer the right questions?
+* How long would it take to trace a user's request through the entire system?
+* What alerts exist, and do they fire for the right things?
+* Where do we have noise that's training people to ignore alerts?
+* What production issue in the last month was hard to debug, and why?

@@ -1,6 +1,6 @@
 ---
 name: review-seo
-description: Review SEO - metadata, Open Graph, canonical, hreflang, sitemap
+description: Review SEO - discoverability, metadata, search rankings
 agent: coder
 ---
 
@@ -12,40 +12,29 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: identify improvements for discoverability and search rankings.
+* **Explore beyond the spec**: identify what would make this product dominate search results.
 
 ## Tech Stack
 
 * **Framework**: Next.js (SSR-first for indexable/discovery)
 
-## Review Scope
+## Non-Negotiables
 
-### SEO Requirements
+* All pages must have metadata (title, description)
+* Canonical URLs must be correct (no duplicate content)
+* sitemap.xml and robots.txt must exist and be correct
 
-* SEO-first + SSR-first for indexable/discovery
-* Required elements:
-  * Metadata (title, description)
-  * Open Graph tags
-  * Favicon (all sizes)
-  * Canonical URLs
-  * hreflang + x-default
-  * schema.org structured data
-  * sitemap.xml
-  * robots.txt
+## Context
 
-### SEO/i18n/Canonicalization Verification
+SEO is about being found when people are looking for what you offer. Good SEO isn't tricks — it's making content genuinely useful and technically accessible to search engines.
 
-* `/en/*` non-existence (must redirect)
-* hreflang/x-default correct
-* Sitemap containing only true variants
-* UGC canonical redirects
-* Locale routing invariants
+Consider: what queries should this product rank for? What content would genuinely serve those searchers? Is the technical foundation (metadata, structure, performance) supporting or hindering discoverability?
 
-## Key Areas to Explore
+## Driving Questions
 
-* How does the site perform in search engine results currently?
-* What pages are missing proper metadata or structured data?
-* How does the sitemap handle dynamic content and pagination?
-* Are there duplicate content issues or canonicalization problems?
-* What opportunities exist for featured snippets or rich results?
-* How does page load performance affect SEO rankings?
+* What queries should this product rank #1 for?
+* What content gaps exist that competitors are filling?
+* Where are we losing rankings due to technical issues?
+* What structured data opportunities are we missing?
+* How does Core Web Vitals performance affect our search rankings?
+* What would make Google consider this site authoritative in our domain?

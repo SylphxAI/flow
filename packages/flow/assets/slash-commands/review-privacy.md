@@ -1,6 +1,6 @@
 ---
 name: review-privacy
-description: Review privacy - consent, PII handling, data lifecycle, GDPR
+description: Review privacy - consent, PII, data lifecycle, compliance
 agent: coder
 ---
 
@@ -21,45 +21,25 @@ agent: coder
 * **Tag Management**: GTM (marketing only)
 * **Observability**: Sentry
 
-## Review Scope
+## Non-Negotiables
 
-### Consent Governance (Release-Blocking)
+* Analytics and marketing must not fire before user consent
+* PII must not leak into logs, Sentry, PostHog, or third-party services
+* Account deletion must propagate to all third-party processors
+* Marketing tags (GTM, Google Ads) must not load without consent
+* Conversion tracking must be server-truth aligned, idempotent, and deduplicated
 
-* Analytics (PostHog) and marketing/newsletter communications (Resend) must be governed by consent and user preferences.
-* Marketing tags (including GTM and Google Ads) must not load or fire without the appropriate consent.
-* Without consent, tracking and marketing sends must not occur, except for strictly necessary service communications.
-* Event schemas and attributes must follow data minimization, with explicit PII classification and handling rules.
+## Context
 
-### Marketing Attribution and Conversions (Hard Requirement)
+Privacy isn't just compliance — it's trust. Users share data expecting it to be handled responsibly. Every log line, every analytics event, every third-party integration is a potential privacy leak.
 
-* GTM may be used **only** for marketing tags and attribution; it must not become the primary product analytics system (PostHog remains the product analytics source).
-* Conversions representing monetary value or entitlement changes must be:
-  * **Server-truth aligned**: conversion data must reflect actual billing/entitlement state
-  * **Idempotent**: same conversion must not be counted multiple times
-  * **Deduplicated**: client-side and server-side tracking must not double-count
-* Client-side tags may exist for attribution but must not become the authoritative source of billing/entitlement truth.
+The review should verify that actual behavior matches stated policy. If the privacy policy says "we don't track without consent," does the code actually enforce that? Mismatches are not just bugs — they're trust violations.
 
-### PII and Sensitive Data Controls (Hard Requirement)
+## Driving Questions
 
-* PII rules apply to logs, Sentry, PostHog, support tooling, email systems, and marketing tags/conversion payloads.
-* A consistent scrubbing/redaction standard must exist, and must be covered by automated tests to prevent leakage to third parties.
-
-### Data Lifecycle
-
-* Define deletion/deactivation semantics
-* Deletion propagation to third parties
-* Export where applicable
-* **Define data classification, retention periods, deletion propagation to third-party processors, and explicit exceptions** (legal/tax/anti-fraud)
-
-### Behavioral Consistency
-
-* **Behavioral consistency is required**: policy and disclosures must match actual behavior across UI, data handling, logging/observability, analytics, support operations, and marketing tags; mismatches are release-blocking.
-
-## Key Areas to Explore
-
-* Does the consent implementation actually block tracking before consent?
-* Where does PII leak into logs, analytics, or error tracking?
-* How does account deletion propagate to all third-party services?
-* Does the privacy policy accurately reflect actual data practices?
-* What data retention policies exist and are they enforced?
-* How would the system handle a GDPR data subject access request?
+* Does the consent implementation actually block tracking, or just record preference?
+* Where does PII leak that we haven't noticed?
+* If a user requests data deletion, what actually gets deleted vs. retained?
+* Does the privacy policy accurately reflect what the code actually does?
+* How would we handle a GDPR data subject access request today?
+* What data are we collecting that we don't actually need?

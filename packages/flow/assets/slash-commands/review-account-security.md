@@ -1,6 +1,6 @@
 ---
 name: review-account-security
-description: Review account security - sessions, devices, MFA, security events
+description: Review account security - sessions, MFA, devices, security events
 agent: coder
 ---
 
@@ -12,37 +12,30 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: identify improvements for user safety and threat detection.
+* **Explore beyond the spec**: identify threats users can't protect themselves from.
 
 ## Tech Stack
 
 * **Auth**: better-auth
 * **Framework**: Next.js
 
-## Review Scope
+## Non-Negotiables
 
-### Membership and Account Security
+* Session/device visibility and revocation must exist
+* All security-sensitive actions must be server-enforced and auditable
+* Account recovery must require step-up verification
 
-* Membership is entitlement-driven and server-enforced.
-* Provide a dedicated **Account Security** surface.
-* **Account Security minimum acceptance**:
-  * Session/device visibility and revocation
-  * MFA/passkey management
-  * Linked identity provider management
-  * Key security event visibility (and export where applicable)
-  * All server-enforced and auditable
+## Context
 
-### Recovery Governance
+Account security is about giving users control over their own safety. Users should be able to see what's accessing their account, remove suspicious sessions, and understand when something unusual happens.
 
-* Account recovery flow secure
-* Support-assisted recovery with strict audit logging
-* Step-up verification for sensitive actions
+But it's also about protecting users from threats they don't know about. Compromised credentials, session hijacking, social engineering attacks on support — these require proactive detection, not just user vigilance.
 
-## Key Areas to Explore
+## Driving Questions
 
-* What visibility do users have into their active sessions and devices?
-* How robust is the MFA implementation and enrollment flow?
-* What security events are logged and how accessible are they to users?
-* How does the account recovery flow prevent social engineering attacks?
-* What step-up authentication exists for sensitive actions?
-* How are compromised accounts detected and handled?
+* Can a user tell if someone else has access to their account?
+* What happens when an account is compromised — how fast can we detect and respond?
+* How does the recovery flow prevent social engineering attacks?
+* What security events should trigger user notification?
+* Where are we relying on user vigilance when we should be detecting threats?
+* What would a truly paranoid user want that we don't offer?

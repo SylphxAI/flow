@@ -1,6 +1,6 @@
 ---
 name: review-referral
-description: Review referral - attribution, anti-fraud, rewards, clawback
+description: Review referral - attribution, rewards, fraud prevention
 agent: coder
 ---
 
@@ -12,39 +12,30 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: identify growth opportunities and fraud prevention improvements.
+* **Explore beyond the spec**: identify growth opportunities and fraud vectors.
 
 ## Tech Stack
 
 * **Analytics**: PostHog
 * **Database**: Neon (Postgres)
 
-## Review Scope
+## Non-Negotiables
 
-### Referral (Anti-Abuse Baseline Required)
+* Referral rewards must have clawback capability for fraud
+* Attribution must be auditable (who referred whom, when, reward status)
+* Velocity controls must exist to prevent abuse
 
-* Referral must be measurable, abuse-resistant, and governed:
-  * Attribution semantics
-  * Reward lifecycle governance (including revocation/clawbacks)
-  * Anti-fraud measures
-  * Admin reporting/audit
-  * Localized and instrumented
+## Context
 
-### Referral Anti-Fraud Minimum Baseline (Mandatory)
+Referral programs can drive explosive growth — or become fraud magnets. The best referral programs make sharing natural and rewarding. The worst become liability when abusers exploit them.
 
-* Define a minimum set of risk signals and enforcement measures, including:
-  * Velocity controls
-  * Account/device linkage posture
-  * Risk-tiered enforcement
-  * Reward delay/hold/freeze
-  * Clawback conditions
-  * Auditable manual review/appeal posture where applicable
+Consider both sides: what makes users want to share? And what prevents bad actors from gaming the system? A referral program that's easy to abuse is worse than no referral program.
 
-## Key Areas to Explore
+## Driving Questions
 
-* How effective is the current referral program at driving growth?
-* What fraud patterns have been observed and how are they mitigated?
-* How does the attribution model handle edge cases (multiple touches, expired links)?
-* What is the reward fulfillment process and where can it fail?
-* How do users discover and share referral links?
-* What analytics exist to measure referral program ROI?
+* Why would a user share this product with someone they know?
+* How easy is it for a bad actor to generate fake referrals?
+* What fraud patterns exist that we haven't addressed?
+* What is the actual ROI of the referral program?
+* Where do users drop off in the referral/share flow?
+* If we redesigned referrals from scratch, what would be different?

@@ -1,6 +1,6 @@
 ---
 name: review-pwa
-description: Review PWA - manifest, service worker, caching, push notifications
+description: Review PWA - offline experience, installation, engagement
 agent: coder
 ---
 
@@ -12,32 +12,29 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
-* **Explore beyond the spec**: identify engagement opportunities and offline capabilities.
+* **Explore beyond the spec**: identify what would make the web experience feel native.
 
 ## Tech Stack
 
 * **Framework**: Next.js
 * **Platform**: Vercel
 
-## Review Scope
-
-### PWA Requirements
-
-* Manifest file complete and valid
-* Service worker with explicit cache correctness
-* Push notifications using VAPID where applicable
-
-### Service Worker Caching Boundary (Mandatory)
+## Non-Negotiables
 
 * Service worker must not cache personalized/sensitive/authorized content
-* Authenticated and entitlement-sensitive routes must have explicit cache-control and SW rules
-* Must be validated by tests to prevent stale or unauthorized state exposure
+* Cache invalidation on deploy must be correct (no stale content)
 
-## Key Areas to Explore
+## Context
 
-* Does the PWA meet installation criteria on all platforms?
-* What is the offline experience and how can it be improved?
-* How does the service worker handle cache invalidation on deploys?
-* What push notification capabilities exist and how are they used?
-* Are there any caching bugs that expose stale or unauthorized content?
-* How does the PWA experience compare to native app expectations?
+A PWA is an opportunity to deliver native-like experience without an app store. But a bad PWA is worse than no PWA — stale content, broken offline states, and confusing installation prompts erode trust.
+
+Consider: what would make users want to install this? What should work offline? How do we handle the transition between online and offline gracefully?
+
+## Driving Questions
+
+* Would users actually want to install this as an app? Why or why not?
+* What should the offline experience be, and what is it today?
+* What happens when users go offline in the middle of something important?
+* How do we handle cache invalidation without breaking the experience?
+* What push notification opportunities exist that we're not using?
+* What would make the installed experience better than the browser experience?
