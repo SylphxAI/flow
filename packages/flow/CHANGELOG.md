@@ -1,5 +1,18 @@
 # @sylphx/flow
 
+## 2.9.0 (2025-12-17)
+
+Add comprehensive SaaS review command suite with parallel worker delegation.
+
+- `/saas-admin`: Admin platform review (RBAC, bootstrap, config, feature flags, ops)
+- Updated `/saas-review`: All 8 workers run in parallel (domains + discovery)
+- Clarified Task tool delegation pattern for worker spawning
+
+### 📚 Documentation
+
+- **commands:** run all 8 workers in parallel (merge discovery into Phase 1) ([cd0afd6](https://github.com/SylphxAI/flow/commit/cd0afd630d6c0d4f751cec81cce4572b19bcbe9d))
+- **commands:** clarify Task tool delegation pattern in saas-review ([2940cb0](https://github.com/SylphxAI/flow/commit/2940cb094fb3ce65b0af59f3c1541769576c1050))
+
 ## 2.8.0 (2025-12-17)
 
 ### ✨ Features
