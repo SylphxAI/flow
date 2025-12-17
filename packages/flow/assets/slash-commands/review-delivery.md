@@ -10,8 +10,8 @@ agent: coder
 
 * Perform a **deep, thorough review** of delivery gates in this codebase.
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
-* Deliverables must be stated as **findings, gaps, and actionable recommendations**.
-* **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Review then Act**: identify issues, then **implement fixes directly**. Don't just report — fix.
+* **Single-pass delivery**: no deferrals; deliver complete implementation.
 * **Explore beyond the spec**: identify what could go wrong in production that we're not catching.
 
 ## Tech Stack

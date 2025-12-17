@@ -10,8 +10,8 @@ agent: coder
 
 * Perform a **deep, thorough review** of support and communications in this codebase.
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
-* Deliverables must be stated as **findings, gaps, and actionable recommendations**.
-* **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Review then Act**: identify issues, then **implement fixes directly**. Don't just report — fix.
+* **Single-pass delivery**: no deferrals; deliver complete implementation.
 * **Explore beyond the spec**: identify what would make users feel genuinely supported.
 
 ## Tech Stack
