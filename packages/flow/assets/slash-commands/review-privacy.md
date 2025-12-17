@@ -30,6 +30,15 @@ agent: coder
 * Without consent, tracking and marketing sends must not occur, except for strictly necessary service communications.
 * Event schemas and attributes must follow data minimization, with explicit PII classification and handling rules.
 
+### Marketing Attribution and Conversions (Hard Requirement)
+
+* GTM may be used **only** for marketing tags and attribution; it must not become the primary product analytics system (PostHog remains the product analytics source).
+* Conversions representing monetary value or entitlement changes must be:
+  * **Server-truth aligned**: conversion data must reflect actual billing/entitlement state
+  * **Idempotent**: same conversion must not be counted multiple times
+  * **Deduplicated**: client-side and server-side tracking must not double-count
+* Client-side tags may exist for attribution but must not become the authoritative source of billing/entitlement truth.
+
 ### PII and Sensitive Data Controls (Hard Requirement)
 
 * PII rules apply to logs, Sentry, PostHog, support tooling, email systems, and marketing tags/conversion payloads.

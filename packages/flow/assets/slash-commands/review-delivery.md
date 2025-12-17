@@ -34,6 +34,28 @@ CI must block merges/deploys when failing:
 * Security: CSP/HSTS/headers verified, CSRF protection tested
 * Consent: Analytics/marketing consent gating verified
 
+### SEO/i18n/Canonicalization Verification (Specific Tests Required)
+
+* `/en/*` non-existence: must permanently redirect to non-prefixed equivalent
+* hreflang/x-default: all pages must have correct hreflang tags including x-default
+* Sitemap validation: sitemap.xml must contain only true localized variants (no duplicate content URLs)
+* UGC canonical redirects: locale-prefixed UGC URLs must redirect to canonical (content-language-based) URL
+* Locale routing invariants: unknown locales handled gracefully, no 500 errors
+
+### Security Verification (Specific Tests Required)
+
+* CSP header: present and correctly configured (no unsafe-inline where avoidable)
+* HSTS header: present with appropriate max-age
+* X-Frame-Options / X-Content-Type-Options: present
+* CSRF protection: tokens validated on state-changing requests
+
+### Consent Gating Verification (Specific Tests Required)
+
+* Analytics scripts: must not load before consent
+* Marketing tags (GTM, Google Ads): must not fire before consent
+* Newsletter eligibility: must respect user preferences
+* Conversion tracking: must follow consent state
+
 ### Automation Requirement
 
 **All gates above must be enforced by automated tests or mechanized checks (non-manual); manual verification does not satisfy release gates.**
