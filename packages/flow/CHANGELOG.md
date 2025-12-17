@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.15.2 (2025-12-17)
+
+### ⚡️ Performance
+
+- **auto-upgrade:** non-blocking version check with cache ([0550e44](https://github.com/SylphxAI/flow/commit/0550e44ea9b471ae07b2ea13c196354a7a32a605))
+
 ## 2.15.1 (2025-12-17)
 
 ### Improvements
