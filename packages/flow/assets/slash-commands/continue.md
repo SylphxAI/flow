@@ -1,160 +1,98 @@
 ---
 name: continue
-description: Continue incomplete work - finish features, fix bugs, complete TODOs
+description: Continue incomplete work - find gaps, finish features, fix what's broken
 agent: coder
 ---
 
-# Continue Incomplete Work
+# Continue
 
-Scan codebase for incomplete work. Prioritize. Finish.
+Find what's incomplete. Finish it.
 
 ## Mandate
 
-* Perform a **deep, thorough scan** of incomplete work in this codebase.
-* **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
-* **Research then Act**: understand full scope first, then **implement fixes directly**. Don't just report — finish.
-* **Single-pass delivery**: no deferrals; deliver complete implementation.
-* **Be thorough**: incomplete work hides in comments, stubs, error messages, and "temporary" solutions.
+* **Think, don't checklist.** Understand the project first. What is it trying to do? What would "done" look like?
+* **Delegate workers** for parallel research. You synthesize and verify.
+* **Fix, don't report.** Implement solutions directly.
+* **One pass.** No deferrals. Complete each fix fully.
 
-## Discovery Approach
+## How to Find Incomplete Work
 
-### Phase 1: Code Analysis
-Scan for explicit incomplete markers:
-- `TODO`, `FIXME`, `XXX`, `HACK`, `BUG`, `@todo`
-- `NotImplementedError`, `throw new Error('not implemented')`
-- Stub implementations (hardcoded returns, empty catches, `pass`)
-- `test.skip`, `it.skip`, empty test files
-- Commented-out code, debug statements
+Don't grep for TODO and call it done. Incomplete work hides in:
 
-### Phase 2: Role-Based Simulation
+**What's explicitly unfinished** — Yes, scan for TODO/FIXME/HACK. But ask: why are they there? What was the person avoiding?
 
-**👤 User Perspective** — Walk through every user-facing flow:
-- Onboarding: Can a new user complete setup without confusion?
-- Happy path: Does the core feature work end-to-end?
-- Error states: What happens when things go wrong? Are messages helpful?
-- Edge cases: Empty states, first-time use, account limits, expired sessions
-- Accessibility: Keyboard nav, screen readers, color contrast
-- Mobile/responsive: Does it work on all devices?
+**What's implicitly broken** — Code that "works" but:
+- Fails silently (empty catch blocks, swallowed errors)
+- Works only in happy path (no validation, no edge cases)
+- Works but confuses users (unclear errors, missing feedback)
+- Works but can't be debugged (no logs, no context)
 
-**🔧 Developer Perspective** — Evaluate DX and maintainability:
-- Setup: Can someone clone and run in < 5 minutes?
-- Documentation: Are APIs documented? Examples provided?
-- Error messages: Do stack traces help identify root cause?
-- Debugging: Are there logs at appropriate levels?
-- Testing: Can tests run locally? Are mocks available?
-- Dependencies: Any outdated, deprecated, or vulnerable packages?
+**What's missing entirely** — Features referenced but not implemented. UI that leads nowhere. Promises in docs that code doesn't deliver.
 
-**🛡️ Admin/Ops Perspective** — Consider operational readiness:
-- Monitoring: Can you tell if the system is healthy?
-- Logging: Is there enough info to debug production issues?
-- Configuration: Can settings be changed without code deploy?
-- Backup/Recovery: Can data be restored if something fails?
-- Security: Are admin actions audited? Permissions enforced?
-- Scaling: What happens under 10x load?
+## The Real Test
 
-### Phase 3: Scenario Simulation
+For each part of the system, ask:
 
-Run through these scenarios mentally or via code paths:
+> "If I were a user trying to accomplish their goal, where would I get stuck?"
 
-| Scenario | Questions to Answer |
-|----------|---------------------|
-| New user signup | Every step works? Validation clear? Email sent? |
-| Returning user login | Session handling? Password reset works? |
-| Core action fails | Error shown? User knows what to do? Data preserved? |
-| Network offline | Graceful degradation? Retry logic? |
-| Concurrent users | Race conditions? Locks? Optimistic updates? |
-| Bad actor attempts | Input sanitized? Rate limited? Logged? |
-| Admin intervention | Can support help user? Audit trail exists? |
+> "If this broke at 3am, could someone figure out why?"
 
-## Execution Process
+> "If requirements changed tomorrow, what would be painful to modify?"
 
-1. **Parallel Discovery** (delegate to workers):
-   - Worker 1: Code markers & stubs (grep TODO, FIXME, placeholders)
-   - Worker 2: User journey simulation (trace main flows, find dead ends)
-   - Worker 3: Developer experience audit (setup, docs, error messages)
-   - Worker 4: Ops readiness check (logging, monitoring, config)
-   - Worker 5: Test coverage & edge cases (skipped tests, missing scenarios)
+> "If we had 100x traffic, what would fall over first?"
 
-2. **Synthesize & Prioritize**:
-   - Collect all findings
-   - Group by severity: Critical → High → Medium → Low
-   - Critical: Security issues, data loss risks, broken features
-   - High: User-facing bugs, incomplete core features
-   - Medium: Code quality, missing tests
-   - Low: Documentation, style issues
+These questions reveal incompleteness that checklists miss.
 
-3. **Implement Fixes**:
-   - Start with Critical items
-   - Complete each fix fully before moving on
-   - Run tests after each significant change
-   - Commit atomically per logical fix
+## Execution
 
-4. **Deep Dive with /review** (when needed):
-   If issues cluster in a specific domain, invoke `/review <domain>` for thorough analysis:
+1. **Understand the project** — Read README, main entry points, core flows. What is this thing supposed to do?
 
-   | Domain | When to Invoke |
-   |--------|----------------|
-   | `auth` | Auth flow issues, session bugs, SSO problems |
-   | `security` | Validation gaps, injection risks, secrets exposure |
-   | `billing` | Payment bugs, subscription issues, webhook failures |
-   | `performance` | Slow pages, bundle bloat, unnecessary re-renders |
-   | `database` | Schema issues, missing indexes, N+1 queries |
-   | `observability` | Missing logs, no alerts, debugging blind spots |
-   | `i18n` | Hardcoded strings, locale issues, RTL bugs |
+2. **Walk the critical paths** — Trace actual user journeys through code. Where does the path get uncertain, error-prone, or incomplete?
 
-   Full domain list: auth, account-security, privacy, billing, pricing, ledger, security, trust-safety, uiux, seo, pwa, performance, i18n, database, data-architecture, storage, observability, operability, delivery, growth, referral, support, admin, discovery, code-quality
+3. **Find the gaps** — Not just TODOs, but:
+   - Dead ends (code that starts something but doesn't finish)
+   - Weak spots (minimal implementation that will break under pressure)
+   - Missing pieces (what's referenced but doesn't exist)
 
-5. **Loop: Re-invoke /continue**:
-   After completing fixes, **invoke `/continue` again** to:
-   - Verify fixes didn't introduce new issues
-   - Discover issues that were hidden by previous bugs
-   - Continue until no Critical/High items remain
+4. **Prioritize by impact** — What blocks users? What causes data loss? What makes debugging impossible? Fix those first.
 
-   **Exit condition**: No Critical or High severity items found.
+5. **Fix completely** — Don't patch. Understand root cause. Implement proper solution. Test it works.
 
-## Output Format
+## When to Go Deeper
 
-### Discovery Summary
+If issues cluster in a domain, invoke `/review <domain>` for thorough analysis:
+
 ```
-## Incomplete Work Found
-
-### Critical (X items)
-- [ ] File:line - Description
-
-### High (X items)
-- [ ] File:line - Description
-
-### Medium (X items)
-- [ ] File:line - Description
-
-### Low (X items)
-- [ ] File:line - Description
+/review auth        — Auth flow issues
+/review security    — Validation gaps, injection risks
+/review database    — Schema issues, missing indexes
+/review performance — Slow paths, bundle bloat
 ```
 
-### Progress Updates
+Full list: auth, account-security, privacy, billing, pricing, ledger, security, trust-safety, uiux, seo, pwa, performance, i18n, database, data-architecture, storage, observability, operability, delivery, growth, referral, support, admin, discovery, code-quality
+
+## Loop
+
+After fixing, ask: "Did my fixes introduce new gaps? Did fixing X reveal Y was also broken?"
+
+If yes → continue. If no Critical/High issues remain → done.
+
+## Output
+
 ```
-✓ Fixed: [description] (file:line)
-⚠ Blocked: [description] - needs [reason]
-→ Deep dive: invoking /review [domain]
-↻ Loop: re-invoking /continue
+## What I Found
+
+[Describe the gaps discovered — not a checklist, but an understanding of what's incomplete and why]
+
+## What I Fixed
+
+- [Description of fix and why it matters]
+
+## What Remains
+
+- [Issues that need human decision or are blocked]
+
+## Next
+
+[/continue again | /review <domain> | done]
 ```
-
-### Completion
-```
-## Continue Complete
-
-✓ X issues fixed
-⚠ X issues need manual intervention
-→ Invoked /review for: [domains]
-
-Next: [/continue again | no further action needed]
-```
-
-## Driving Questions
-
-1. **User**: What flows break or confuse real users? Where do they get stuck?
-2. **Developer**: What would frustrate someone onboarding to this codebase?
-3. **Admin/Ops**: What would make a 3am incident harder to debug?
-4. **Security**: What incomplete validation could be exploited?
-5. **Quality**: What "temporary" solutions became permanent debt?
-6. **Scale**: What works now but will break at 10x growth?
