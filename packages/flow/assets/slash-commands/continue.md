@@ -60,14 +60,16 @@ These questions reveal incompleteness that checklists miss.
 
 ## When to Go Deeper
 
-If issues cluster in a domain, invoke `/review <domain>` for thorough analysis:
+If issues cluster in a domain, use the **SlashCommand tool** to run a focused review:
 
 ```
-/review auth        — Auth flow issues
-/review security    — Validation gaps, injection risks
-/review database    — Schema issues, missing indexes
-/review performance — Slow paths, bundle bloat
+SlashCommand: /review auth        — Auth flow issues
+SlashCommand: /review security    — Validation gaps, injection risks
+SlashCommand: /review database    — Schema issues, missing indexes
+SlashCommand: /review performance — Slow paths, bundle bloat
 ```
+
+**Important**: Use the SlashCommand tool, don't just read the guideline files.
 
 Full list: auth, account-security, privacy, billing, pricing, ledger, security, trust-safety, uiux, seo, pwa, performance, i18n, database, data-architecture, storage, observability, operability, delivery, growth, referral, support, admin, discovery, code-quality
 
@@ -75,7 +77,8 @@ Full list: auth, account-security, privacy, billing, pricing, ledger, security, 
 
 After fixing, ask: "Did my fixes introduce new gaps? Did fixing X reveal Y was also broken?"
 
-If yes → continue. If no Critical/High issues remain → done.
+If yes → use **SlashCommand tool** to run `/continue` again.
+If no Critical/High issues remain → done.
 
 ## Output
 
