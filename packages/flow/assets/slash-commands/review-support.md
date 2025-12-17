@@ -12,6 +12,12 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Explore beyond the spec**: identify user satisfaction improvements and support efficiency gains.
+
+## Tech Stack
+
+* **Email**: Resend
+* **Framework**: Next.js
 
 ## Review Scope
 
@@ -27,29 +33,11 @@ agent: coder
 * Newsletter subscription/preferences must be consent-aware
 * Unsubscribe enforcement must be reliable
 
-### Support Best Practices
+## Key Areas to Explore
 
-* Clear contact methods
-* Response time expectations
-* Help center / FAQ
-* Ticket tracking
-* Escalation paths
-* Support-assisted account recovery (with audit)
-
-### Communications
-
-* Transactional emails (Resend)
-* Marketing emails (consent-gated)
-* In-app notifications
-* Push notifications (consent-gated)
-* Email templates localized
-
-## Verification Checklist
-
-- [ ] Contact page discoverable
-- [ ] Contact page localized
-- [ ] WCAG AA compliant
-- [ ] Newsletter consent-aware
-- [ ] Unsubscribe works reliably
-- [ ] Transactional emails work
-- [ ] Support recovery audited
+* How do users find help when they need it?
+* What self-service support options exist (FAQ, help center)?
+* How are support requests tracked and resolved?
+* What is the email deliverability and engagement rate?
+* How does the newsletter system handle bounces and complaints?
+* What support tools do agents have for helping users?

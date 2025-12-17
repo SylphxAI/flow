@@ -12,6 +12,13 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Explore beyond the spec**: identify operational improvements and safety enhancements.
+
+## Tech Stack
+
+* **Framework**: Next.js
+* **API**: tRPC
+* **Database**: Neon (Postgres)
 
 ## Review Scope
 
@@ -35,20 +42,17 @@ agent: coder
 ### Admin Analytics and Reporting (Mandatory)
 
 * Provide comprehensive dashboards/reports for business, growth, billing, referral, support, and security/abuse signals, governed by RBAC.
-* Reporting must be consistent with system-of-record truth and auditable when derived from privileged actions.
 
 ### Admin Operational Management (Mandatory)
 
 * Tools for user/account management, entitlements/access management, lifecycle actions, and issue resolution workflows.
-* Actions affecting access, money/credits, or security posture require appropriate step-up controls and must be fully auditable; reversibility must follow domain rules.
+* Actions affecting access, money/credits, or security posture require appropriate step-up controls and must be fully auditable.
 
-## Verification Checklist
+## Key Areas to Explore
 
-- [ ] RBAC implemented (least privilege)
-- [ ] Admin bootstrap secure (not file seeding)
-- [ ] Bootstrap disables after completion
-- [ ] Config management with history
-- [ ] Feature flags governed
-- [ ] Admin dashboards exist
-- [ ] Impersonation has safeguards
-- [ ] All admin actions audited
+* How secure is the admin bootstrap process?
+* What RBAC gaps exist that could lead to privilege escalation?
+* How comprehensive is the audit logging for sensitive operations?
+* What admin workflows are missing or painful?
+* How does impersonation work and what safeguards exist?
+* What visibility do admins have into system health and issues?

@@ -12,6 +12,14 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Explore beyond the spec**: identify improvements for consistency, reliability, and scalability.
+
+## Tech Stack
+
+* **API**: tRPC
+* **Framework**: Next.js
+* **Database**: Neon (Postgres)
+* **ORM**: Drizzle
 
 ## Review Scope
 
@@ -26,11 +34,10 @@ agent: coder
 * **Server-truth is authoritative**: UI state must never contradict server-truth. Where asynchronous confirmation exists, UI must represent that state unambiguously and remain explainable.
 * **Auditability chain is mandatory** for any high-value mutation: who/when/why, before/after state, and correlation to the triggering request/job/webhook must be recorded and queryable.
 
-## Verification Checklist
+## Key Areas to Explore
 
-- [ ] Clear domain boundaries defined
-- [ ] Server enforcement for all authorization
-- [ ] Explicit consistency model documented
-- [ ] State machine for billing/entitlements exists
-- [ ] No dual-write violations
-- [ ] Auditability chain implemented
+* How well are domain boundaries defined and enforced?
+* Where does client-side trust leak into authorization decisions?
+* What consistency guarantees exist and are they sufficient?
+* How does the system handle eventual consistency edge cases?
+* What would break if a webhook is processed out of order?

@@ -12,6 +12,14 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Explore beyond the spec**: identify compliance gaps and privacy improvements.
+
+## Tech Stack
+
+* **Analytics**: PostHog
+* **Email**: Resend
+* **Tag Management**: GTM (marketing only)
+* **Observability**: Sentry
 
 ## Review Scope
 
@@ -32,19 +40,17 @@ agent: coder
 * Define deletion/deactivation semantics
 * Deletion propagation to third parties
 * Export where applicable
-* DR/backup posture aligned with retention
 * **Define data classification, retention periods, deletion propagation to third-party processors, and explicit exceptions** (legal/tax/anti-fraud)
-* Ensure external disclosures match behavior
 
 ### Behavioral Consistency
 
 * **Behavioral consistency is required**: policy and disclosures must match actual behavior across UI, data handling, logging/observability, analytics, support operations, and marketing tags; mismatches are release-blocking.
 
-## Verification Checklist
+## Key Areas to Explore
 
-- [ ] Consent gates analytics/marketing
-- [ ] No tracking without consent
-- [ ] PII scrubbed from logs/Sentry/PostHog
-- [ ] Data deletion flow works
-- [ ] Deletion propagates to third parties
-- [ ] Privacy policy matches actual behavior
+* Does the consent implementation actually block tracking before consent?
+* Where does PII leak into logs, analytics, or error tracking?
+* How does account deletion propagate to all third-party services?
+* Does the privacy policy accurately reflect actual data practices?
+* What data retention policies exist and are they enforced?
+* How would the system handle a GDPR data subject access request?

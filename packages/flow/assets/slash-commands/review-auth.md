@@ -12,6 +12,12 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Explore beyond the spec**: identify improvements for security, usability, and reliability.
+
+## Tech Stack
+
+* **Auth**: better-auth
+* **Framework**: Next.js
 
 ## Review Scope
 
@@ -27,21 +33,10 @@ agent: coder
 * **Email verification is mandatory** baseline for high-impact capabilities.
 * **Phone verification is optional** and used as risk-based step-up (anti-abuse, higher-trust flows, recovery); consent-aware and data-minimizing.
 
-### Authentication Best Practices
+## Key Areas to Explore
 
-* Secure session management
-* Token rotation and expiry
-* Brute force protection
-* Account enumeration prevention
-* Secure password reset flow
-* Remember me functionality (secure)
-
-## Verification Checklist
-
-- [ ] All SSO providers implemented
-- [ ] Missing provider secrets hide UI option
-- [ ] Multi-provider linking works safely
-- [ ] Passkeys (WebAuthn) supported
-- [ ] Email verification enforced
-- [ ] Phone verification optional/step-up
-- [ ] Session management secure
+* How does the current auth implementation compare to best practices?
+* What security vulnerabilities exist in the sign-in flows?
+* How can the user experience be improved while maintaining security?
+* What edge cases are not handled (account recovery, provider outages, etc.)?
+* How does session management handle concurrent devices?

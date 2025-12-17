@@ -12,6 +12,12 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Explore beyond the spec**: identify usability improvements and design inconsistencies.
+
+## Tech Stack
+
+* **Framework**: Next.js
+* **Icons**: Iconify
 
 ## Review Scope
 
@@ -33,24 +39,11 @@ agent: coder
   * Localized and measurable
   * Governed by eligibility and frequency controls
 
-### Design System Best Practices
+## Key Areas to Explore
 
-* Consistent spacing scale
-* Typography scale defined
-* Color tokens (semantic, not hardcoded)
-* Component library documented
-* Motion/animation guidelines
-* Error state patterns
-* Loading state patterns
-* Empty state patterns
-
-## Verification Checklist
-
-- [ ] Design tokens used consistently
-- [ ] Dark/light theme works
-- [ ] WCAG AA verified
-- [ ] No CLS issues
-- [ ] Mobile-first responsive
-- [ ] No emoji in UI
-- [ ] Guidance present on key flows
-- [ ] Guidance is dismissible + re-entrable
+* How consistent is the design system across the application?
+* What accessibility issues exist and affect real users?
+* Where do users get confused or drop off in key flows?
+* How does the mobile experience compare to desktop?
+* What guidance/onboarding is missing for complex features?
+* How does the dark/light theme implementation handle edge cases?

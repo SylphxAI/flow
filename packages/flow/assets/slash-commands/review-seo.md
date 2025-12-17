@@ -12,6 +12,11 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Explore beyond the spec**: identify improvements for discoverability and search rankings.
+
+## Tech Stack
+
+* **Framework**: Next.js (SSR-first for indexable/discovery)
 
 ## Review Scope
 
@@ -36,25 +41,11 @@ agent: coder
 * UGC canonical redirects
 * Locale routing invariants
 
-### SEO Best Practices
+## Key Areas to Explore
 
-* Unique titles per page
-* Meta descriptions present
-* Heading hierarchy (single H1)
-* Image alt text
-* Internal linking structure
-* Page speed optimization
-* Mobile-friendly
-* No duplicate content
-
-## Verification Checklist
-
-- [ ] All pages have unique titles
-- [ ] Meta descriptions present
-- [ ] Open Graph tags complete
-- [ ] Canonical URLs correct
-- [ ] hreflang implemented
-- [ ] sitemap.xml exists and valid
-- [ ] robots.txt configured
-- [ ] schema.org markup present
-- [ ] SSR for indexable content
+* How does the site perform in search engine results currently?
+* What pages are missing proper metadata or structured data?
+* How does the sitemap handle dynamic content and pagination?
+* Are there duplicate content issues or canonicalization problems?
+* What opportunities exist for featured snippets or rich results?
+* How does page load performance affect SEO rankings?

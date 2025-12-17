@@ -12,6 +12,12 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Explore beyond the spec**: identify revenue leakage and billing reliability improvements.
+
+## Tech Stack
+
+* **Payments**: Stripe
+* **Workflows**: Upstash Workflows + QStash
 
 ## Review Scope
 
@@ -28,7 +34,7 @@ agent: coder
 * **Webhook trust is mandatory**: webhook origin must be verified (signature verification and replay resistance)
 * The Stripe **event id** must be used as the idempotency and audit correlation key
 * Unverifiable events must be rejected and must trigger alerting
-* **Out-of-order behavior must be explicit**: all webhook handlers must define and enforce a clear out-of-order strategy (event ordering is not guaranteed even for the same subscription)
+* **Out-of-order behavior must be explicit**: all webhook handlers must define and enforce a clear out-of-order strategy
 
 ### State Machine
 
@@ -36,12 +42,11 @@ agent: coder
 * Handle: trial, past_due, unpaid, canceled, refund, dispute
 * UI only shows interpretable, non-ambiguous states
 
-## Verification Checklist
+## Key Areas to Explore
 
-- [ ] Billing state machine defined
-- [ ] Webhook signature verification
-- [ ] Idempotent webhook handling (event id)
-- [ ] Out-of-order handling defined
-- [ ] All Stripe states mapped
-- [ ] UI reflects server-truth only
-- [ ] Refund/dispute handling works
+* How robust is the webhook handling for all Stripe events?
+* What happens when webhooks arrive out of order?
+* How does the UI handle ambiguous billing states?
+* What revenue leakage exists (failed renewals, dunning, etc.)?
+* How are disputes and chargebacks handled end-to-end?
+* What is the testing strategy for billing edge cases?

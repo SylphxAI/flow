@@ -12,6 +12,13 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Explore beyond the spec**: identify blind spots and debugging improvements.
+
+## Tech Stack
+
+* **Error Tracking**: Sentry
+* **Analytics**: PostHog
+* **Platform**: Vercel
 
 ## Review Scope
 
@@ -26,30 +33,11 @@ agent: coder
   * Abuse spikes
   * Drift detection
 
-### Logging Best Practices
+## Key Areas to Explore
 
-* Structured JSON logs
-* Correlation ID in all logs
-* Request ID propagation
-* User context (anonymized where needed)
-* Error stack traces
-* Performance timing
-* No PII in logs
-
-### Monitoring
-
-* Sentry for error tracking
-* PostHog for product analytics
-* Server metrics (latency, throughput, errors)
-* Database query performance
-* External service health
-
-## Verification Checklist
-
-- [ ] Structured logging implemented
-- [ ] Correlation IDs propagate
-- [ ] Sentry configured
-- [ ] SLO/SLI defined
-- [ ] Alerts for critical failures
-- [ ] No PII in logs
-- [ ] Dashboards for key metrics
+* How easy is it to debug a production issue end-to-end?
+* What blind spots exist where errors go unnoticed?
+* How effective are the current alerts (signal vs noise)?
+* What SLOs/SLIs are defined and are they meaningful?
+* How does log correlation work across async boundaries?
+* What dashboards exist and do they answer the right questions?

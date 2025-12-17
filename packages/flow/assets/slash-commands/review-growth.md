@@ -12,6 +12,12 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Explore beyond the spec**: identify growth opportunities and conversion improvements.
+
+## Tech Stack
+
+* **Analytics**: PostHog
+* **Framework**: Next.js
 
 ## Review Scope
 
@@ -41,22 +47,11 @@ agent: coder
   * Monitored
   * Protected against regressions
 
-### Growth Best Practices
+## Key Areas to Explore
 
-* Clear value proposition on landing
-* Frictionless signup
-* Time-to-value optimization
-* Activation milestones defined
-* Re-engagement campaigns
-* Churn prediction/prevention
-* NPS/satisfaction tracking
-
-## Verification Checklist
-
-- [ ] Onboarding flow exists
-- [ ] Onboarding instrumented
-- [ ] Sharing mechanisms work
-- [ ] Sharing is consent-aware
-- [ ] Retention metrics tracked
-- [ ] Re-engagement exists
-- [ ] Growth metrics dashboarded
+* What is the current activation rate and where do users drop off?
+* How can time-to-value be reduced for new users?
+* What viral mechanics exist and how effective are they?
+* What retention patterns exist and what predicts churn?
+* How does the product re-engage dormant users?
+* What experiments could drive meaningful growth improvements?

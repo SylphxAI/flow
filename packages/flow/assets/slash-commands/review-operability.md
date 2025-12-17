@@ -12,6 +12,13 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Explore beyond the spec**: identify operational risks and reliability improvements.
+
+## Tech Stack
+
+* **Workflows**: Upstash Workflows + QStash
+* **Cache**: Upstash Redis
+* **Platform**: Vercel
 
 ## Review Scope
 
@@ -21,7 +28,7 @@ agent: coder
 * Define controlled retries/backoff
 * **Dead-letter handling must exist and be observable and operable**
 * **Safe replay must be supported**
-* Side-effects (email/billing/ledger/entitlements) must be governed such that they are either proven effectively-once or safely re-entrant without duplicated economic/security consequences
+* Side-effects (email/billing/ledger/entitlements) must be governed such that they are either proven effectively-once or safely re-entrant
 
 ### Drift Detection (Hard Requirement)
 
@@ -33,22 +40,11 @@ agent: coder
 * Define safe rollout posture with backward compatibility
 * Rollback expectations for billing/ledger/auth changes
 
-### Operability Best Practices
+## Key Areas to Explore
 
-* Health check endpoints
-* Graceful shutdown
-* Circuit breakers for external services
-* Timeout configuration
-* Retry with exponential backoff
-* Bulk operation controls
-* Maintenance mode capability
-
-## Verification Checklist
-
-- [ ] Async jobs idempotent
-- [ ] DLQ exists and observable
-- [ ] Safe replay supported
-- [ ] Drift detection implemented
-- [ ] Remediation playbooks exist
-- [ ] Rollback strategy defined
-- [ ] Health checks present
+* How does the system handle job failures and retries?
+* What happens to messages that fail permanently (DLQ)?
+* How are operators notified of and able to resolve stuck workflows?
+* What drift can occur between systems and how is it detected?
+* How safe is the deployment process for critical paths?
+* What runbooks exist for common operational issues?

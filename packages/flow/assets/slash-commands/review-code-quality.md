@@ -12,6 +12,14 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Explore beyond the spec**: identify maintainability issues and technical debt.
+
+## Tech Stack
+
+* **Runtime**: Bun
+* **Linting/Formatting**: Biome
+* **Testing**: Bun test
+* **Language**: TypeScript (strict)
 
 ## Review Scope
 
@@ -25,39 +33,12 @@ agent: coder
 * Precise naming; remove dead/unused code.
 * Upgrade all packages to latest stable; avoid deprecated patterns.
 
-### Tooling Baseline
+## Key Areas to Explore
 
-* **Bun** for runtime
-* **Biome** for linting/formatting
-* **Bun test** for testing
-* Strict TypeScript
-
-### CI Requirements
-
-* Biome lint/format passes
-* Strict TS typecheck passes
-* Unit + E2E tests pass
-* Build succeeds
-
-### Code Quality Best Practices
-
-* Consistent code style
-* Meaningful variable/function names
-* Single responsibility principle
-* DRY (Don't Repeat Yourself)
-* SOLID principles
-* No circular dependencies
-* Reasonable file sizes
-* Clear module boundaries
-
-## Verification Checklist
-
-- [ ] Biome lint passes
-- [ ] Biome format passes
-- [ ] TypeScript strict mode
-- [ ] No type errors
-- [ ] Tests exist and pass
-- [ ] Build succeeds
-- [ ] No TODOs/hacks
-- [ ] No dead code
-- [ ] Packages up to date
+* What areas of the codebase have the most technical debt?
+* Where are types weak or using `any` inappropriately?
+* What test coverage gaps exist for critical paths?
+* What code patterns are inconsistent across the codebase?
+* What dependencies are outdated or have known vulnerabilities?
+* Where do "god files" or overly complex modules exist?
+* What naming inconsistencies make the code harder to understand?

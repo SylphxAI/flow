@@ -12,6 +12,12 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Explore beyond the spec**: identify growth opportunities and fraud prevention improvements.
+
+## Tech Stack
+
+* **Analytics**: PostHog
+* **Database**: Neon (Postgres)
 
 ## Review Scope
 
@@ -34,21 +40,11 @@ agent: coder
   * Clawback conditions
   * Auditable manual review/appeal posture where applicable
 
-### Referral Best Practices
+## Key Areas to Explore
 
-* Clear attribution window
-* Reward triggers well-defined
-* Double-sided rewards (referrer + referee)
-* Fraud detection signals
-* Admin visibility into referral chains
-* Automated clawback on refund/chargeback
-
-## Verification Checklist
-
-- [ ] Attribution tracking works
-- [ ] Reward lifecycle defined
-- [ ] Velocity controls implemented
-- [ ] Device/account linkage checked
-- [ ] Clawback on fraud/refund
-- [ ] Admin can review referrals
-- [ ] Localized referral messaging
+* How effective is the current referral program at driving growth?
+* What fraud patterns have been observed and how are they mitigated?
+* How does the attribution model handle edge cases (multiple touches, expired links)?
+* What is the reward fulfillment process and where can it fail?
+* How do users discover and share referral links?
+* What analytics exist to measure referral program ROI?

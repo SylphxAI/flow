@@ -12,6 +12,12 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Explore beyond the spec**: identify engagement opportunities and offline capabilities.
+
+## Tech Stack
+
+* **Framework**: Next.js
+* **Platform**: Vercel
 
 ## Review Scope
 
@@ -27,25 +33,11 @@ agent: coder
 * Authenticated and entitlement-sensitive routes must have explicit cache-control and SW rules
 * Must be validated by tests to prevent stale or unauthorized state exposure
 
-### PWA Best Practices
+## Key Areas to Explore
 
-* Installable (meets PWA criteria)
-* Offline fallback page
-* App icons (all sizes)
-* Splash screen configured
-* Theme color defined
-* Start URL configured
-* Display mode appropriate
-* Cache versioning strategy
-* Cache invalidation on deploy
-
-## Verification Checklist
-
-- [ ] Valid manifest.json
-- [ ] Service worker registered
-- [ ] SW doesn't cache auth content
-- [ ] Cache-control headers correct
-- [ ] Push notifications work (if applicable)
-- [ ] Installable on mobile
-- [ ] Offline fallback exists
-- [ ] Cache invalidation tested
+* Does the PWA meet installation criteria on all platforms?
+* What is the offline experience and how can it be improved?
+* How does the service worker handle cache invalidation on deploys?
+* What push notification capabilities exist and how are they used?
+* Are there any caching bugs that expose stale or unauthorized content?
+* How does the PWA experience compare to native app expectations?

@@ -12,6 +12,12 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Explore beyond the spec**: identify improvements for performance, reliability, and maintainability.
+
+## Tech Stack
+
+* **Database**: Neon (Postgres)
+* **ORM**: Drizzle
 
 ## Review Scope
 
@@ -21,20 +27,11 @@ agent: coder
 * Deterministic, reproducible, environment-safe; linear/auditable history; no drift.
 * CI must fail if schema changes are not represented by migrations.
 
-### Database Best Practices
+## Key Areas to Explore
 
-* Schema design follows normalization principles where appropriate
-* Indexes exist for commonly queried columns
-* Foreign key constraints are properly defined
-* No orphaned tables or columns
-* Proper use of data types (no stringly-typed data)
-* Timestamps use consistent timezone handling
-
-## Verification Checklist
-
-- [ ] All migrations committed and complete
-- [ ] No schema drift detected
-- [ ] CI blocks on migration integrity
-- [ ] Indexes cover common queries
-- [ ] Foreign keys properly defined
-- [ ] Data types appropriate
+* Is the schema well-designed for the domain requirements?
+* Are there missing indexes that could improve query performance?
+* How are database connections pooled and managed?
+* What is the backup and disaster recovery strategy?
+* Are there any N+1 query problems or inefficient access patterns?
+* How does the schema handle soft deletes, auditing, and data lifecycle?

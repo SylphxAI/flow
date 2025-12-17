@@ -12,6 +12,11 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Explore beyond the spec**: identify monetization opportunities and pricing strategy improvements.
+
+## Tech Stack
+
+* **Payments**: Stripe
 
 ## Review Scope
 
@@ -30,19 +35,11 @@ agent: coder
 * All actions must be governed by RBAC, step-up controls, and audit logs.
 * Stripe Dashboard is treated as monitoring/emergency access; non-admin Stripe changes must be detectable (drift), alertable, and remediable.
 
-### Pricing Strategy
+## Key Areas to Explore
 
-* Clear tier differentiation
-* Feature gating by plan
-* Upgrade/downgrade paths defined
-* Proration handling
-* Trial-to-paid conversion flow
-
-## Verification Checklist
-
-- [ ] Stripe is system-of-record
-- [ ] New prices don't mutate existing
-- [ ] Grandfathering policy implemented
-- [ ] Pricing admin exists with RBAC
-- [ ] Stripe Dashboard drift detectable
-- [ ] Upgrade/downgrade paths work
+* How does the pricing model compare to competitors?
+* What friction exists in the upgrade/downgrade paths?
+* How is grandfathering implemented and communicated?
+* What tools exist for pricing experimentation (A/B tests)?
+* How are pricing changes rolled out safely?
+* What analytics exist for pricing optimization decisions?

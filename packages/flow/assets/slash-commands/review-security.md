@@ -12,6 +12,13 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Explore beyond the spec**: identify vulnerabilities and hardening opportunities.
+
+## Tech Stack
+
+* **Rate Limiting**: Upstash Redis
+* **Framework**: Next.js
+* **Platform**: Vercel
 
 ## Review Scope
 
@@ -31,23 +38,17 @@ agent: coder
 * Supply-chain hygiene
 * Measurable security
 
-### Verification Requirements
-
-* **Security controls must be verifiable**: CSP/HSTS/security headers and CSRF (where applicable) must be covered by automated checks or security tests and included in release gates.
-
 ### Configuration and Secrets Governance
 
 * Required configuration must fail-fast at build/startup
 * Strict environment isolation (dev/stage/prod)
 * Rotation and incident remediation posture must be auditable and exercisable
 
-## Verification Checklist
+## Key Areas to Explore
 
-- [ ] OWASP Top 10:2025 addressed
-- [ ] CSP headers configured
-- [ ] HSTS enabled
-- [ ] CSRF protection where needed
-- [ ] Rate limiting implemented
-- [ ] No plaintext passwords anywhere
-- [ ] MFA for admin roles
-- [ ] Security headers tested in CI
+* What OWASP Top 10 vulnerabilities exist in the current implementation?
+* How comprehensive are the security headers (CSP, HSTS, etc.)?
+* Where is rate limiting missing or insufficient?
+* How are secrets managed and what is the rotation strategy?
+* What attack vectors exist for the authentication flows?
+* How does the system detect and respond to security incidents?

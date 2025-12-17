@@ -12,6 +12,12 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Explore beyond the spec**: identify improvements for coverage, quality, and user experience.
+
+## Tech Stack
+
+* **i18n**: next-intl
+* **Framework**: Next.js
 
 ## Review Scope
 
@@ -39,12 +45,10 @@ agent: coder
 * No indexable locale-prefixed duplicates unless primary content is truly localized; otherwise redirect to canonical.
 * Canonical/hreflang/sitemap must reflect only true localized variants.
 
-## Verification Checklist
+## Key Areas to Explore
 
-- [ ] All locales supported
-- [ ] `/en/*` returns 301 redirect
-- [ ] Missing keys fail build
-- [ ] No hardcoded strings
-- [ ] Intl formatting used
-- [ ] UGC has single canonical URL
-- [ ] hreflang tags correct
+* How complete and consistent are the translations across all locales?
+* What user-facing strings are hardcoded and missing from localization?
+* How does the routing handle edge cases (unknown locales, malformed URLs)?
+* What is the translation workflow and how can it be improved?
+* How does the system handle RTL languages if needed in the future?

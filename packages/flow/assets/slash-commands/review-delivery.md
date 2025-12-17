@@ -12,6 +12,14 @@ agent: coder
 * **Delegate to multiple workers** to research different aspects in parallel; you act as the **final gate** to synthesize and verify quality.
 * Deliverables must be stated as **findings, gaps, and actionable recommendations**.
 * **Single-pass delivery**: no deferrals; deliver a complete assessment.
+* **Explore beyond the spec**: identify gaps in automated verification and release safety.
+
+## Tech Stack
+
+* **CI**: GitHub Actions
+* **Testing**: Bun test
+* **Linting**: Biome
+* **Platform**: Vercel
 
 ## Review Scope
 
@@ -19,34 +27,12 @@ agent: coder
 
 CI must block merges/deploys when failing:
 
-#### Code Quality Gates
-- [ ] Biome lint/format passes
-- [ ] Strict TS typecheck passes
-- [ ] Unit + E2E tests pass (Bun test)
-- [ ] Build succeeds
-
-#### Data Integrity Gates
-- [ ] Migration integrity checks pass
-- [ ] No schema drift
-
-#### i18n Gates
-- [ ] Missing translation keys fail build
-- [ ] `/en/*` returns 301 redirect
-- [ ] hreflang/x-default correct
-- [ ] Sitemap contains only true variants
-
-#### Performance Gates
-- [ ] Performance budget verification for key journeys
-- [ ] Core Web Vitals within thresholds
-- [ ] Release-blocking regression detection
-
-#### Security Gates
-- [ ] CSP/HSTS/security headers verified
-- [ ] CSRF protection tested
-
-#### Consent Gates
-- [ ] Analytics/marketing consent gating verified
-- [ ] Newsletter eligibility and firing rules tested
+* Code Quality: Biome lint/format, strict TS typecheck, unit + E2E tests, build
+* Data Integrity: Migration integrity checks, no schema drift
+* i18n: Missing translation keys fail build, `/en/*` redirects, hreflang correct
+* Performance: Budget verification, Core Web Vitals thresholds, regression detection
+* Security: CSP/HSTS/headers verified, CSRF protection tested
+* Consent: Analytics/marketing consent gating verified
 
 ### Automation Requirement
 
@@ -54,18 +40,18 @@ CI must block merges/deploys when failing:
 
 ### Configuration Gates
 
-* Build/startup must fail-fast when required configuration/secrets are missing or invalid for the target environment.
+* Build/startup must fail-fast when required configuration/secrets are missing or invalid.
 
 ### Operability Gates
 
 * Observability and alerting configured for critical anomalies
-* Workflow dead-letter handling is operable, visible, and supports controlled replay
+* Workflow dead-letter handling is operable and supports controlled replay
 
-## Verification Checklist
+## Key Areas to Explore
 
-- [ ] All gates automated (no manual)
-- [ ] CI blocks on failures
-- [ ] Config fail-fast works
-- [ ] Operability gates met
-- [ ] No TODOs/hacks/workarounds
-- [ ] No dead/unused code
+* What release gates are missing or insufficient?
+* Where does manual verification substitute for automation?
+* How fast is the CI pipeline and what slows it down?
+* What flaky tests exist and how do they affect reliability?
+* How does the deployment process handle rollbacks?
+* What post-deployment verification exists?
