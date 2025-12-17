@@ -1,5 +1,19 @@
 # @sylphx/flow
 
+## 2.16.2 (2025-12-17)
+
+### 🐛 Bug Fixes
+
+- **commands:** tell LLM to use SlashCommand tool for /review and /continue ([6983015](https://github.com/SylphxAI/flow/commit/6983015b97e89a48e973106828672b8b3000dce8))
+
+### ♻️ Refactoring
+
+- **assets:** convert guidelines to Skills (model-invoked) ([2eb8d01](https://github.com/SylphxAI/flow/commit/2eb8d01162f00a127c5666c8afd9b63fc477ea42))
+
+### 🔧 Chores
+
+- trigger release workflow ([69d661c](https://github.com/SylphxAI/flow/commit/69d661c582157650df855a3a31e21ad6a8b3e7bf))
+
 ## 2.16.1 (2025-12-17)
 
 ### ♻️ Refactoring
