@@ -57,6 +57,7 @@ Delegate each domain to a worker agent. Workers should review compliance with sp
 | Platform | `/saas-platform` | Design system, SEO, PWA, performance, a11y |
 | Security | `/saas-security` | OWASP, privacy, consent, observability, operability |
 | Growth | `/saas-growth` | Onboarding, referral, retention, guidance |
+| Admin | `/saas-admin` | RBAC, bootstrap, config, feature flags, ops tooling |
 
 ### Phase 2: Strategic Discovery
 
