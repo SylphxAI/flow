@@ -120,7 +120,8 @@ async function configureAgents(configService: GlobalConfigService): Promise<void
   const settings = await configService.loadSettings();
 
   const availableAgents = {
-    coder: 'Coder - Write and modify code',
+    builder: 'Builder - Autonomous product builder (default)',
+    coder: 'Coder - Task-focused code execution',
     writer: 'Writer - Documentation and explanation',
     reviewer: 'Reviewer - Code review and critique',
   };
@@ -144,7 +145,7 @@ async function configureAgents(configService: GlobalConfigService): Promise<void
         name: availableAgents[key as keyof typeof availableAgents],
         value: key,
       })),
-      default: settings.defaultAgent || 'coder',
+      default: settings.defaultAgent || 'builder',
     },
   ]);
 

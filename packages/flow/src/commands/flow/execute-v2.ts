@@ -275,12 +275,12 @@ export async function executeFlowV2(
 
     // Determine which agent to use
     const flowConfig = await configService.loadFlowConfig();
-    let agent = options.agent || settings.defaultAgent || 'coder';
+    let agent = options.agent || settings.defaultAgent || 'builder';
 
     // Check if agent is enabled (silent fallback)
     if (!flowConfig.agents[agent]?.enabled) {
       const enabledAgents = await configService.getEnabledAgents();
-      agent = enabledAgents.length > 0 ? enabledAgents[0] : 'coder';
+      agent = enabledAgents.length > 0 ? enabledAgents[0] : 'builder';
     }
 
     // Load agent content

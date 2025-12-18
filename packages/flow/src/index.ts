@@ -57,7 +57,7 @@ export function createCLI(): Command {
       '[prompt]',
       'Prompt to execute with agent (optional, supports @file.txt for file input)'
     )
-    .option('--agent <name>', 'Agent to use (default: coder)', 'coder')
+    .option('--agent <name>', 'Agent to use (default: builder)', 'builder')
     .option('--agent-file <path>', 'Load agent from specific file')
     .option('--verbose', 'Show detailed output')
     .option('--dry-run', 'Show what would be done without making changes')

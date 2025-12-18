@@ -268,6 +268,7 @@ export class GlobalConfigService {
       return {
         version: '1.0.0',
         agents: {
+          builder: { enabled: true },
           coder: { enabled: true },
           writer: { enabled: true },
           reviewer: { enabled: true },
