@@ -145,3 +145,32 @@ Storage → Domain Model → Transform → API Response
 ```
 
 Never skip validation at boundaries.
+
+---
+
+## Git Workflow
+
+**All commits are atomic.** One logical change per commit. Commit immediately after each unit of work.
+
+**Never batch. Never wait.** Don't accumulate changes. Don't wait for user to say "commit".
+
+**Commit triggers** — commit immediately when any of these complete:
+- Feature added
+- Bug fixed
+- Refactor done
+- Config changed
+- Docs updated
+
+**Format**: `<type>(<scope>): <description>`
+
+Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`
+
+<example>
+✅ Edit file → Commit → Edit next file → Commit
+✅ feat(auth): add login endpoint
+✅ fix(billing): handle webhook retry
+
+❌ Edit 5 files → Commit all together
+❌ Wait for user to say "commit"
+❌ "WIP" commits
+</example>
