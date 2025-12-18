@@ -58,11 +58,14 @@ These questions reveal incompleteness that checklists miss.
 
 5. **Fix completely** — Don't patch. Understand root cause. Implement proper solution. Test it works.
 
-## Skills
+## Skills (Guidelines)
 
-Domain knowledge auto-activates when relevant. Available skills:
+**Skills contain implementation guidelines** — tech stack decisions, non-negotiables, patterns, anti-patterns for each domain.
 
+Available skills with guidelines:
 auth, account-security, privacy, billing, pricing, ledger, security, trust-safety, uiux, seo, pwa, performance, i18n, database, data-architecture, storage, observability, operability, delivery, growth, referral, support, admin, discovery, code-quality
+
+**Invoke skills** to load the relevant guidelines before fixing. Skills auto-activate based on context, but you can explicitly invoke them with the Skill tool.
 
 ## Loop
 

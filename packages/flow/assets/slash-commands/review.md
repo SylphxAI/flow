@@ -17,13 +17,14 @@ args:
 * **Delegate workers** for parallel research. You synthesize and verify.
 * **Fix, don't report.** Implement solutions directly.
 
-## Skills
+## Skills (Guidelines)
 
-Domain knowledge is available through Skills that auto-activate based on context:
+**Skills contain implementation guidelines** — tech stack decisions, non-negotiables, patterns, anti-patterns for each domain.
 
+Available skills with guidelines:
 auth, account-security, privacy, billing, pricing, ledger, security, trust-safety, uiux, seo, pwa, performance, i18n, database, data-architecture, storage, observability, operability, delivery, growth, referral, support, admin, discovery, code-quality
 
-You don't need to invoke them — they activate when relevant.
+**Invoke skills** to load the relevant guidelines before reviewing. Skills auto-activate based on context, but you can explicitly invoke them with the Skill tool.
 
 ## Output
 
