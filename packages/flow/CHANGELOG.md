@@ -1,5 +1,13 @@
 # @sylphx/flow
 
+## 2.18.2 (2025-12-18)
+
+### ♻️ Refactoring
+
+- **commands:** align /review with /continue - skills as step 1 ([b700fa5](https://github.com/SylphxAI/flow/commit/b700fa5272d6a656cd88acf94e3851cf31d29727))
+- **commands:** simplify /continue - half the length, skills in execution flow ([b04facb](https://github.com/SylphxAI/flow/commit/b04facb60138155b0e203ac6fbf3f03d5252f226))
+- **core:** remove dead code and consolidate duplications ([ee54d3f](https://github.com/SylphxAI/flow/commit/ee54d3f885f8e7a7011e39d95e5403c70fa595be))
+
 ## 2.18.1 (2025-12-18)
 
 ### 🐛 Bug Fixes
