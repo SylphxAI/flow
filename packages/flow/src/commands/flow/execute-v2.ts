@@ -15,7 +15,7 @@ import { GlobalConfigService } from '../../services/global-config.js';
 import { TargetInstaller } from '../../services/target-installer.js';
 import type { RunCommandOptions } from '../../types.js';
 import { extractAgentInstructions, loadAgentContent } from '../../utils/agent-enhancer.js';
-import { showHeader } from '../../utils/display/banner.js';
+import { showAttachSummary, showHeader } from '../../utils/display/banner.js';
 import { CLIError } from '../../utils/error-handler.js';
 import { UserCancelledError } from '../../utils/errors.js';
 import { ensureTargetInstalled, promptForTargetSelection } from '../../utils/target-selection.js';
@@ -262,6 +262,9 @@ export async function executeFlowV2(
       skipSecrets: false,
       merge: options.merge || false,
     });
+
+    // Show attach summary
+    showAttachSummary(attachResult);
 
     const targetId = selectedTargetId;
 

@@ -55,7 +55,13 @@ export class FlowExecutor {
   async execute(
     projectPath: string,
     options: FlowExecutorOptions = {}
-  ): Promise<{ joined: boolean; agents?: number; commands?: number; mcp?: number }> {
+  ): Promise<{
+    joined: boolean;
+    agents?: number;
+    commands?: number;
+    skills?: number;
+    mcp?: number;
+  }> {
     // Initialize Flow directories
     await this.projectManager.initialize();
 
