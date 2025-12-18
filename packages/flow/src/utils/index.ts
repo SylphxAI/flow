@@ -37,13 +37,9 @@ export * from './error-handler.js';
 export * from './files/file-operations.js';
 export * from './files/sync-utils.js';
 // ============================================================================
-// FUNCTIONAL PROGRAMMING
-// ============================================================================
-export * from './functional.js';
-export * from './security/secret-utils.js';
-// ============================================================================
 // SECURITY
 // ============================================================================
+export * from './security/secret-utils.js';
 export * from './security/security.js';
 // ============================================================================
 // VERSIONING

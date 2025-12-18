@@ -9,7 +9,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { Target } from '../types/target.types.js';
 import type { ProjectManager } from './project-manager.js';
-import { targetManager } from './target-manager.js';
+import { resolveTargetOrId } from './target-resolver.js';
 
 export interface MCPSecrets {
   version: string;
@@ -31,17 +31,6 @@ export class SecretsManager {
   }
 
   /**
-   * Resolve target from ID string to Target object
-   */
-  private resolveTarget(targetId: string): Target {
-    const targetOption = targetManager.getTarget(targetId);
-    if (targetOption._tag === 'None') {
-      throw new Error(`Unknown target: ${targetId}`);
-    }
-    return targetOption.value;
-  }
-
-  /**
    * Extract MCP secrets from project config
    */
   async extractMCPSecrets(
@@ -49,7 +38,7 @@ export class SecretsManager {
     _projectHash: string,
     targetOrId: Target | string
   ): Promise<MCPSecrets> {
-    const target = typeof targetOrId === 'string' ? this.resolveTarget(targetOrId) : targetOrId;
+    const target = resolveTargetOrId(targetOrId);
     // configFile is at project root, not in targetDir
     const configPath = path.join(projectPath, target.config.configFile);
     const mcpPath = target.config.mcpConfigPath;
@@ -145,7 +134,7 @@ export class SecretsManager {
       return;
     }
 
-    const target = typeof targetOrId === 'string' ? this.resolveTarget(targetOrId) : targetOrId;
+    const target = resolveTargetOrId(targetOrId);
     // configFile is at project root, not in targetDir
     const configPath = path.join(projectPath, target.config.configFile);
     const mcpPath = target.config.mcpConfigPath;

@@ -9,7 +9,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { Target } from '../types/target.types.js';
 import type { ProjectManager } from './project-manager.js';
-import { targetManager } from './target-manager.js';
+import { resolveTarget, resolveTargetOrId } from './target-resolver.js';
 
 export interface BackupInfo {
   sessionId: string;
@@ -70,17 +70,6 @@ export class BackupManager {
   }
 
   /**
-   * Resolve target from ID string to Target object
-   */
-  private resolveTarget(targetId: string): Target {
-    const targetOption = targetManager.getTarget(targetId);
-    if (targetOption._tag === 'None') {
-      throw new Error(`Unknown target: ${targetId}`);
-    }
-    return targetOption.value;
-  }
-
-  /**
    * Create full backup of project environment
    */
   async createBackup(
@@ -88,7 +77,7 @@ export class BackupManager {
     projectHash: string,
     targetOrId: Target | string
   ): Promise<BackupInfo> {
-    const target = typeof targetOrId === 'string' ? this.resolveTarget(targetOrId) : targetOrId;
+    const target = resolveTargetOrId(targetOrId);
     const targetId = target.id;
     const sessionId = `session-${Date.now()}`;
     const timestamp = new Date().toISOString();
@@ -178,7 +167,7 @@ export class BackupManager {
     const targetId = manifest.target;
 
     // Resolve target to get config
-    const target = this.resolveTarget(targetId);
+    const target = resolveTarget(targetId);
 
     // Get target config directory
     const targetConfigDir = this.projectManager.getTargetConfigDir(projectPath, target);
