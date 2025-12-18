@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.27.0 (2025-12-18)
+
+### ✨ Features
+
+- **flow:** auto-create PRODUCT.md and ARCHITECTURE.md if missing ([3ae7db8](https://github.com/SylphxAI/flow/commit/3ae7db8770920422597ab073ba69b48248fd1f8b))
+
 ## 2.26.0 (2025-12-18)
 
 ### ✨ Features
