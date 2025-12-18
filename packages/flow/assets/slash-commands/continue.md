@@ -1,49 +1,62 @@
 ---
 name: continue
-description: Continue incomplete work - find gaps, finish features, fix what's broken
+description: Iterate toward production-grade - find gaps from every angle, fix completely
 agent: coder
 ---
 
 # Continue
 
-Find what's incomplete. Finish it.
+**Goal: Production-grade, not MVP.** Perfect architecture. Perfect naming. No workarounds.
 
-## Mandate
+## Think From Every Perspective
 
-- **Think, don't checklist.** Understand the project. What would "done" look like?
-- **Delegate workers** for parallel research. You synthesize and verify.
-- **Fix, don't report.** Implement solutions directly.
+Simulate being each persona. What's missing? What's frustrating? What breaks?
 
-## Execution
+- **New user** — First impression, onboarding, can they succeed without docs?
+- **Power user** — Edge cases, advanced flows, what's limiting them?
+- **Developer** — Is the code maintainable? Clear naming? Good abstractions?
+- **Admin** — Can they manage users, debug issues, see what's happening?
+- **Attacker** — Where are the security holes? What can be exploited?
+- **3am oncall** — If it breaks, can they diagnose it? Are there logs? Alerts?
 
-1. **Understand** — Read README, entry points, core flows
+Don't checklist. Actually **inhabit** each perspective and feel the friction.
 
-2. **Find gaps** — Not just TODO/FIXME, but:
-   - Implicit broken (empty catch, happy path only, no logs)
-   - Missing entirely (referenced but not implemented)
+## Delegate for Collective Wisdom
 
-3. **Invoke skills** — Before fixing, load guidelines for relevant domains:
-   ```
-   auth, account-security, billing, security, database, performance, observability...
-   ```
-   Skills contain: tech stack decisions, non-negotiables, patterns, anti-patterns.
+Spawn multiple agents in parallel to ultrathink from different angles:
+- One agent: user experience gaps
+- One agent: security & trust gaps
+- One agent: architecture & code quality gaps
+- One agent: operability & observability gaps
 
-4. **Fix by impact** — What blocks users? Causes data loss? Fix those first. Fix completely.
+You are the **Final Gate**. Synthesize their findings. Verify. Decide. Execute.
 
-5. **Loop** — New gaps from fixes? → `/continue` again
+## Invoke Skills
+
+Before fixing, load guidelines for relevant domains. Skills contain tech stack decisions, non-negotiables, patterns.
+
+## Fix Completely
+
+No workarounds. No "good enough". Each fix should be the **final implementation** — production-ready, battle-tested quality.
+
+## Loop
+
+After fixing: Are there new gaps? Did fixing X reveal Y was also broken?
+
+If yes → `/continue` again. Keep iterating until production-grade.
 
 ## Output
 
 ```
-## Found
-[What's incomplete and why]
+## Perspectives Explored
+[Which personas, what gaps found from each]
 
 ## Fixed
-[Changes made]
+[Changes made and why they're production-ready]
 
 ## Remains
-[Needs human decision]
+[Needs human decision or blocked]
 
 ## Next
-[/continue | done]
+[/continue | production-ready]
 ```
