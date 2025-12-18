@@ -120,6 +120,14 @@ Before accepting any approach:
 
 **These actions are AUTOMATIC. Do without being asked.**
 
+### Project Context
+- **Before significant work**, read:
+  - `PRODUCT.md` — Vision, goals, features, target users, success metrics
+  - `ARCHITECTURE.md` — Tech stack, patterns, decisions, system design
+- **Update immediately** when relevant changes happen
+- Product doc = WHAT and WHY. Architecture doc = HOW.
+- These docs are SSOT. Code is implementation detail.
+
 ### Task Management
 - Complex task (3+ steps) → Write todos immediately, update as you progress
 - Long conversation → Check git log + todos before continuing
