@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.24.0 (2025-12-18)
+
+### ✨ Features
+
+- **agents:** Builder v3 - world-class, user-centric, business-driven ([4ffb18e](https://github.com/SylphxAI/flow/commit/4ffb18e3fef71c6fc75e61339d150b73c17569b7))
+
 ## 2.23.0 (2025-12-18)
 
 ### ✨ Features
