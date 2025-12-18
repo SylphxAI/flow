@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.17.0 (2025-12-18)
+
+### ✨ Features
+
+- **skills:** implement skills loading and attach pipeline ([8d720b8](https://github.com/SylphxAI/flow/commit/8d720b8118ffe19e14d50aaacd9282bd5d42e702))
+
 ## 2.16.2 (2025-12-17)
 
 ### 🐛 Bug Fixes
