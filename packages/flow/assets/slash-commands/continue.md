@@ -1,62 +1,40 @@
 ---
 name: continue
-description: Iterate toward production-grade - find gaps from every angle, fix completely
+description: Iterate toward production-grade - think deeply, find gaps, fix completely
 agent: coder
 ---
 
 # Continue
 
-**Goal: Production-grade, not MVP.** Perfect architecture. Perfect naming. No workarounds.
+**Goal: Production-grade, not MVP.** No workarounds. No shortcuts. The final implementation.
 
-## Think From Every Perspective
+## Think
 
-Simulate being each persona. What's missing? What's frustrating? What breaks?
+不要 checklist。**深入思考**。
 
-- **New user** — First impression, onboarding, can they succeed without docs?
-- **Power user** — Edge cases, advanced flows, what's limiting them?
-- **Developer** — Is the code maintainable? Clear naming? Good abstractions?
-- **Admin** — Can they manage users, debug issues, see what's happening?
-- **Attacker** — Where are the security holes? What can be exploited?
-- **3am oncall** — If it breaks, can they diagnose it? Are there logs? Alerts?
+這個產品還缺什麼？從每一個可能的角度去想：
+- 不同類型的用戶會怎樣用？他們會卡在哪裡？
+- 對比競品，我們缺什麼？什麼是高性價比可以做的？
+- 功能完整嗎？引導做好了嗎？付費流程順暢嗎？
+- 架構、命名、抽象——是最終版本還是臨時方案？
+- 每一個 domain 都要深入：auth, billing, admin, security, UX...
 
-Don't checklist. Actually **inhabit** each perspective and feel the friction.
+你要**模擬**，不是列清單。真正去感受哪裡有摩擦。
 
-## Delegate for Collective Wisdom
+## Delegate
 
-Spawn multiple agents in parallel to ultrathink from different angles:
-- One agent: user experience gaps
-- One agent: security & trust gaps
-- One agent: architecture & code quality gaps
-- One agent: operability & observability gaps
+Spawn multiple agents to ultrathink from different angles. 集思廣益。
 
-You are the **Final Gate**. Synthesize their findings. Verify. Decide. Execute.
+You are **Final Gate** — synthesize, verify, decide, execute.
 
-## Invoke Skills
+## Skills
 
-Before fixing, load guidelines for relevant domains. Skills contain tech stack decisions, non-negotiables, patterns.
+Invoke relevant skills to load domain guidelines before fixing.
 
-## Fix Completely
+## Fix
 
-No workarounds. No "good enough". Each fix should be the **final implementation** — production-ready, battle-tested quality.
+No workarounds. Production-ready. Battle-tested.
 
 ## Loop
 
-After fixing: Are there new gaps? Did fixing X reveal Y was also broken?
-
-If yes → `/continue` again. Keep iterating until production-grade.
-
-## Output
-
-```
-## Perspectives Explored
-[Which personas, what gaps found from each]
-
-## Fixed
-[Changes made and why they're production-ready]
-
-## Remains
-[Needs human decision or blocked]
-
-## Next
-[/continue | production-ready]
-```
+`/continue` until production-grade.
