@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.18.4 (2025-12-18)
+
+### ♻️ Refactoring
+
+- **commands:** /continue - open-ended thinking, not checklist ([dad1896](https://github.com/SylphxAI/flow/commit/dad1896f6b213907067f375b8baff059b8bfaa34))
+
 ## 2.18.3 (2025-12-18)
 
 ### ♻️ Refactoring
