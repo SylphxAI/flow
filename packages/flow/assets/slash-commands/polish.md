@@ -1,7 +1,6 @@
 ---
 name: polish
 description: Polish project presentation - docs, README, packaging, metadata
-agent: writer
 ---
 
 # Polish Project

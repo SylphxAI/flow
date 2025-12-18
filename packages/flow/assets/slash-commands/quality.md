@@ -1,7 +1,6 @@
 ---
 name: quality
 description: Improve test coverage, fix tests, optimize performance, reduce bundle size
-agent: coder
 ---
 
 # Quality Assurance

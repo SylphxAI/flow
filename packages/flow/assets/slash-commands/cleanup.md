@@ -1,7 +1,6 @@
 ---
 name: cleanup
 description: Clean technical debt, refactor, optimize, and simplify codebase
-agent: coder
 ---
 
 # Cleanup & Refactor

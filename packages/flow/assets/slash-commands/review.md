@@ -1,7 +1,6 @@
 ---
 name: review
 description: Review codebase by topic - /review <what to review>
-agent: coder
 args:
   - name: topic
     description: What to review (e.g., auth, security, "the login flow", "why it's slow")

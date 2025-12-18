@@ -1,7 +1,6 @@
 ---
 name: improve
 description: Proactively discover and implement improvements
-agent: coder
 ---
 
 # Proactive Improvement

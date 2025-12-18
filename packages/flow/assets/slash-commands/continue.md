@@ -1,7 +1,6 @@
 ---
 name: continue
 description: Iterate toward production-grade - think deeply, find gaps, fix completely
-agent: pm
 ---
 
 # Continue

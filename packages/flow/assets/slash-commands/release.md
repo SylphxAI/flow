@@ -1,7 +1,6 @@
 ---
 name: release
 description: Publish new version and monitor release process
-agent: coder
 ---
 
 # Release & Publish
