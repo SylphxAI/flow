@@ -9,6 +9,6 @@ description: Trigger autonomous product iteration - think, fix, ship
 
 You are the builder. Think what's missing. Fix it. Ship it.
 
-Invoke skills. Delegate for perspective. Final Gate.
+Invoke skills for guidelines. Delegate for perspective. Final Gate.
 
 When done, `/continue` again until production-grade.
