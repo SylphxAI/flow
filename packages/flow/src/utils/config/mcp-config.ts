@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 
 import inquirer from 'inquirer';
-import type { MCPServerID } from '../../config/servers.js';
+import type { EnvVarConfig, MCPServerDefinition, MCPServerID } from '../../config/servers.js';
 import { getAllServerIDs, MCP_SERVER_REGISTRY } from '../../config/servers.js';
 import { targetManager } from '../../core/target-manager.js';
 import { getNestedProperty, setNestedProperty } from './target-config.js';
@@ -93,7 +93,7 @@ export class MCPConfigurator {
     return serverId as MCPServerID;
   }
 
-  private async configureServer(server: any): Promise<Record<string, string>> {
+  private async configureServer(server: MCPServerDefinition): Promise<Record<string, string>> {
     const fields = this.buildConfigFields(server);
     const values: Record<string, string> = {};
 
@@ -108,11 +108,12 @@ export class MCPConfigurator {
     return values;
   }
 
-  private buildConfigFields(server: any): ConfigField[] {
+  private buildConfigFields(server: MCPServerDefinition): ConfigField[] {
     const fields: ConfigField[] = [];
 
     if (server.envVars) {
-      Object.entries(server.envVars).forEach(([key, config]: [string, any]) => {
+      Object.entries(server.envVars).forEach(([key, config]) => {
+        const envConfig = config as EnvVarConfig;
         let options: string[] | undefined;
 
         if (key === 'EMBEDDING_MODEL') {
@@ -123,10 +124,10 @@ export class MCPConfigurator {
 
         fields.push({
           name: key,
-          description: config.description,
-          required: config.required,
-          secret: config.secret || false,
-          defaultValue: config.default,
+          description: envConfig.description,
+          required: envConfig.required,
+          secret: envConfig.secret || false,
+          defaultValue: envConfig.default,
           currentValue: this.existingValues[key],
           options,
         });
