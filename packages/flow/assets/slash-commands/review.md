@@ -21,10 +21,10 @@ args:
 
 **Skills contain implementation guidelines** — tech stack decisions, non-negotiables, patterns, anti-patterns for each domain.
 
-Available skills with guidelines:
+Available skills:
 auth, account-security, privacy, billing, pricing, ledger, security, trust-safety, uiux, seo, pwa, performance, i18n, database, data-architecture, storage, observability, operability, delivery, growth, referral, support, admin, discovery, code-quality
 
-**Invoke skills** to load the relevant guidelines before reviewing. Skills auto-activate based on context, but you can explicitly invoke them with the Skill tool.
+**You MUST invoke relevant skills** using the Skill tool before reviewing. This loads the guidelines for that domain.
 
 ## Output
 
