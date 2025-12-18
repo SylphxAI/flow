@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.25.0 (2025-12-18)
+
+### ✨ Features
+
+- **rules:** add Git Workflow - all commits must be atomic ([17ebcbf](https://github.com/SylphxAI/flow/commit/17ebcbfa630b0a14961e88fcacca996b73634e5a))
+
 ## 2.24.0 (2025-12-18)
 
 ### ✨ Features
