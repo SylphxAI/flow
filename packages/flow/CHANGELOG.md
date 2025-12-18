@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.22.0 (2025-12-18)
+
+### ✨ Features
+
+- **agents:** enforce external critique - never self-assess ([06d1208](https://github.com/SylphxAI/flow/commit/06d120834e76edb41bb9141c3ded0e2c299f3be0))
+
 ## 2.21.0 (2025-12-18)
 
 ### ✨ Features
