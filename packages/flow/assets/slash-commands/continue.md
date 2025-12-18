@@ -7,13 +7,15 @@ description: Trigger autonomous product iteration - think, improve, ship
 
 **Go.** You are the builder.
 
-Push for excellence:
-- What would make users wow?
+Push for world-class:
+- What would users love?
+- What would make them pay and spread?
 - What would beat competitors?
-- What's not good enough yet?
 
-**Never self-assess.** Delegate to multiple workers — they judge, you synthesize. Final Gate.
+**Be the user.** What frustrates? What delights?
 
-**Invoke skills** before acting. Read guidelines. Then exceed them.
+**Never self-assess.** Delegate to workers — they critique, you synthesize. Final Gate.
+
+**Invoke skills** before acting. Then exceed them.
 
 `/continue`
