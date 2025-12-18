@@ -10,85 +10,40 @@ Find what's incomplete. Finish it.
 
 ## Mandate
 
-* **Think, don't checklist.** Understand the project first. What is it trying to do? What would "done" look like?
-* **Delegate workers** for parallel research. You synthesize and verify.
-* **Fix, don't report.** Implement solutions directly.
-* **One pass.** No deferrals. Complete each fix fully.
-
-## How to Find Incomplete Work
-
-Don't grep for TODO and call it done. Incomplete work hides in:
-
-**What's explicitly unfinished** — Yes, scan for TODO/FIXME/HACK. But ask: why are they there? What was the person avoiding?
-
-**What's implicitly broken** — Code that "works" but:
-- Fails silently (empty catch blocks, swallowed errors)
-- Works only in happy path (no validation, no edge cases)
-- Works but confuses users (unclear errors, missing feedback)
-- Works but can't be debugged (no logs, no context)
-
-**What's missing entirely** — Features referenced but not implemented. UI that leads nowhere. Promises in docs that code doesn't deliver.
-
-## The Real Test
-
-For each part of the system, ask:
-
-> "If I were a user trying to accomplish their goal, where would I get stuck?"
-
-> "If this broke at 3am, could someone figure out why?"
-
-> "If requirements changed tomorrow, what would be painful to modify?"
-
-> "If we had 100x traffic, what would fall over first?"
-
-These questions reveal incompleteness that checklists miss.
+- **Think, don't checklist.** Understand the project. What would "done" look like?
+- **Delegate workers** for parallel research. You synthesize and verify.
+- **Fix, don't report.** Implement solutions directly.
 
 ## Execution
 
-1. **Understand the project** — Read README, main entry points, core flows. What is this thing supposed to do?
+1. **Understand** — Read README, entry points, core flows
 
-2. **Walk the critical paths** — Trace actual user journeys through code. Where does the path get uncertain, error-prone, or incomplete?
+2. **Find gaps** — Not just TODO/FIXME, but:
+   - Implicit broken (empty catch, happy path only, no logs)
+   - Missing entirely (referenced but not implemented)
 
-3. **Find the gaps** — Not just TODOs, but:
-   - Dead ends (code that starts something but doesn't finish)
-   - Weak spots (minimal implementation that will break under pressure)
-   - Missing pieces (what's referenced but doesn't exist)
+3. **Invoke skills** — Before fixing, load guidelines for relevant domains:
+   ```
+   auth, account-security, billing, security, database, performance, observability...
+   ```
+   Skills contain: tech stack decisions, non-negotiables, patterns, anti-patterns.
 
-4. **Prioritize by impact** — What blocks users? What causes data loss? What makes debugging impossible? Fix those first.
+4. **Fix by impact** — What blocks users? Causes data loss? Fix those first. Fix completely.
 
-5. **Fix completely** — Don't patch. Understand root cause. Implement proper solution. Test it works.
-
-## Skills (Guidelines)
-
-**Skills contain implementation guidelines** — tech stack decisions, non-negotiables, patterns, anti-patterns for each domain.
-
-Available skills:
-auth, account-security, privacy, billing, pricing, ledger, security, trust-safety, uiux, seo, pwa, performance, i18n, database, data-architecture, storage, observability, operability, delivery, growth, referral, support, admin, discovery, code-quality
-
-**You MUST invoke relevant skills** using the Skill tool before fixing. This loads the guidelines for that domain.
-
-## Loop
-
-After fixing: "Did my fixes introduce new gaps? Did fixing X reveal Y was also broken?"
-
-If yes → run `/continue` again. If no Critical/High issues remain → done.
+5. **Loop** — New gaps from fixes? → `/continue` again
 
 ## Output
 
 ```
-## What I Found
+## Found
+[What's incomplete and why]
 
-[Describe the gaps discovered — not a checklist, but an understanding of what's incomplete and why]
+## Fixed
+[Changes made]
 
-## What I Fixed
-
-- [Description of fix and why it matters]
-
-## What Remains
-
-- [Issues that need human decision or are blocked]
+## Remains
+[Needs human decision]
 
 ## Next
-
-[/continue again | done]
+[/continue | done]
 ```
