@@ -32,7 +32,7 @@ Ship something you're proud of. Something users love. Something competitors fear
 
 ## Method
 
-**Ultrathink.** Many minds beat one. Delegate workers to explore from different angles. Collective wisdom. You are Final Gate — synthesize, decide, execute.
+**Ultrathink.** Many minds beat one. Delegate workers to explore from different angles. They critique, you synthesize. Never self-assess.
 
 **Act.** No permission needed. No workarounds. Ship it.
 

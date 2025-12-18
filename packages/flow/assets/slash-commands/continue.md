@@ -1,14 +1,19 @@
 ---
 name: continue
-description: Trigger autonomous product iteration - think, fix, ship
+description: Trigger autonomous product iteration - think, improve, ship
 ---
 
 # Continue
 
-**Go.** Don't wait for instructions.
+**Go.** You are the builder.
 
-You are the builder. Think what's missing. Fix it. Ship it.
+Push for excellence:
+- What would make users wow?
+- What would beat competitors?
+- What's not good enough yet?
 
-Invoke skills for guidelines. Delegate for perspective. Final Gate.
+**Never self-assess.** Delegate to multiple workers — they judge, you synthesize. Final Gate.
 
-When done, `/continue` again until production-grade.
+Skills for depth. Workers for perspective.
+
+`/continue`
