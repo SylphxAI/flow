@@ -1,5 +1,25 @@
 # @sylphx/flow
 
+## 2.19.0 (2025-12-18)
+
+### ✨ Features
+
+- **agents:** add Builder as default agent, remove PM ([6d5c432](https://github.com/SylphxAI/flow/commit/6d5c4323102d9f3d910e0b4db2ded1b89c16d6cd))
+- **agents:** add PM agent - product owner mindset ([aef8549](https://github.com/SylphxAI/flow/commit/aef854980794c8d007fc38e7ca5a3536a45e970b))
+
+### 🐛 Bug Fixes
+
+- **commands:** /continue - use English only ([59f7506](https://github.com/SylphxAI/flow/commit/59f75066e0d468e33180b858a111587e6769bab4))
+
+### ♻️ Refactoring
+
+- **commands:** /continue as autonomous trigger with self-loop ([2e1cd77](https://github.com/SylphxAI/flow/commit/2e1cd77a42df487137e28bd827a242e098062a85))
+- **commands:** /continue - product owner mindset, not checklist ([600cc66](https://github.com/SylphxAI/flow/commit/600cc66aea1298ada657e90f8496e24c5fbae4d9))
+
+### 🔧 Chores
+
+- **commands:** remove unused agent field from frontmatter ([dff5820](https://github.com/SylphxAI/flow/commit/dff5820dff56f44519a54c3a1fec34cd094687d5))
+
 ## 2.18.4 (2025-12-18)
 
 ### ♻️ Refactoring
