@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.21.0 (2025-12-18)
+
+### ✨ Features
+
+- **agents:** Builder v2 - offense first, pursue perfection ([87ff44c](https://github.com/SylphxAI/flow/commit/87ff44c0431c814c35e74652f1ef251aecdeb9de))
+
 ## 2.20.0 (2025-12-18)
 
 ### ✨ Features
