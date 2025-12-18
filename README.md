@@ -426,6 +426,39 @@ sylphx-flow settings
 
 ---
 
+## 🧠 Domain Skills
+
+**25 domain-specific skills with expert-level knowledge built-in.**
+
+Flow includes curated best practices for critical domains. When you work on auth, billing, or security, the AI knows the non-negotiables:
+
+| Category | Skills |
+|----------|--------|
+| **Security** | `auth`, `account-security`, `security`, `trust-safety`, `privacy` |
+| **Payments** | `billing`, `pricing`, `ledger` |
+| **Data** | `database`, `data-architecture`, `storage` |
+| **Frontend** | `uiux`, `pwa`, `performance`, `seo`, `i18n` |
+| **Backend** | `observability`, `operability`, `delivery` |
+| **Growth** | `growth`, `referral`, `support`, `admin`, `discovery` |
+| **Quality** | `code-quality` |
+
+**Example: Billing skill includes:**
+- ✅ Webhook signature verification (non-negotiable)
+- ✅ Idempotency with Stripe event IDs
+- ✅ Out-of-order webhook handling
+- ✅ No dual-write patterns
+- ✅ Dunning and failed payment recovery
+
+**Example: Auth skill includes:**
+- ✅ Server-enforced authorization (never trust client)
+- ✅ Email verification for high-impact actions
+- ✅ Graceful SSO provider handling
+- ✅ Account recovery best practices
+
+Skills are automatically invoked based on context. The AI asks the right questions and avoids common mistakes.
+
+---
+
 ## ⚡ Quick Start
 
 ### The Path to Enlightenment
@@ -434,7 +467,10 @@ sylphx-flow settings
 # 1. Install the meta-CLI
 npm install -g @sylphx/flow
 
-# 2. First invocation (auto-setup)
+# 2. Interactive tutorial (recommended for first-time users)
+sylphx-flow quickstart
+
+# 3. Or jump straight in
 sylphx-flow "create a REST API"
 
 # Flow's first-time ritual:
