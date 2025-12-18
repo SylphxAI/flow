@@ -12,19 +12,23 @@ args:
 
 ## Mandate
 
-* **Understand first.** Absorb the principles, then apply judgment.
-* **Think like the failure mode.** Security? Think like an attacker. Performance? Think like a slow network. Auth? Think like a confused user.
-* **Delegate workers** for parallel research. You synthesize and verify.
-* **Fix, don't report.** Implement solutions directly.
+- **Think like the failure mode.** Security → attacker. Performance → slow network. Auth → confused user.
+- **Delegate workers** for parallel research. You synthesize and verify.
+- **Fix, don't report.** Implement solutions directly.
 
-## Skills (Guidelines)
+## Execution
 
-**Skills contain implementation guidelines** — tech stack decisions, non-negotiables, patterns, anti-patterns for each domain.
+1. **Invoke skills** — Load guidelines for relevant domains:
+   ```
+   auth, account-security, billing, security, database, performance, observability...
+   ```
+   Skills contain: tech stack decisions, non-negotiables, patterns, anti-patterns.
 
-Available skills:
-auth, account-security, privacy, billing, pricing, ledger, security, trust-safety, uiux, seo, pwa, performance, i18n, database, data-architecture, storage, observability, operability, delivery, growth, referral, support, admin, discovery, code-quality
+2. **Understand** — How is this implemented? Architecture, choices, tradeoffs.
 
-**You MUST invoke relevant skills** using the Skill tool before reviewing. This loads the guidelines for that domain.
+3. **Find issues** — What violates the guidelines? What's wrong and why it matters?
+
+4. **Fix** — Implement solutions directly.
 
 ## Output
 
@@ -32,14 +36,14 @@ auth, account-security, privacy, billing, pricing, ledger, security, trust-safet
 ## Review: [topic]
 
 ### Understanding
-[How this is implemented. Architecture, choices, tradeoffs.]
+[Architecture, choices, tradeoffs]
 
 ### Issues
-[What's wrong and why it matters]
+[What's wrong and why]
 
 ### Fixed
 [Changes made]
 
-### Remaining
-[Needs human decision or blocked]
+### Remains
+[Needs human decision]
 ```
