@@ -4,10 +4,10 @@
  * Handles backup → attach → run → restore lifecycle
  */
 
-import chalk from 'chalk';
 import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import chalk from 'chalk';
 import type { Target } from '../types/target.types.js';
 import { AttachManager } from './attach-manager.js';
 import { BackupManager } from './backup-manager.js';
@@ -23,6 +23,7 @@ export interface FlowExecutorOptions {
   verbose?: boolean;
   skipBackup?: boolean;
   skipSecrets?: boolean;
+  skipProjectDocs?: boolean; // Skip auto-creating PRODUCT.md/ARCHITECTURE.md
   merge?: boolean; // Merge mode: keep user files (default: replace all)
 }
 
@@ -96,8 +97,10 @@ export class FlowExecutor {
       return { joined: true };
     }
 
-    // First session - ensure project docs, stash, backup, attach (all silent)
-    await this.ensureProjectDocs(projectPath);
+    // First session - optionally create project docs, stash, backup, attach (all silent)
+    if (!options.skipProjectDocs) {
+      await this.ensureProjectDocs(projectPath);
+    }
     await this.gitStashManager.stashSettingsChanges(projectPath);
     const backup = await this.backupManager.createBackup(projectPath, projectHash, target);
 
@@ -271,7 +274,10 @@ export class FlowExecutor {
     const templatesDir = this.templateLoader.getAssetsDir();
     const templates = [
       { name: 'PRODUCT.md', template: path.join(templatesDir, 'templates', 'PRODUCT.md') },
-      { name: 'ARCHITECTURE.md', template: path.join(templatesDir, 'templates', 'ARCHITECTURE.md') },
+      {
+        name: 'ARCHITECTURE.md',
+        template: path.join(templatesDir, 'templates', 'ARCHITECTURE.md'),
+      },
     ];
 
     for (const { name, template } of templates) {

@@ -148,6 +148,107 @@ export const doctorCommand = new Command('doctor')
   });
 
 /**
+ * Quickstart command - interactive onboarding tutorial
+ */
+export const quickstartCommand = new Command('quickstart')
+  .description('Interactive 2-minute tutorial to get started with Flow')
+  .action(async () => {
+    const { default: inquirer } = await import('inquirer');
+
+    console.log(chalk.cyan.bold('\n🚀 Welcome to Sylphx Flow!\n'));
+    console.log(chalk.dim('This 2-minute tutorial will get you up and running.\n'));
+
+    // Step 1: Check for AI CLI
+    console.log(chalk.bold('Step 1/4: Checking your environment\n'));
+
+    const detector = new StateDetector();
+    const state = await detector.detect();
+
+    if (state.claudeCodeInstalled) {
+      console.log(chalk.green('  ✓ Claude Code installed\n'));
+    } else {
+      console.log(chalk.yellow('  ⚠ Claude Code not found\n'));
+      const { installNow } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'installNow',
+          message: 'Install Claude Code now?',
+          default: true,
+        },
+      ]);
+
+      if (installNow) {
+        console.log(chalk.dim('\n  Installing Claude Code...\n'));
+        const { exec } = await import('node:child_process');
+        const { promisify } = await import('node:util');
+        const execAsync = promisify(exec);
+        try {
+          await execAsync('npm install -g @anthropic-ai/claude-code');
+          console.log(chalk.green('  ✓ Claude Code installed\n'));
+        } catch {
+          console.log(chalk.red('  ✗ Installation failed. Run manually:'));
+          console.log(chalk.dim('    npm install -g @anthropic-ai/claude-code\n'));
+        }
+      }
+    }
+
+    // Step 2: Explain core concept
+    console.log(chalk.bold('Step 2/4: How Flow works\n'));
+    console.log(chalk.dim('  Flow orchestrates AI coding assistants with:'));
+    console.log(chalk.dim('  • Specialized agents (coder, writer, reviewer)'));
+    console.log(chalk.dim('  • Smart context (less prompting, more building)'));
+    console.log(chalk.dim('  • Clean git (your config stays untouched)\n'));
+
+    await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'continue',
+        message: chalk.dim('Press Enter to continue...'),
+      },
+    ]);
+
+    // Step 3: Show example usage
+    console.log(chalk.bold('\nStep 3/4: Example commands\n'));
+    console.log(chalk.cyan('  Basic usage:'));
+    console.log(chalk.white('    sylphx-flow "fix the login bug"'));
+    console.log(chalk.white('    sylphx-flow "add dark mode"'));
+    console.log(chalk.white('    sylphx-flow "write tests for auth"'));
+    console.log('');
+    console.log(chalk.cyan('  With agents:'));
+    console.log(chalk.white('    sylphx-flow --agent coder "implement feature"'));
+    console.log(chalk.white('    sylphx-flow --agent writer "document API"'));
+    console.log(chalk.white('    sylphx-flow --agent reviewer "review security"'));
+    console.log('');
+
+    await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'continue',
+        message: chalk.dim('Press Enter to continue...'),
+      },
+    ]);
+
+    // Step 4: Try it
+    console.log(chalk.bold('\nStep 4/4: Try it yourself!\n'));
+    const { tryNow } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'tryNow',
+        message: 'Run Flow now with a sample task?',
+        default: true,
+      },
+    ]);
+
+    if (tryNow) {
+      console.log(chalk.dim('\nLaunching Flow...\n'));
+      await executeFlow('describe this codebase briefly', { agent: 'builder' } as FlowOptions);
+    } else {
+      console.log(chalk.green("\n✨ You're ready to go!\n"));
+      console.log(chalk.dim('  Run: sylphx-flow "your first task"\n'));
+    }
+  });
+
+/**
  * Upgrade command - upgrade components
  */
 export const upgradeCommand = new Command('upgrade')

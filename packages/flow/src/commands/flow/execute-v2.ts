@@ -260,6 +260,7 @@ export async function executeFlowV2(
       verbose: options.verbose,
       skipBackup: false,
       skipSecrets: false,
+      skipProjectDocs: true, // Use /init command for project docs
       merge: options.merge || false,
     });
 

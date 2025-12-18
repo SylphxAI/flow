@@ -12,6 +12,7 @@ import { executeFlow } from './commands/flow/execute-v2.js';
 import {
   doctorCommand,
   flowCommand,
+  quickstartCommand,
   setupCommand,
   statusCommand,
   upgradeCommand,
@@ -71,6 +72,7 @@ export function createCLI(): Command {
 
   // Add subcommands - these can still be used explicitly
   program.addCommand(flowCommand);
+  program.addCommand(quickstartCommand);
   program.addCommand(setupCommand);
   program.addCommand(statusCommand);
   program.addCommand(doctorCommand);

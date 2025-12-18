@@ -2,6 +2,10 @@
  * Cleanup Handler
  * Manages graceful cleanup on exit and crash recovery
  * Handles process signals and ensures backup restoration
+ *
+ * IMPORTANT: Node.js 'exit' event handlers MUST be synchronous.
+ * We use SIGINT/SIGTERM handlers to perform async cleanup before exiting.
+ * The 'exit' handler is only a last-resort sync cleanup.
  */
 
 import type { BackupManager } from './backup-manager.js';
@@ -13,6 +17,8 @@ export class CleanupHandler {
   private backupManager: BackupManager;
   private registered = false;
   private currentProjectHash: string | null = null;
+  private cleanupInProgress = false;
+  private cleanupCompleted = false;
 
   constructor(
     projectManager: ProjectManager,
@@ -35,64 +41,63 @@ export class CleanupHandler {
     this.currentProjectHash = projectHash;
     this.registered = true;
 
-    // Normal exit
-    process.on('exit', async () => {
-      await this.onExit();
+    // SIGINT (Ctrl+C) - perform async cleanup then exit
+    process.on('SIGINT', () => {
+      this.handleSignal('SIGINT', 0);
     });
 
-    // SIGINT (Ctrl+C)
-    process.on('SIGINT', async () => {
-      await this.onSignal('SIGINT');
-      process.exit(0);
+    // SIGTERM - perform async cleanup then exit
+    process.on('SIGTERM', () => {
+      this.handleSignal('SIGTERM', 0);
     });
 
-    // SIGTERM
-    process.on('SIGTERM', async () => {
-      await this.onSignal('SIGTERM');
-      process.exit(0);
-    });
-
-    // Uncaught exceptions
-    process.on('uncaughtException', async (error) => {
+    // Uncaught exceptions - perform async cleanup then exit with error
+    process.on('uncaughtException', (error) => {
       console.error('\nUncaught Exception:', error);
-      await this.onSignal('uncaughtException');
-      process.exit(1);
+      this.handleSignal('uncaughtException', 1);
     });
 
-    // Unhandled rejections
-    process.on('unhandledRejection', async (reason) => {
+    // Unhandled rejections - perform async cleanup then exit with error
+    process.on('unhandledRejection', (reason) => {
       console.error('\nUnhandled Rejection:', reason);
-      await this.onSignal('unhandledRejection');
-      process.exit(1);
+      this.handleSignal('unhandledRejection', 1);
+    });
+
+    // 'exit' handler - SYNC ONLY, last resort
+    // This catches cases where process.exit() was called without going through signals
+    process.on('exit', () => {
+      // If cleanup wasn't done via signal handlers, log warning
+      // (We can't do async cleanup here - just flag it)
+      if (!this.cleanupCompleted && this.currentProjectHash) {
+        // Recovery will happen on next startup via recoverOnStartup()
+        // This is the intended safety net for abnormal exits
+      }
     });
   }
 
   /**
-   * Normal exit cleanup (with multi-session support)
+   * Handle signal with async cleanup
+   * Ensures cleanup completes before process exit
    */
-  private async onExit(): Promise<void> {
-    if (!this.currentProjectHash) {
+  private handleSignal(signal: string, exitCode: number): void {
+    // Prevent double cleanup
+    if (this.cleanupInProgress || this.cleanupCompleted) {
+      process.exit(exitCode);
       return;
     }
 
-    try {
-      const { shouldRestore, session } = await this.sessionManager.endSession(
-        this.currentProjectHash
-      );
+    this.cleanupInProgress = true;
 
-      if (shouldRestore && session) {
-        // Last session - restore backup silently on normal exit
-        await this.backupManager.restoreBackup(this.currentProjectHash, session.sessionId);
-        await this.backupManager.cleanupOldBackups(this.currentProjectHash, 3);
-      }
-    } catch (_error) {
-      // Silent fail on exit
-    }
+    // Perform async cleanup, then exit
+    this.onSignal(signal).finally(() => {
+      this.cleanupCompleted = true;
+      process.exit(exitCode);
+    });
   }
 
   /**
-   * Signal-based cleanup (SIGINT, SIGTERM, etc.) with multi-session support
-   * Silent operation - no console output
+   * Async cleanup for signals and manual cleanup
+   * Handles session end and backup restoration
    */
   private async onSignal(_signal: string): Promise<void> {
     if (!this.currentProjectHash) {
@@ -106,9 +111,10 @@ export class CleanupHandler {
 
       if (shouldRestore && session) {
         await this.backupManager.restoreBackup(this.currentProjectHash, session.sessionId);
+        await this.backupManager.cleanupOldBackups(this.currentProjectHash, 3);
       }
     } catch (_error) {
-      // Silent fail
+      // Silent fail - recovery will happen on next startup
     }
   }
 
