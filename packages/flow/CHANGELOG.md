@@ -1,5 +1,15 @@
 # @sylphx/flow
 
+## 2.18.1 (2025-12-18)
+
+### 🐛 Bug Fixes
+
+- **commands:** skills must be explicitly invoked, not auto-activated ([ecfb44c](https://github.com/SylphxAI/flow/commit/ecfb44c03b92fe0ef7e13152e4ff7e1bcf9b5fcb))
+
+### 📚 Documentation
+
+- **commands:** clarify skills contain implementation guidelines ([c53522c](https://github.com/SylphxAI/flow/commit/c53522c108d1c048c6dfe0bc33bd28c92dc75973))
+
 ## 2.18.0 (2025-12-18)
 
 ### ✨ Features
