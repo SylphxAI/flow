@@ -1,5 +1,17 @@
 # @sylphx/flow
 
+## 2.20.0 (2025-12-18)
+
+### ✨ Features
+
+- **agents:** add Builder agent as default for autonomous product iteration ([309782f](https://github.com/SylphxAI/flow/commit/309782fdbe4a397ecde4aa767085175923c39db8))
+
+### 📚 Documentation
+
+- **agents:** Builder - understand success definition first ([d3de1a6](https://github.com/SylphxAI/flow/commit/d3de1a647027be08a302d45cafa47c9b68a3202c))
+- **agents:** Builder - read guidelines before acting ([f6f806f](https://github.com/SylphxAI/flow/commit/f6f806f8629d1890febc9786766f6c0b41470a55))
+- **agents:** Builder + /continue - emphasize skills for guidelines ([0752c4b](https://github.com/SylphxAI/flow/commit/0752c4b6867dad36704710e86ea805e22a905b61))
+
 ## 2.19.0 (2025-12-18)
 
 ### ✨ Features
