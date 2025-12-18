@@ -5,6 +5,9 @@
  */
 
 import chalk from 'chalk';
+import { existsSync } from 'node:fs';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import type { Target } from '../types/target.types.js';
 import { AttachManager } from './attach-manager.js';
 import { BackupManager } from './backup-manager.js';
@@ -93,7 +96,8 @@ export class FlowExecutor {
       return { joined: true };
     }
 
-    // First session - stash, backup, attach (all silent)
+    // First session - ensure project docs, stash, backup, attach (all silent)
+    await this.ensureProjectDocs(projectPath);
     await this.gitStashManager.stashSettingsChanges(projectPath);
     const backup = await this.backupManager.createBackup(projectPath, projectHash, target);
 
@@ -255,6 +259,28 @@ export class FlowExecutor {
         } catch {
           // Ignore errors - file might not be readable
         }
+      }
+    }
+  }
+
+  /**
+   * Ensure PRODUCT.md and ARCHITECTURE.md exist in project root
+   * Creates from templates if missing
+   */
+  private async ensureProjectDocs(projectPath: string): Promise<void> {
+    const templatesDir = this.templateLoader.getAssetsDir();
+    const templates = [
+      { name: 'PRODUCT.md', template: path.join(templatesDir, 'templates', 'PRODUCT.md') },
+      { name: 'ARCHITECTURE.md', template: path.join(templatesDir, 'templates', 'ARCHITECTURE.md') },
+    ];
+
+    for (const { name, template } of templates) {
+      const targetPath = path.join(projectPath, name);
+
+      // Only create if file doesn't exist and template exists
+      if (!existsSync(targetPath) && existsSync(template)) {
+        const content = await fs.readFile(template, 'utf-8');
+        await fs.writeFile(targetPath, content, 'utf-8');
       }
     }
   }

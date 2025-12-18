@@ -124,6 +124,7 @@ Before accepting any approach:
 - **Before significant work**, read:
   - `PRODUCT.md` — Vision, goals, features, target users, success metrics
   - `ARCHITECTURE.md` — Tech stack, patterns, decisions, system design
+- **If files don't exist**, create them with appropriate structure for the project
 - **Update immediately** when relevant changes happen
 - Product doc = WHAT and WHY. Architecture doc = HOW.
 - These docs are SSOT. Code is implementation detail.
