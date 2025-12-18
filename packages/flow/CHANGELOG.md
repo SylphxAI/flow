@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.28.0 (2025-12-18)
+
+### ✨ Features
+
+- **commands:** add /init command to create project docs ([a07d7a3](https://github.com/SylphxAI/flow/commit/a07d7a3afd8a6448547843e081c3dde446b95c69))
+
 ## 2.27.0 (2025-12-18)
 
 ### ✨ Features
