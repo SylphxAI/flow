@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.18.0 (2025-12-18)
+
+### ✨ Features
+
+- **cli:** show skills count in attach summary ([a02c422](https://github.com/SylphxAI/flow/commit/a02c42239e79af1cfc891bb4554e9fac7c2a7f9b))
+
 ## 2.17.0 (2025-12-18)
 
 ### ✨ Features
