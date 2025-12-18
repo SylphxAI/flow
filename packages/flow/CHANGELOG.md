@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.18.3 (2025-12-18)
+
+### ♻️ Refactoring
+
+- **commands:** /continue as product thinking, not code checklist ([4f9cb0f](https://github.com/SylphxAI/flow/commit/4f9cb0f8eb3e0afca67b005bc94362d3582c6395))
+
 ## 2.18.2 (2025-12-18)
 
 ### ♻️ Refactoring
