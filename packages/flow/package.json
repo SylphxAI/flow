@@ -1,7 +1,7 @@
 {
 	"name": "@sylphx/flow",
 	"version": "2.19.0",
-	"description": "One CLI to rule them all. Unified orchestration layer for Claude Code, OpenCode, Cursor and all AI development tools. Auto-detection, auto-installation, auto-upgrade.",
+	"description": "One CLI to rule them all. Unified orchestration layer for AI coding assistants. Auto-detection, auto-installation, auto-upgrade.",
 	"type": "module",
 	"bin": {
 		"sylphx-flow": "./src/index.ts",
