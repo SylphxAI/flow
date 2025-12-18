@@ -1,463 +1,450 @@
-# Sylphx Code Architecture
+# Sylphx Flow Architecture
 
-> **Last Updated:** 2025-01-05
-> **Architecture Version:** v2.0 (In-Process tRPC)
+> **Last Updated:** 2025-01-18
+> **Architecture Version:** v3.0 (CLI Orchestration Layer)
 
 ---
 
 ## Overview
 
-Sylphx Code uses an **embedded server architecture** with in-process tRPC for zero-overhead communication. The server can optionally expose HTTP endpoints for Web GUI or remote access.
+Sylphx Flow is a **meta-CLI orchestration layer** that unifies multiple AI coding assistants (Claude Code, OpenCode, Cursor) behind a single interface. It auto-detects, auto-installs, auto-configures, and auto-upgrades underlying AI CLIs.
 
 ### Design Philosophy
 
-**Default: In-Process** (inspired by graphql-yoga, @trpc/server)
-- ✅ **Fast**: Zero network overhead, direct function calls
-- ✅ **Simple**: No daemon management, single process
-- ✅ **Flexible**: Can expose HTTP for Web/Remote when needed
+**Orchestration, Not Replacement**
+- Flow doesn't replace Claude Code or OpenCode — it orchestrates them
+- One CLI, multiple backends
+- Zero friction: auto-detect → auto-install → auto-configure → execute
 
 ### Architecture Diagram
 
 ```
-┌─────────────────────────────────────────────────────┐
-│  TUI (code)                                         │
-│  ┌────────────────────────────────────────────┐    │
-│  │  Embedded CodeServer                       │    │
-│  │  ┌──────────────────────────────────────┐  │    │
-│  │  │  tRPC Router (in-process)            │  │    │
-│  │  │  - session.*, message.*, todo.*      │  │    │
-│  │  └──────────────────────────────────────┘  │    │
-│  │  ┌──────────────────────────────────────┐  │    │
-│  │  │  SessionRepository + Database        │  │    │
-│  │  │  SQLite (.sylphx-flow/sessions.db)   │  │    │
-│  │  └──────────────────────────────────────┘  │    │
-│  └────────────────────────────────────────────┘    │
-│           ↑ in-process caller link                 │
-│  ┌────────┴───────────┐                            │
-│  │  TUI Components    │                            │
-│  │  (Ink + React)     │                            │
-│  └────────────────────┘                            │
-└─────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────┐
+│  User                                                             │
+│  $ sylphx-flow "implement authentication"                         │
+└───────────────────┬───────────────────────────────────────────────┘
                     │
-                    │ (Optional) HTTP Server
-                    ↓
-        ┌─────────────────────────┐
-        │  Web GUI (Browser)      │
-        │  localhost:3000         │
-        └─────────────────────────┘
+┌───────────────────▼───────────────────────────────────────────────┐
+│  Sylphx Flow CLI (@sylphx/flow)                                   │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                │
+│  │ Detect      │  │ Configure   │  │ Execute     │                │
+│  │ Environment │→ │ Settings    │→ │ Target CLI  │                │
+│  └─────────────┘  └─────────────┘  └─────────────┘                │
+│                                                                   │
+│  Features:                                                        │
+│  • Auto-detect installed CLIs                                     │
+│  • Auto-install missing CLIs                                      │
+│  • Auto-upgrade before execution                                  │
+│  • Git skip-worktree protection                                   │
+│  • Settings sync across projects                                  │
+│  • MCP server management                                          │
+│  • Agent/Rule/Output style configuration                          │
+└───────────────────┬───────────────────────────────────────────────┘
+                    │
+        ┌───────────┼───────────┐
+        ↓           ↓           ↓
+┌───────────┐ ┌───────────┐ ┌───────────┐
+│ Claude    │ │ OpenCode  │ │ Cursor    │
+│ Code      │ │           │ │ (MCP)     │
+└───────────┘ └───────────┘ └───────────┘
 ```
-
----
-
-## Modes of Operation
-
-### Mode 1: TUI Only (Default)
-
-```bash
-code  # Launches TUI with embedded server
-```
-
-**Architecture:**
-```
-TUI Process
-├── Embedded CodeServer (in-process)
-│   ├── tRPC Router
-│   └── SQLite Database
-└── Ink UI (Terminal Interface)
-```
-
-**tRPC Link:** `inProcessLink` (direct function calls, zero overhead)
-
-### Mode 2: TUI + Web GUI
-
-```bash
-code --web  # Launches TUI + HTTP server for Web
-```
-
-**Architecture:**
-```
-TUI Process
-├── Embedded CodeServer
-│   ├── tRPC Router (in-process)
-│   ├── HTTP Server :3000 (for Web)
-│   └── SQLite Database
-└── Ink UI
-
-Browser → http://localhost:3000 → HTTP tRPC → CodeServer
-```
-
-**tRPC Links:**
-- TUI → Server: `inProcessLink` (direct calls)
-- Web → Server: `httpBatchLink` + `httpSubscriptionLink` (SSE)
-
-### Mode 3: Remote Connection
-
-```bash
-# Terminal 1: Standalone server
-code-server --port 3000
-
-# Terminal 2-N: Connect to shared server
-code --server-url http://localhost:3000
-```
-
-**Architecture:**
-```
-Server Process (code-server)
-├── HTTP Server :3000
-└── SQLite Database
-
-Client 1 ─┐
-Client 2 ─┼──> HTTP tRPC ──> Server
-Client 3 ─┘
-```
-
-**tRPC Link:** `httpBatchLink` + `httpSubscriptionLink`
 
 ---
 
 ## Package Structure
 
-### `@sylphx/code-server`
+### Monorepo Layout
 
-**Purpose:** Exportable server class for embedding
+```
+flow/
+├── packages/
+│   └── flow/                    # Main CLI package (@sylphx/flow)
+│       ├── src/
+│       │   ├── index.ts         # CLI entry point
+│       │   ├── commands/        # CLI commands
+│       │   ├── core/            # Core logic
+│       │   ├── services/        # Business services
+│       │   ├── targets/         # Target CLI adapters
+│       │   ├── config/          # Configuration
+│       │   ├── utils/           # Utilities
+│       │   └── types/           # TypeScript types
+│       └── assets/              # Static assets (agents, rules)
+├── docs/                        # VitePress documentation
+└── tests/                       # Test suite
+```
 
-**Exports:**
+### `@sylphx/flow` Package
+
+**Purpose**: Unified CLI orchestration for AI coding assistants
+
+**Key Directories:**
+
+| Directory | Purpose |
+|-----------|---------|
+| `src/commands/` | CLI command definitions (flow, settings, upgrade, doctor) |
+| `src/core/` | Core managers (session, project, target, cleanup, attach) |
+| `src/services/` | Business logic (config, MCP, installer) |
+| `src/targets/` | Target CLI adapters (Claude Code, OpenCode) |
+| `src/config/` | Configuration schemas and defaults |
+| `src/utils/` | Utilities (display, files, security, config) |
+| `src/types/` | TypeScript type definitions |
+
+---
+
+## Core Components
+
+### 1. Target System
+
+**Location**: `src/targets/`, `src/core/target-manager.ts`, `src/core/target-resolver.ts`
+
+Flow supports multiple AI CLI backends ("targets"):
+
 ```typescript
-export class CodeServer {
-  constructor(config: ServerConfig);
-
-  // For in-process use
-  getRouter(): AppRouter;
-  getContext(): ServerContext;
-
-  // Optional HTTP server
-  async startHTTP(port?: number): Promise<void>;
-  async close(): Promise<void>;
+// Target interface (simplified)
+interface Target {
+  name: string;           // "claude-code" | "opencode"
+  detect(): Promise<boolean>;
+  install(): Promise<void>;
+  execute(prompt: string, options: ExecuteOptions): Promise<void>;
+  getConfigPath(): string;
 }
-
-// Standalone CLI
-// bin/code-server
 ```
 
-**Key Files:**
-- `src/server.ts` - CodeServer class
-- `src/cli.ts` - Standalone server CLI
-- `src/trpc/` - tRPC routers (session, message, todo, etc.)
-- `src/services/` - Business logic (streaming, AI, etc.)
+**Supported Targets:**
+- **Claude Code** (`src/targets/claude-code.ts`) - Anthropic's official CLI
+- **OpenCode** (`src/targets/opencode.ts`) - Open source alternative
 
-###  `@sylphx/code` (TUI)
-
-**Purpose:** Terminal user interface with embedded server
-
-**Architecture:**
-```typescript
-// Default: in-process
-const server = new CodeServer({ dbPath: '...' });
-const client = createTRPCClient({
-  links: [inProcessLink({ router: server.getRouter() })]
-});
-
-// Optional: --web mode
-if (options.web) {
-  await server.startHTTP(3000);
-  openBrowser('http://localhost:3000');
-}
-
-// Optional: remote mode
-if (options.serverUrl) {
-  const client = createTRPCClient({
-    links: [httpBatchLink({ url: options.serverUrl })]
-  });
-}
+**Target Resolution Flow:**
+```
+1. Check if target is explicitly specified (--target flag)
+2. Check user's default target preference (settings)
+3. Auto-detect installed CLIs
+4. If none found: prompt user to install one
 ```
 
-**Key Files:**
-- `src/index.ts` - CLI entry point + mode selection
-- `src/screens/` - TUI screens (chat, providers, etc.)
-- `src/components/` - Reusable UI components
+### 2. Settings System
 
-### `@sylphx/code-client`
+**Location**: `src/commands/settings/`, `src/services/global-config.ts`
 
-**Purpose:** Shared client logic (stores, hooks)
+Global settings stored in `~/.sylphx-flow/`:
 
-**Exports:**
-```typescript
-// tRPC provider
-export function setTRPCClient(client: TRPCClient): void;
-export function getTRPCClient(): TRPCClient;
-
-// Zustand stores
-export { useAppStore } from './stores/app-store';
-
-// React hooks
-export { useSession, useMessages } from './hooks';
+```
+~/.sylphx-flow/
+├── settings.json          # General settings (default agent, target)
+├── flow-config.json       # Agents, rules, output styles
+├── provider-config.json   # AI provider settings
+└── mcp-config.json        # MCP server configurations
 ```
 
-**tRPC Links Supported:**
-1. **In-Process Link** (new):
-   ```typescript
-   import { inProcessLink } from './trpc-links';
-   links: [inProcessLink({ router: server.getRouter() })]
-   ```
+**Settings Categories:**
+- **Agents**: Enable/disable specialized agents (coder, writer, reviewer, orchestrator)
+- **Rules**: Control coding standards and best practices
+- **Output Styles**: Customize AI behavior (silent, verbose)
+- **MCP Servers**: Extend capabilities (grep, context7, playwright)
+- **Providers**: API keys and provider preferences
 
-2. **HTTP Links** (existing):
-   ```typescript
-   import { httpBatchLink, httpSubscriptionLink } from '@trpc/client';
-   links: [
-     httpBatchLink({ url: 'http://localhost:3000/trpc' }),
-     httpSubscriptionLink({ url: 'http://localhost:3000/trpc' })
-   ]
-   ```
+### 3. Agent System
 
-### `@sylphx/code-web`
+**Location**: `src/core/agent-loader.ts`, `assets/agents/`
 
-**Purpose:** Browser-based Web GUI
+Specialized agents for different tasks:
 
-**Architecture:**
-```typescript
-// Always uses HTTP tRPC (connects to TUI or standalone server)
-const client = createTRPCClient({
-  links: [
-    httpBatchLink({ url: '/trpc' }),
-    httpSubscriptionLink({ url: '/trpc' })
-  ]
-});
+| Agent | Purpose | Use Case |
+|-------|---------|----------|
+| **Builder** | Full-stack implementation | Default for most tasks |
+| **Coder** | Feature implementation | Building new features |
+| **Writer** | Documentation | API docs, guides |
+| **Reviewer** | Code review | Security audits, PR reviews |
+| **Orchestrator** | Complex multi-step | Architecture changes |
+
+Agents are loaded from markdown files in `assets/agents/` and injected into the target CLI's system prompt.
+
+### 4. Cleanup Handler
+
+**Location**: `src/core/cleanup-handler.ts`
+
+Ensures graceful cleanup on:
+- Normal exit
+- SIGINT (Ctrl+C)
+- SIGTERM
+- Uncaught exceptions
+
+Cleanup actions:
+1. Restore original config files
+2. Remove git skip-worktree flags
+3. Restore git stash if applicable
+4. Clean up temporary files
+
+### 5. Git Skip-Worktree Protection
+
+**Location**: `src/core/git-stash-manager.ts`
+
+When Flow modifies target CLI config files (`.claude/settings.json`, `.opencode/config.json`), it uses:
+```bash
+git update-index --skip-worktree <file>
 ```
+
+This hides Flow's temporary modifications from `git status`, preventing accidental commits.
 
 ---
 
 ## Data Flow
 
-### 1. User Message Submission (In-Process Mode)
+### Execution Flow
 
 ```
-User types in TUI
-  ↓
-ChatScreen.handleSubmit()
-  ↓
-client.message.streamResponse.subscribe() ←─ in-process link
-  ↓
-CodeServer.messageRouter.streamResponse ←─── direct function call
-  ↓
-StreamingService.streamAIResponse()
-  ↓
-SessionRepository.addMessage()
-  ↓
-SQLite Database
+User: sylphx-flow "implement auth" --agent coder
+                    │
+                    ▼
+┌─────────────────────────────────────────┐
+│ 1. Parse CLI arguments                   │
+│    - Extract prompt, options             │
+│    - Handle @file.txt input              │
+└────────────────┬────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────┐
+│ 2. Resolve target                        │
+│    - Check explicit --target flag        │
+│    - Check default preference            │
+│    - Auto-detect installed CLIs          │
+│    - Prompt to install if none found     │
+└────────────────┬────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────┐
+│ 3. Check for updates                     │
+│    - Flow version check                  │
+│    - Target CLI version check            │
+│    - Auto-upgrade if needed              │
+└────────────────┬────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────┐
+│ 4. Configure target                      │
+│    - Backup original configs             │
+│    - Apply Flow settings                 │
+│    - Set git skip-worktree               │
+│    - Inject agent/rules                  │
+└────────────────┬────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────┐
+│ 5. Execute target CLI                    │
+│    - Spawn claude/opencode process       │
+│    - Stream output to user               │
+│    - Wait for completion or Ctrl+C       │
+└────────────────┬────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────┐
+│ 6. Cleanup                               │
+│    - Restore original configs            │
+│    - Remove skip-worktree flags          │
+│    - Report exit status                  │
+└─────────────────────────────────────────┘
 ```
 
-**Performance:** ~0.1ms overhead (vs ~2-5ms HTTP localhost)
-
-### 2. User Message Submission (HTTP Mode)
+### Settings Application Flow
 
 ```
-User types in Web GUI
-  ↓
-ChatScreen.handleSubmit()
-  ↓
-client.message.streamResponse.subscribe() ←─ HTTP SSE
-  ↓
-HTTP Request → localhost:3000/trpc
-  ↓
-CodeServer.messageRouter.streamResponse
-  ↓
-StreamingService.streamAIResponse()
-  ↓
-SessionRepository.addMessage()
-  ↓
-SQLite Database
+┌─────────────────────────────────────────┐
+│ Global Settings (~/.sylphx-flow/)        │
+│ ├── Default agent: builder               │
+│ ├── Enabled rules: [core, code-standards]│
+│ └── MCP servers: [grep, context7]        │
+└────────────────┬────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────┐
+│ Target Config Transform                  │
+│ Flow settings → Claude Code format       │
+│ Flow settings → OpenCode format          │
+└────────────────┬────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────┐
+│ Target Config Files (per-project)        │
+│ .claude/settings.json                    │
+│ .opencode/config.json                    │
+└─────────────────────────────────────────┘
 ```
 
 ---
 
-## State Management
+## Tech Stack
 
-### Server State (Source of Truth)
+| Layer | Technology | Rationale |
+|-------|------------|-----------|
+| **Runtime** | Bun | Fast startup, native TypeScript |
+| **CLI Framework** | Commander.js | Battle-tested, excellent UX |
+| **Prompts** | Inquirer.js | Rich interactive prompts |
+| **Styling** | Chalk + Boxen + Gradient | Beautiful terminal output |
+| **Spinners** | Ora | Progress indication |
+| **Config** | YAML + JSONC | Human-readable configs |
+| **Validation** | Zod | Type-safe schemas |
+| **Package Manager** | Bun | Fast, integrated |
+| **Build** | Bunup | Zero-config bundling |
+| **Monorepo** | Turbo | Fast builds, caching |
+| **Lint/Format** | Biome | Fast, unified tooling |
 
-**Location:** SQLite Database (`~/.sylphx-flow/sessions.db`)
+---
 
-**Managed by:** `SessionRepository` in `@sylphx/code-core`
+## Key Patterns
 
-**Schema:**
-- `sessions` - Chat sessions (id, title, provider, model, agentId)
-- `messages` - Message history (role, content, usage, status)
-- `todos` - Task lists per session
+### 1. Target Adapter Pattern
 
-### Client State (UI State Only)
+Each AI CLI has an adapter that implements a common interface:
 
-**Location:** Zustand stores in `@sylphx/code-client`
-
-**Stores:**
-- `useAppStore` - Current session, UI settings, selection state
-- Optimistic updates for perceived performance
-- Syncs back to server via tRPC mutations
-
-**Pattern:**
 ```typescript
-// Optimistic update
-set((state) => {
-  state.currentSession.title = newTitle;
+// src/targets/claude-code.ts
+export const claudeCodeTarget: Target = {
+  name: 'claude-code',
+  detect: async () => { /* check if claude is installed */ },
+  install: async () => { /* npm install -g @anthropic-ai/claude-code */ },
+  execute: async (prompt, options) => { /* spawn claude process */ },
+  getConfigPath: () => '.claude/settings.json',
+};
+```
+
+### 2. Functional Core
+
+**Location**: `src/core/functional/`
+
+Result types for error handling:
+```typescript
+type Result<T, E = Error> = Ok<T> | Err<E>;
+type Option<T> = Some<T> | None;
+```
+
+### 3. Config Transform Pipeline
+
+Settings are transformed through a pipeline:
+```
+Global Settings → Target-Specific Format → Per-Project Config
+```
+
+### 4. Cleanup Registration
+
+Components register cleanup handlers:
+```typescript
+cleanupHandler.register(async () => {
+  await restoreOriginalConfig();
+  await removeSkipWorktree();
 });
-
-// Persist to server
-await client.session.updateTitle.mutate({ sessionId, title: newTitle });
 ```
-
----
-
-## Migration from Old Architecture
-
-### Old Architecture (Daemon + HTTP)
-
-```
-TUI  ────HTTP────┐
-                 ├──> code-server daemon :3000 ──> DB
-Web  ────HTTP────┘
-```
-
-**Problems:**
-- ❌ Slow startup (spawn daemon)
-- ❌ Network overhead (localhost HTTP)
-- ❌ Complex daemon management
-- ❌ Port conflicts
-
-### New Architecture (Embedded + Optional HTTP)
-
-```
-TUI with embedded server ──in-process──> DB
-         │
-         └──HTTP (optional)──> Web GUI
-```
-
-**Benefits:**
-- ✅ Instant startup
-- ✅ Zero network overhead
-- ✅ No daemon management
-- ✅ Flexible deployment
 
 ---
 
 ## Configuration
 
-### Database Location
+### Environment Variables
 
-**Default:** `~/.sylphx-flow/sessions.db`
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `DEBUG` | Enable debug logging | `false` |
+| `SYLPHX_FLOW_HOME` | Config directory | `~/.sylphx-flow` |
+| `NO_COLOR` | Disable colors | `false` |
 
-**Override:**
-```typescript
-const server = new CodeServer({
-  dbPath: '/custom/path/sessions.db'
-});
-```
+### Config Files
 
-### HTTP Server Port
+**Global** (`~/.sylphx-flow/`):
+- `settings.json` - Default agent, target, update preferences
+- `flow-config.json` - Enabled agents, rules, output styles
+- `mcp-config.json` - MCP server configurations
+- `provider-config.json` - AI provider API keys
 
-**Default:** `3000`
-
-**Override:**
-```bash
-code --web --port 8080
-code-server --port 8080
-```
-
----
-
-## Development Workflow
-
-### Local Development
-
-```bash
-# Terminal 1: Watch build
-bun run dev
-
-# Terminal 2: Run TUI (in-process, fastest)
-bun run packages/code/src/index.ts
-
-# Terminal 3: Test Web GUI
-bun run packages/code/src/index.ts --web
-# Then open http://localhost:3000
-```
-
-### Testing Different Modes
-
-```bash
-# Test in-process (default)
-code "What is 2+2?"
-
-# Test with Web GUI
-code --web
-
-# Test remote connection
-code-server --port 3000 &  # Background server
-code --server-url http://localhost:3000 "What is 2+2?"
-```
-
----
-
-## Performance Comparison
-
-| Mode | Startup Time | Request Latency | Memory Usage |
-|------|-------------|-----------------|--------------|
-| In-Process (new) | ~100ms | ~0.1ms | 80MB |
-| HTTP Daemon (old) | ~2000ms | ~3ms | 120MB (2 processes) |
-| Remote HTTP | ~100ms | ~3-10ms | 80MB (client) |
+**Per-Project** (managed by Flow):
+- `.claude/settings.json` - Claude Code config (backed up, modified, restored)
+- `.opencode/config.json` - OpenCode config (backed up, modified, restored)
 
 ---
 
 ## Security Considerations
 
-### In-Process Mode
+### API Key Management
+- Provider API keys stored in `~/.sylphx-flow/provider-config.json`
+- File permissions: 600 (user-only)
+- Never logged or transmitted
 
-- ✅ No network exposure
-- ✅ File system permissions only
-- ✅ Single-user by design
+### Git Protection
+- Config changes hidden via `git update-index --skip-worktree`
+- Original files restored on exit
+- Prevents accidental commits of Flow-specific settings
 
-### HTTP Mode (--web or standalone server)
-
-- ⚠️ Exposes localhost:3000
-- ⚠️ No authentication (localhost only)
-- ⚠️ Firewall should block external access
-
-**Recommendation:** Only use HTTP mode on trusted local networks.
-
----
-
-## Future Enhancements
-
-1. **Multi-User Support**
-   - Add authentication to HTTP server
-   - User-scoped database access
-
-2. **Cloud Deployment**
-   - Docker image for `code-server`
-   - Nginx reverse proxy
-   - OAuth integration
-
-3. **Performance Optimizations**
-   - Database connection pooling
-   - Query result caching
-   - Incremental message loading
+### Process Isolation
+- Target CLIs spawned as child processes
+- Flow doesn't modify target CLI binaries
+- Clean separation of concerns
 
 ---
 
-## FAQ
+## Development
 
-**Q: Why in-process instead of daemon?**
-A: Faster startup, simpler architecture, zero network overhead. Daemon pattern is outdated for local-first apps.
+### Setup
 
-**Q: Can multiple TUI instances share data?**
-A: Yes, via shared SQLite database with WAL mode. Or use standalone server mode.
+```bash
+# Clone and install
+git clone https://github.com/sylphxltd/flow.git
+cd flow
+bun install
 
-**Q: Does Web GUI require server restart?**
-A: No. `code --web` starts HTTP server dynamically from TUI process.
+# Development
+bun run dev:flow              # Watch mode
+bun run packages/flow/src/index.ts "test prompt"
 
-**Q: What about process isolation?**
-A: Trade-off accepted for performance. Crashes affect TUI only. Standalone mode available if needed.
+# Testing
+bun run test                  # Run tests
+bun run test:watch           # Watch mode
+
+# Build
+bun run build                 # Build all packages
+```
+
+### Adding a New Target
+
+1. Create adapter in `src/targets/<target-name>.ts`
+2. Implement `Target` interface
+3. Register in `src/config/targets.ts`
+4. Add config transform in `src/targets/shared/`
+5. Test detection, installation, and execution
+
+### Adding a New Agent
+
+1. Create markdown file in `assets/agents/<agent-name>.md`
+2. Add to agent registry in `src/config/constants.ts`
+3. Add to settings UI in `src/commands/settings/`
+
+---
+
+## Performance
+
+| Metric | Value | Notes |
+|--------|-------|-------|
+| CLI Startup | ~100ms | Bun native TS |
+| Target Detection | ~50ms | File system checks |
+| Config Transform | ~10ms | In-memory |
+| Total Overhead | ~200ms | Before target CLI starts |
+
+---
+
+## Future Architecture
+
+### Planned: Plugin System
+- Third-party target adapters
+- Custom agents via npm packages
+- MCP server marketplace
+
+### Planned: Team Sync
+- Shared settings via git
+- Team-wide defaults
+- Organization policies
 
 ---
 
 ## See Also
 
-- [Old Architecture (Archived)](./ARCHIVE/2025-01-05-daemon-http-architecture/ARCHITECTURE.md)
-- [tRPC Documentation](https://trpc.io/)
-- [SQLite WAL Mode](https://www.sqlite.org/wal.html)
+- [PRODUCT.md](./PRODUCT.md) - Product vision and roadmap
+- [README.md](./README.md) - User documentation
+- [Loop Mode Guide](./packages/flow/LOOP_MODE.md) - Autonomous execution
+- [MEP Guidelines](./MEP_GUIDELINES.md) - Minimal Effective Prompt design
