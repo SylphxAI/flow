@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.26.0 (2025-12-18)
+
+### ✨ Features
+
+- **rules:** add Project Context - PRODUCT.md and ARCHITECTURE.md ([cf7383f](https://github.com/SylphxAI/flow/commit/cf7383f1d8d4176dc605bc01e9ac3da6d3750af4))
+
 ## 2.25.0 (2025-12-18)
 
 ### ✨ Features
