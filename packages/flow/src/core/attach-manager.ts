@@ -21,6 +21,8 @@ export interface AttachResult {
   agentsOverridden: string[];
   commandsAdded: string[];
   commandsOverridden: string[];
+  skillsAdded: string[];
+  skillsOverridden: string[];
   rulesAppended: boolean;
   mcpServersAdded: string[];
   mcpServersOverridden: string[];
@@ -31,7 +33,7 @@ export interface AttachResult {
 }
 
 export interface ConflictInfo {
-  type: 'agent' | 'command' | 'mcp' | 'hook';
+  type: 'agent' | 'command' | 'skill' | 'mcp' | 'hook';
   name: string;
   action: 'overridden' | 'merged';
   message: string;
@@ -40,6 +42,7 @@ export interface ConflictInfo {
 export interface FlowTemplates {
   agents: Array<{ name: string; content: string }>;
   commands: Array<{ name: string; content: string }>;
+  skills: Array<{ name: string; content: string }>;
   rules?: string;
   mcpServers: Array<{ name: string; config: Record<string, unknown> }>;
   hooks: Array<{ name: string; content: string }>;
@@ -143,6 +146,8 @@ export class AttachManager {
       agentsOverridden: [],
       commandsAdded: [],
       commandsOverridden: [],
+      skillsAdded: [],
+      skillsOverridden: [],
       rulesAppended: false,
       mcpServersAdded: [],
       mcpServersOverridden: [],
@@ -160,12 +165,17 @@ export class AttachManager {
     // 2. Attach commands
     await this.attachCommands(projectPath, target, templates.commands, result, manifest);
 
-    // 3. Attach rules (if applicable)
+    // 3. Attach skills (if target supports them)
+    if (target.config.skillsDir && templates.skills.length > 0) {
+      await this.attachSkills(projectPath, target, templates.skills, result, manifest);
+    }
+
+    // 4. Attach rules (if applicable)
     if (templates.rules) {
       await this.attachRules(projectPath, target, templates.rules, result, manifest);
     }
 
-    // 4. Attach MCP servers (merge global + template servers)
+    // 5. Attach MCP servers (merge global + template servers)
     const globalMCPServers = await this.loadGlobalMCPServers(target);
     const allMCPServers = [...globalMCPServers, ...templates.mcpServers];
 
@@ -173,12 +183,12 @@ export class AttachManager {
       await this.attachMCPServers(projectPath, target, allMCPServers, result, manifest);
     }
 
-    // 5. Attach hooks
+    // 6. Attach hooks
     if (templates.hooks.length > 0) {
       await this.attachHooks(projectPath, target, templates.hooks, result, manifest);
     }
 
-    // 6. Attach single files
+    // 7. Attach single files
     if (templates.singleFiles.length > 0) {
       await this.attachSingleFiles(projectPath, templates.singleFiles, result, manifest);
     }
@@ -236,6 +246,45 @@ export class AttachManager {
     // Update manifest
     manifest.backup.commands.user.push(...itemManifest.user);
     manifest.backup.commands.flow.push(...itemManifest.flow);
+  }
+
+  /**
+   * Attach skills (override strategy)
+   * Skills are stored as <domain>/SKILL.md subdirectories
+   */
+  private async attachSkills(
+    projectPath: string,
+    target: Target,
+    skills: Array<{ name: string; content: string }>,
+    result: AttachResult,
+    manifest: BackupManifest
+  ): Promise<void> {
+    const skillsDir = path.join(projectPath, target.config.skillsDir!);
+    await fs.mkdir(skillsDir, { recursive: true });
+
+    for (const skill of skills) {
+      // skill.name is like "auth/SKILL.md" - create subdirectory
+      const skillPath = path.join(skillsDir, skill.name);
+      const skillSubDir = path.dirname(skillPath);
+      await fs.mkdir(skillSubDir, { recursive: true });
+
+      const existed = existsSync(skillPath);
+      if (existed) {
+        result.skillsOverridden.push(skill.name);
+        result.conflicts.push({
+          type: 'skill',
+          name: skill.name,
+          action: 'overridden',
+          message: `Skill '${skill.name}' overridden (will be restored on exit)`,
+        });
+        manifest.backup.skills.user.push(skillPath);
+      } else {
+        result.skillsAdded.push(skill.name);
+      }
+
+      await fs.writeFile(skillPath, skill.content);
+      manifest.backup.skills.flow.push(skillPath);
+    }
   }
 
   /**

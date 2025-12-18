@@ -35,6 +35,8 @@ export interface TargetConfig {
   outputStylesDir?: string;
   /** Slash commands directory (optional, relative to project root) */
   slashCommandsDir?: string;
+  /** Skills directory (optional, relative to project root) */
+  skillsDir?: string;
   /** Installation-specific configuration */
   installation: {
     /** Whether to create the agent directory */
@@ -137,4 +139,7 @@ export interface Target {
 
   /** Setup slash commands for this target (optional - implement if target supports slash commands) */
   setupSlashCommands?(cwd: string, options: CommonOptions): Promise<SetupResult>;
+
+  /** Setup skills for this target (optional - implement if target supports skills) */
+  setupSkills?(cwd: string, options: CommonOptions): Promise<SetupResult>;
 }

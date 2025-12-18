@@ -137,6 +137,7 @@ export class FlowExecutor {
       joined: false,
       agents: attachResult.agentsAdded.length,
       commands: attachResult.commandsAdded.length,
+      skills: attachResult.skillsAdded.length,
       mcp: attachResult.mcpServersAdded.length,
     };
   }
@@ -184,7 +185,15 @@ export class FlowExecutor {
       }
     }
 
-    // 3. Clear hooks directory (in configDir)
+    // 3. Clear skills directory (if target supports skills)
+    if (target.config.skillsDir) {
+      const skillsDir = path.join(projectPath, target.config.skillsDir);
+      if (existsSync(skillsDir)) {
+        await fs.rm(skillsDir, { recursive: true, force: true });
+      }
+    }
+
+    // 4. Clear hooks directory (in configDir)
     const hooksDir = path.join(projectPath, target.config.configDir, 'hooks');
     if (existsSync(hooksDir)) {
       const files = await fs.readdir(hooksDir);
@@ -193,7 +202,7 @@ export class FlowExecutor {
       }
     }
 
-    // 4. Clear MCP configuration using target config
+    // 5. Clear MCP configuration using target config
     const configPath = path.join(projectPath, target.config.configFile);
     const mcpPath = target.config.mcpConfigPath;
 
@@ -206,7 +215,7 @@ export class FlowExecutor {
       }
     }
 
-    // 5. Clear rules file if target has one defined (for targets like OpenCode)
+    // 6. Clear rules file if target has one defined (for targets like OpenCode)
     // Claude Code puts AGENTS.md in agents directory, handled above
     if (target.config.rulesFile) {
       const rulesPath = path.join(projectPath, target.config.rulesFile);
@@ -215,7 +224,7 @@ export class FlowExecutor {
       }
     }
 
-    // 6. Clear single files (output styles) - currently none
+    // 7. Clear single files (output styles) - currently none
     // These would be in the configDir if we had any
     const singleFiles: string[] = [];
     for (const fileName of singleFiles) {
@@ -225,7 +234,7 @@ export class FlowExecutor {
       }
     }
 
-    // 7. Clean up any Flow-created files in project root (legacy bug cleanup)
+    // 8. Clean up any Flow-created files in project root (legacy bug cleanup)
     // This handles files that were incorrectly created in project root
     const legacySingleFiles = ['silent.md']; // Keep for cleanup of legacy installations
     for (const fileName of legacySingleFiles) {

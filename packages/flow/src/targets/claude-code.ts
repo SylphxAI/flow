@@ -41,6 +41,7 @@ export const claudeCodeTarget: Target = {
     rulesFile: undefined, // Rules are included in agent files
     outputStylesDir: undefined, // Output styles are included in agent files
     slashCommandsDir: '.claude/commands',
+    skillsDir: '.claude/skills',
     installation: {
       createAgentDir: true,
       createConfigFile: true,

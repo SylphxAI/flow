@@ -38,6 +38,10 @@ export interface BackupManifest {
       user: string[];
       flow: string[];
     };
+    skills: {
+      user: string[];
+      flow: string[];
+    };
     rules?: {
       path: string;
       originalSize: number;
@@ -114,6 +118,7 @@ export class BackupManager {
       backup: {
         agents: { user: [], flow: [] },
         commands: { user: [], flow: [] },
+        skills: { user: [], flow: [] },
         singleFiles: {},
       },
       secrets: {

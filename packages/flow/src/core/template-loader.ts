@@ -29,6 +29,7 @@ export class TemplateLoader {
     const templates: FlowTemplates = {
       agents: [],
       commands: [],
+      skills: [],
       rules: undefined,
       mcpServers: [],
       hooks: [],
@@ -45,6 +46,12 @@ export class TemplateLoader {
     const commandsDir = path.join(this.assetsDir, 'slash-commands');
     if (existsSync(commandsDir)) {
       templates.commands = await this.loadCommands(commandsDir);
+    }
+
+    // Load skills (skills/<domain>/SKILL.md structure)
+    const skillsDir = path.join(this.assetsDir, 'skills');
+    if (existsSync(skillsDir)) {
+      templates.skills = await this.loadSkills(skillsDir);
     }
 
     // Load rules (check multiple possible locations)
@@ -113,6 +120,34 @@ export class TemplateLoader {
     }
 
     return commands;
+  }
+
+  /**
+   * Load skills from directory
+   * Skills are stored as <domain>/SKILL.md subdirectories
+   */
+  private async loadSkills(skillsDir: string): Promise<Array<{ name: string; content: string }>> {
+    const skills = [];
+    const domains = await fs.readdir(skillsDir);
+
+    for (const domain of domains) {
+      const domainPath = path.join(skillsDir, domain);
+      const stat = await fs.stat(domainPath);
+
+      if (!stat.isDirectory()) {
+        continue;
+      }
+
+      // Look for SKILL.md in each domain directory
+      const skillFile = path.join(domainPath, 'SKILL.md');
+      if (existsSync(skillFile)) {
+        const content = await fs.readFile(skillFile, 'utf-8');
+        // Name includes subdirectory: "auth/SKILL.md"
+        skills.push({ name: `${domain}/SKILL.md`, content });
+      }
+    }
+
+    return skills;
   }
 
   /**
