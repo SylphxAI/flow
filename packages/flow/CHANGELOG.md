@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.23.0 (2025-12-18)
+
+### ✨ Features
+
+- **agents:** add success context and explicit skill invocation ([878c4a9](https://github.com/SylphxAI/flow/commit/878c4a9c3d085afa158b4e127ff68d94ee574160))
+
 ## 2.22.0 (2025-12-18)
 
 ### ✨ Features
