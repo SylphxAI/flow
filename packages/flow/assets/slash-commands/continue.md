@@ -14,6 +14,6 @@ Push for excellence:
 
 **Never self-assess.** Delegate to multiple workers — they judge, you synthesize. Final Gate.
 
-Skills for depth. Workers for perspective.
+**Invoke skills** before acting. Read guidelines. Then exceed them.
 
 `/continue`
