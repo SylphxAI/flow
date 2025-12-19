@@ -20,25 +20,44 @@ description: PWA - native app parity, offline-first, engagement. Use when buildi
 
 ## Native App Parity
 
-| Capability | API | Purpose |
-|------------|-----|---------|
-| True offline | Cache API + localStorage | Full functionality without network |
-| App icon badge | Badging API | Show unread/pending count |
-| Local notifications | Notifications API | Scheduled reminders without server |
-| App shortcuts | manifest.json `shortcuts` | Long-press quick actions |
-| Push notifications | Web Push API | Server-triggered engagement |
-| Pull-to-refresh | Touch events + CSS | Native refresh gesture |
-| View transitions | View Transitions API | Smooth page navigation |
-| Bottom sheets | CSS + touch gestures | Native modal pattern |
-| Skeleton loading | CSS + React Suspense | Perceived performance |
-| Swipe gestures | Touch events | Navigate between views |
-| Haptic feedback | Vibration API | Tactile confirmation |
-| Sound effects | Web Audio API | Audio feedback |
-| Wake lock | Screen Wake Lock API | Prevent sleep during activity |
-| Orientation lock | Screen Orientation API | Lock portrait/landscape |
-| Reduced motion | `prefers-reduced-motion` | Accessibility compliance |
-| Picture-in-Picture | PiP API | Floating video/timer |
-| Share | Web Share API | Native share sheet |
+| Capability | API |
+|------------|-----|
+| True offline | Cache API + localStorage/IndexedDB |
+| Background sync | Background Sync API |
+| App icon badge | Badging API |
+| Local notifications | Notifications API |
+| Push notifications | Web Push API |
+| App shortcuts | manifest.json `shortcuts` |
+| File handling | File Handling API |
+| Protocol handling | registerProtocolHandler |
+| Pull-to-refresh | Touch events + CSS |
+| View transitions | View Transitions API |
+| Bottom sheets | CSS + touch gestures |
+| Skeleton loading | CSS + React Suspense |
+| Swipe gestures | Touch/Pointer events |
+| Haptic feedback | Vibration API |
+| Sound effects | Web Audio API |
+| Media controls | Media Session API |
+| Wake lock | Screen Wake Lock API |
+| Orientation lock | Screen Orientation API |
+| Fullscreen | Fullscreen API |
+| Picture-in-Picture | PiP API |
+| Share | Web Share API |
+| Receive share | Share Target API |
+| Clipboard | Clipboard API |
+| Camera/Mic | MediaDevices API |
+| Geolocation | Geolocation API |
+| Motion sensors | DeviceMotion/Orientation |
+| Bluetooth | Web Bluetooth API |
+| NFC | Web NFC API |
+| Barcode scan | Barcode Detection API |
+| Speech | Web Speech API |
+| Payments | Payment Request API |
+| Credentials | Credential Management API |
+| Idle detection | Idle Detection API |
+| Network status | Network Information API |
+| Reduced motion | `prefers-reduced-motion` |
+| Window controls | Window Controls Overlay |
 
 ## Context
 
