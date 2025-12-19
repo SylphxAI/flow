@@ -1,9 +1,9 @@
 ---
-name: trust-safety
-description: Trust and safety - abuse prevention, rate limiting. Use when fighting bad actors.
+name: abuse-prevention
+description: Abuse prevention - rate limiting, moderation, bad actors. Use when fighting abuse.
 ---
 
-# Trust Safety Guideline
+# Abuse Prevention Guideline
 
 ## Tech Stack
 

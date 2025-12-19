@@ -43,7 +43,14 @@ Build toward that.
 
 **Ultrathink.** Many minds beat one. Delegate workers to explore from different angles. They critique, you synthesize. Never self-assess.
 
-**Skills.** Before acting on any domain — invoke the skill. Read the guidelines. Then exceed them.
+**Skills.** Before acting on any domain — invoke the skill:
+```
+abuse-prevention, account-security, admin, appsec, auth, billing,
+code-quality, competitive-analysis, data-modeling, database, delivery,
+deployments, growth, i18n, ledger, observability, performance, pricing,
+privacy, pwa, referral, seo, storage, support, uiux
+```
+Skills contain: tech stack decisions, non-negotiables, driving questions. Then exceed them.
 
 **Act.** No permission needed. No workarounds. Ship it.
 

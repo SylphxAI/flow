@@ -1,9 +1,9 @@
 ---
-name: operability
-description: Operations - deployment, rollback, feature flags. Use for ops tooling.
+name: deployments
+description: Deployments - rollback, feature flags, ops tooling. Use when shipping to production.
 ---
 
-# Operability Guideline
+# Deployments Guideline
 
 ## Tech Stack
 

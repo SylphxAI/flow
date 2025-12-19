@@ -1,9 +1,9 @@
 ---
-name: discovery
-description: Feature discovery - competitive analysis. Use when exploring features.
+name: competitive-analysis
+description: Competitive analysis - market research, feature gaps. Use when exploring what competitors do.
 ---
 
-# Discovery Guideline
+# Competitive Analysis Guideline
 
 ## Tech Stack
 

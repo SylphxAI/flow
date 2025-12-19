@@ -1,9 +1,9 @@
 ---
-name: data-architecture
-description: Data architecture - models, relationships. Use when designing data structures.
+name: data-modeling
+description: Data modeling - entities, relationships, schemas. Use when designing data structures.
 ---
 
-# Data Architecture Guideline
+# Data Modeling Guideline
 
 ## Tech Stack
 

@@ -1,9 +1,9 @@
 ---
-name: security
+name: appsec
 description: Application security - OWASP, validation, secrets. Use when securing the app.
 ---
 
-# Security Guideline
+# AppSec Guideline
 
 ## Tech Stack
 

@@ -19,9 +19,12 @@ args:
 
 1. **Invoke skills** — Load guidelines for relevant domains:
    ```
-   auth, account-security, billing, security, database, performance, observability...
+   abuse-prevention, account-security, admin, appsec, auth, billing,
+   code-quality, competitive-analysis, data-modeling, database, delivery,
+   deployments, growth, i18n, ledger, observability, performance, pricing,
+   privacy, pwa, referral, seo, storage, support, uiux
    ```
-   Skills contain: tech stack decisions, non-negotiables, patterns, anti-patterns.
+   Skills contain: tech stack decisions, non-negotiables, driving questions.
 
 2. **Understand** — How is this implemented? Architecture, choices, tradeoffs.
 
