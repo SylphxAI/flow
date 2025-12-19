@@ -1,5 +1,15 @@
 # @sylphx/flow
 
+## 2.28.2 (2025-12-19)
+
+Enhance PWA skill with comprehensive native app parity checklist (35 capabilities)
+
+### 📚 Documentation
+
+- **skills:** expand PWA native parity to 35 capabilities ([8d32115](https://github.com/SylphxAI/flow/commit/8d321157ff66894f8b4fc6689eee39b6ce9176d1))
+- **skills:** remove priority categorization from PWA skill ([64d3966](https://github.com/SylphxAI/flow/commit/64d39660da95fc3b03c03534e906d0a9d81e9e1f))
+- **skills:** enhance PWA skill with native app parity checklist ([8840a51](https://github.com/SylphxAI/flow/commit/8840a51e0fa3e9e1c638ca4a101235a9169edca9))
+
 ## 2.28.1 (2025-12-19)
 
 ### 🐛 Bug Fixes
