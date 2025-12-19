@@ -18,9 +18,7 @@ description: PWA - native app parity, offline-first, engagement. Use when buildi
 * Offline experience must be functional, not just a fallback page
 * Installation prompt must be contextual (after value demonstrated)
 
-## Native App Parity Checklist
-
-### 🎯 Retention (High Priority)
+## Native App Parity
 
 | Capability | API | Purpose |
 |------------|-----|---------|
@@ -29,11 +27,6 @@ description: PWA - native app parity, offline-first, engagement. Use when buildi
 | Local notifications | Notifications API | Scheduled reminders without server |
 | App shortcuts | manifest.json `shortcuts` | Long-press quick actions |
 | Push notifications | Web Push API | Server-triggered engagement |
-
-### 🎨 Native Feel (Medium Priority)
-
-| Capability | API | Purpose |
-|------------|-----|---------|
 | Pull-to-refresh | Touch events + CSS | Native refresh gesture |
 | View transitions | View Transitions API | Smooth page navigation |
 | Bottom sheets | CSS + touch gestures | Native modal pattern |
@@ -41,11 +34,6 @@ description: PWA - native app parity, offline-first, engagement. Use when buildi
 | Swipe gestures | Touch events | Navigate between views |
 | Haptic feedback | Vibration API | Tactile confirmation |
 | Sound effects | Web Audio API | Audio feedback |
-
-### 📱 Polish (Lower Priority)
-
-| Capability | API | Purpose |
-|------------|-----|---------|
 | Wake lock | Screen Wake Lock API | Prevent sleep during activity |
 | Orientation lock | Screen Orientation API | Lock portrait/landscape |
 | Reduced motion | `prefers-reduced-motion` | Accessibility compliance |
