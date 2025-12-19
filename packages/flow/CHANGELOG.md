@@ -1,5 +1,19 @@
 # @sylphx/flow
 
+## 2.28.1 (2025-12-19)
+
+### 🐛 Bug Fixes
+
+- **core:** fix async cleanup handlers and add quickstart command ([1a37c9a](https://github.com/SylphxAI/flow/commit/1a37c9a5f38682d887fcdd5c5a177d2ff7eb51a3))
+
+### ♻️ Refactoring
+
+- **skills:** rename skills for clarity and update references ([416dfe7](https://github.com/SylphxAI/flow/commit/416dfe79d9622a8c78f89cd775561d461f5b5955))
+
+### ✅ Tests
+
+- **core:** add integration tests for backup→restore lifecycle ([e023a8c](https://github.com/SylphxAI/flow/commit/e023a8cc3b41fdd8b0c7f21561644cbf7484917b))
+
 ## 2.28.0 (2025-12-18)
 
 ### ✨ Features
