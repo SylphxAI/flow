@@ -16,13 +16,6 @@ Push for world-class:
 
 **Never self-assess.** Delegate to workers — they critique, you synthesize. Final Gate.
 
-**Invoke skills** before acting on any domain:
-```
-abuse-prevention, account-security, admin, appsec, auth, billing,
-code-quality, competitive-analysis, data-modeling, database, delivery,
-deployments, growth, i18n, ledger, observability, performance, pricing,
-privacy, pwa, referral, seo, storage, support, uiux
-```
-Skills contain: tech stack decisions, non-negotiables, driving questions. Then exceed them.
+**Skills.** Before acting on any domain — use the Skill tool to load guidelines. Read the guidelines. Then exceed them.
 
 `/continue`
