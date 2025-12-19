@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 2.28.3 (2025-12-19)
+
+### 🐛 Bug Fixes
+
+- **prompts:** instruct agents to use Skill tool explicitly ([45a2d34](https://github.com/SylphxAI/flow/commit/45a2d34fca6cf3064193980b15acdc922ac0f554))
+
 ## 2.28.2 (2025-12-19)
 
 Enhance PWA skill with comprehensive native app parity checklist (35 capabilities)
