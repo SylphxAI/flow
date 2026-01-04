@@ -1,5 +1,13 @@
 # @sylphx/flow
 
+## 2.28.6 (2026-01-04)
+
+Switch styling from Tailwind to UnoCSS + Iconify
+
+### 📚 Documentation
+
+- **commands:** switch from Tailwind to UnoCSS + Iconify ([0ca95ea](https://github.com/SylphxAI/flow/commit/0ca95ea29bb82ad4534618592f8b9c6e3543d606))
+
 ## 2.28.5 (2026-01-04)
 
 Enhance continue command with Radix UI everywhere, bootstrap super admin, and platform-led integrations
