@@ -1,5 +1,13 @@
 # @sylphx/flow
 
+## 2.28.5 (2026-01-04)
+
+Enhance continue command with Radix UI everywhere, bootstrap super admin, and platform-led integrations
+
+### 📚 Documentation
+
+- **commands:** enhance continue with Radix UI, bootstrap, platform-led integrations ([bd09618](https://github.com/SylphxAI/flow/commit/bd09618e384f638e57535d51814696e0e2b9235e))
+
 ## 2.28.4 (2026-01-04)
 
 Rewrite continue command with SSOT principles and comprehensive system correctness guidelines
