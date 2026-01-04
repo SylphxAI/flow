@@ -52,7 +52,70 @@ The system must remain:
 - Testable
 - Observable
 
-All technologies must be used correctly, consistently, and idiomatically:
+## UI: Radix UI Everywhere
+
+Use Radix UI comprehensively. If Radix has a primitive for it, use it.
+No custom implementations of solved problems.
+No alternative component libraries for what Radix already provides.
+
+Radix primitives are the SSOT for:
+- Dialogs, modals, sheets
+- Dropdowns, menus, context menus
+- Popovers, tooltips, hover cards
+- Tabs, accordions, collapsibles
+- Select, combobox, radio, checkbox, switch
+- Sliders, progress, scroll areas
+- Navigation, breadcrumbs
+- Toasts, alerts
+- Avatar, aspect ratio, separator
+
+When similar UI problems arise across the system,
+solve them once with Radix, then reuse everywhere.
+
+## Bootstrap: Super Admin
+
+Simplest possible approach:
+
+```
+INITIAL_SUPERADMIN_EMAIL=your@email.com
+```
+
+Flow:
+1. Set env variable
+2. Register with that email
+3. Automatically elevated to super_admin
+4. Done
+
+Why singular:
+- Only one initial super_admin needed
+- They promote others via admin UI
+- Simple = fewer bugs
+
+The bootstrap must:
+- Execute exactly once
+- Be non-reentrant
+- Not be bypassable
+- Not become permanent logic dependency
+
+## Third-Party Integrations: Platform-Led
+
+The platform is the source of truth. Third-party services sync FROM the platform, not TO it.
+
+**Stripe:**
+- Platform defines products, prices, features
+- Stripe is synced to match platform state
+- No manual Stripe dashboard configuration
+- Platform state → Stripe sync (never reverse)
+
+**All integrations:**
+- Design in platform first
+- Third-party services are implementation details
+- No dependency on third-party UI/configuration
+- Platform can switch providers without architectural change
+
+## Technologies
+
+All must be used correctly, consistently, and idiomatically:
 tRPC, Next.js, Radix UI, next-intl, Drizzle,
 Better Auth, Stripe, Upstash, Neon, Vercel,
 Resend (email), Vercel Blob (storage),
@@ -60,34 +123,34 @@ AI SDK with OpenRouter provider,
 Iconify, Bun, Biome, Bun test,
 Responsive Web Design.
 
-Any identity or permission bootstrap (e.g. super admin):
-- Must be defined via environment configuration
-- Must execute exactly once in the system's lifetime
-- Must be non-reentrant
-- Must not be bypassable
-- Must not become a permanent logic dependency
+## Re-authentication Flow
 
 All sensitive operations require explicit re-authentication:
-        Sensitive action triggered
-                    ↓
-            Check verified session
-                    ↓
-        Does the user have a password?
-            ├─ Yes → Verify password
-            └─ No  → Send email OTP (6 digits, 10-minute expiry)
-                    ↓
-            Verification succeeds
-                    ↓
-            Mark session as verified
-                    ↓
-        Allow scoped, time-bound sensitive actions
-        (2FA setup, email change, account deletion, etc.)
+
+```
+    Sensitive action triggered
+                ↓
+        Check verified session
+                ↓
+    Does the user have a password?
+        ├─ Yes → Verify password
+        └─ No  → Send email OTP (6 digits, 10-minute expiry)
+                ↓
+        Verification succeeds
+                ↓
+        Mark session as verified
+                ↓
+    Allow scoped, time-bound sensitive actions
+    (2FA setup, email change, account deletion, etc.)
+```
 
 The verified state must:
 - Have explicit scope
 - Have explicit expiration
 - Never be implicitly reused
 - Never be shared across sessions or contexts
+
+---
 
 Any ambiguity, inconsistency, incompleteness, or undefined behavior
 must be treated as a bug, not a feature.
