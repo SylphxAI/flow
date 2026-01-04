@@ -1,5 +1,18 @@
 # @sylphx/flow
 
+## 2.28.7 (2026-01-04)
+
+Align all skills with platform-led SSOT principles:
+- billing/pricing: Platform is source of truth, Stripe syncs FROM platform
+- uiux: Radix UI + UnoCSS
+- admin: INITIAL_SUPERADMIN_EMAIL bootstrap
+- auth: Better Auth, database: Drizzle, i18n: next-intl, storage: Vercel Blob
+- account-security: Re-authentication flow
+
+### 📚 Documentation
+
+- **skills:** align skills with SSOT platform-led principles ([dbb868b](https://github.com/SylphxAI/flow/commit/dbb868be48a24b672fb739f81c5dd3590f3cbe29))
+
 ## 2.28.6 (2026-01-04)
 
 Switch styling from Tailwind to UnoCSS + Iconify
