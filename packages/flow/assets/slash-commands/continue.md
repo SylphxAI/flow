@@ -120,7 +120,8 @@ tRPC, Next.js, Radix UI, next-intl, Drizzle,
 Better Auth, Stripe, Upstash, Neon, Vercel,
 Resend (email), Vercel Blob (storage),
 AI SDK with OpenRouter provider,
-Iconify, Bun, Biome, Bun test,
+UnoCSS (styling), Iconify (icons),
+Bun, Biome, Bun test,
 Responsive Web Design.
 
 ## Re-authentication Flow
