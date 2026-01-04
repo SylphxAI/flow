@@ -7,26 +7,42 @@ description: Authentication patterns - sign-in, SSO, passkeys, sessions. Use whe
 
 ## Tech Stack
 
-* **Auth**: better-auth
+* **Auth**: Better Auth
 * **Framework**: Next.js
+* **Database**: Neon (Postgres)
+* **ORM**: Drizzle
 
 ## Non-Negotiables
 
 * All authorization decisions must be server-enforced (no client-trust)
 * Email verification required for high-impact capabilities
 * If SSO provider secrets are missing, hide the option (no broken UI)
+* Session management via Better Auth (no custom implementation)
+
+## Auth Flow
+
+```
+User initiates sign-in
+        ↓
+Better Auth handles provider/credentials
+        ↓
+Session created server-side
+        ↓
+Session token in httpOnly cookie
+        ↓
+All requests validated server-side
+```
 
 ## Context
 
-Authentication is the front door to every user's data. It needs to be both secure and frictionless — a difficult balance. Users abandon products with painful sign-in flows, but weak auth leads to compromised accounts.
+Authentication is the front door to every user's data. It needs to be both secure and frictionless. Users abandon products with painful sign-in flows, but weak auth leads to compromised accounts.
 
-Consider the entire auth journey: first sign-up, return visits, account linking, recovery flows. Where is there unnecessary friction? Where are there security gaps? What would make auth both more secure AND easier?
+Better Auth is the SSOT for authentication. No custom auth implementations.
 
 ## Driving Questions
 
-* What's the sign-in experience for a first-time user vs. returning user?
-* Where do users get stuck or abandon the auth flow?
+* Is all auth handled by Better Auth?
+* Are we building custom auth logic that Better Auth already provides?
+* What's the sign-in experience for first-time vs returning users?
 * What happens when a user loses access to their primary auth method?
-* How does the system handle auth provider outages gracefully?
-* What would passwordless-first auth look like here?
 * Where is auth complexity hiding bugs or security issues?

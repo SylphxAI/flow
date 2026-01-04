@@ -16,7 +16,21 @@ description: Financial ledger - transactions, audit trails. Use when tracking mo
 * Balances must be immutable ledger (append-only), not mutable fields
 * No floating-point for money (use deterministic precision)
 * All financial mutations must be idempotent
-* Monetary flows must be reconcilable with Stripe
+* Platform ledger is source of truth (Stripe syncs FROM platform)
+
+## Platform-Led Financial State
+
+```
+Platform Ledger (SSOT)
+        ↓
+  Stripe syncs from platform
+        ↓
+  Webhooks confirm sync success
+        ↓
+  Reconciliation verifies alignment
+```
+
+Platform defines credits, balances, transactions. Stripe reflects platform state, not the reverse.
 
 ## Context
 
