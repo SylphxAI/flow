@@ -1,5 +1,13 @@
 # @sylphx/flow
 
+## 2.28.4 (2026-01-04)
+
+Rewrite continue command with SSOT principles and comprehensive system correctness guidelines
+
+### 📚 Documentation
+
+- **commands:** rewrite continue command with SSOT principles ([b3ca5e0](https://github.com/SylphxAI/flow/commit/b3ca5e048b7580ed2f723936297b015a03964932))
+
 ## 2.28.3 (2025-12-19)
 
 ### 🐛 Bug Fixes
