@@ -116,11 +116,11 @@ The platform is the source of truth. Third-party services sync FROM the platform
 ## Technologies
 
 All must be used correctly, consistently, and idiomatically:
-tRPC, Next.js, Radix UI, next-intl, Drizzle,
+tRPC, Next.js (with Turbopack), Radix UI, next-intl, Drizzle,
 Better Auth, Stripe, Upstash, Neon, Vercel,
 Resend (email), Vercel Blob (storage),
 AI SDK with OpenRouter provider,
-UnoCSS (styling), Iconify (icons),
+Tailwind CSS (styling), Iconify Icon web component (icons),
 Bun, Biome, Bun test,
 Responsive Web Design.
 
