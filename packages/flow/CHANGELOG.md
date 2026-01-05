@@ -1,5 +1,13 @@
 # @sylphx/flow
 
+## 2.28.10 (2026-01-05)
+
+Make Radix UI mandatory - if Radix has it, you MUST use it
+
+### 📚 Documentation
+
+- make Radix UI mandatory - if Radix has it, MUST use it ([a270d90](https://github.com/SylphxAI/flow/commit/a270d90c3a8c5ccc0caa970ab741281ea37e23f8))
+
 ## 2.28.9 (2026-01-05)
 
 Specify @iconify-icon/react for icons
