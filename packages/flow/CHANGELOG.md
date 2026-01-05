@@ -1,5 +1,13 @@
 # @sylphx/flow
 
+## 2.28.8 (2026-01-05)
+
+Switch back to Tailwind CSS, require Turbopack, use Iconify Icon web component
+
+### 📚 Documentation
+
+- switch to Tailwind CSS, Turbopack, Iconify Icon web component ([1d5dbff](https://github.com/SylphxAI/flow/commit/1d5dbff0f6664175b6de0cd4a8247add4cfe9547))
+
 ## 2.28.7 (2026-01-04)
 
 Align all skills with platform-led SSOT principles:

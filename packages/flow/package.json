@@ -1,6 +1,6 @@
 {
 	"name": "@sylphx/flow",
-	"version": "2.28.7",
+	"version": "2.28.8",
 	"description": "One CLI to rule them all. Unified orchestration layer for AI coding assistants. Auto-detection, auto-installation, auto-upgrade.",
 	"type": "module",
 	"bin": {
