@@ -12,24 +12,29 @@ description: UI/UX - design system, accessibility. Use when building interfaces.
 * **Styling**: Tailwind CSS
 * **Icons**: @iconify-icon/react
 
-## Radix UI Everywhere
+## Radix UI Everywhere (Mandatory)
 
-Use Radix UI comprehensively. If Radix has a primitive for it, use it.
-No custom implementations of solved problems.
-No alternative component libraries.
+Radix UI is mandatory. If Radix has a primitive for it, you MUST use it.
+No exceptions. No custom implementations. No alternative libraries.
+
+Before building any interactive component, check Radix first.
+If Radix provides it, use Radix. Period.
 
 Radix primitives are the SSOT for:
-- Dialogs, modals, sheets
+- Dialogs, modals, sheets, drawers
 - Dropdowns, menus, context menus
 - Popovers, tooltips, hover cards
 - Tabs, accordions, collapsibles
-- Select, combobox, radio, checkbox, switch
+- Select, combobox, radio, checkbox, switch, toggle
 - Sliders, progress, scroll areas
-- Navigation, breadcrumbs
-- Toasts, alerts
+- Navigation menus, breadcrumbs
+- Toasts, alerts, alert dialogs
 - Avatar, aspect ratio, separator
+- Forms, labels, toolbar
+- Toggle groups, toggle buttons
 
-When similar UI problems arise, solve once with Radix, then reuse.
+Any custom implementation of something Radix already provides is a bug.
+When similar UI problems arise, solve once with Radix, reuse everywhere.
 
 ## Non-Negotiables
 
