@@ -120,7 +120,7 @@ tRPC, Next.js (with Turbopack), Radix UI, next-intl, Drizzle,
 Better Auth, Stripe, Upstash, Neon, Vercel,
 Resend (email), Vercel Blob (storage),
 AI SDK with OpenRouter provider,
-Tailwind CSS (styling), Iconify Icon web component (icons),
+Tailwind CSS (styling), @iconify-icon/react (icons),
 Bun, Biome, Bun test,
 Responsive Web Design.
 

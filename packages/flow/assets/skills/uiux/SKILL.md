@@ -10,7 +10,7 @@ description: UI/UX - design system, accessibility. Use when building interfaces.
 * **Framework**: Next.js (with Turbopack)
 * **Components**: Radix UI
 * **Styling**: Tailwind CSS
-* **Icons**: Iconify Icon web component
+* **Icons**: @iconify-icon/react
 
 ## Radix UI Everywhere
 
@@ -36,14 +36,14 @@ When similar UI problems arise, solve once with Radix, then reuse.
 * WCAG AA accessibility compliance
 * Radix UI for all interactive components
 * Tailwind CSS for styling
-* Iconify Icon web component for all icons
+* @iconify-icon/react for all icons
 * Responsive design for all viewports
 
 ## Context
 
 UI/UX determines how users perceive and interact with the product. A great UI isn't just "correct" — it's delightful, intuitive, and makes complex tasks feel simple.
 
-Radix provides accessible, unstyled primitives. Tailwind provides utility-first styling. Iconify Icon web component provides unified icon access. Together they enable consistent, accessible UI without reinventing components.
+Radix provides accessible, unstyled primitives. Tailwind provides utility-first styling. @iconify-icon/react provides unified icon access. Together they enable consistent, accessible UI without reinventing components.
 
 ## Driving Questions
 
