@@ -1,5 +1,13 @@
 # @sylphx/flow
 
+## 2.28.9 (2026-01-05)
+
+Specify @iconify-icon/react for icons
+
+### 📚 Documentation
+
+- specify @iconify-icon/react for icons ([8602e04](https://github.com/SylphxAI/flow/commit/8602e040ac8fdc338c51a88c06b39a66f96be0c1))
+
 ## 2.28.8 (2026-01-05)
 
 Switch back to Tailwind CSS, require Turbopack, use Iconify Icon web component
