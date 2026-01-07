@@ -15,9 +15,6 @@ description: UI/UX - design system, accessibility. Use when building interfaces.
 ## Radix UI (Mandatory)
 
 If Radix has a primitive for it, you MUST use it. No exceptions. No custom implementations.
-
-This includes: Dialog, Dropdown, Popover, Tooltip, Tabs, Accordion, Select, Checkbox, Radio, Switch, Slider, Toggle, ScrollArea, Toast, AlertDialog, ContextMenu, NavigationMenu, HoverCard, Avatar, AspectRatio, Separator, Label, Toolbar, ToggleGroup, Collapsible, Progress.
-
 Any custom implementation of something Radix already provides is a bug.
 
 ## Non-Negotiables
