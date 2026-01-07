@@ -12,41 +12,14 @@ description: Billing - Stripe, webhooks, subscriptions. Use when implementing pa
 * **Database**: Neon (Postgres)
 * **ORM**: Drizzle
 
-## Platform-Led Billing
-
-Platform is the source of truth. Stripe syncs FROM platform, not TO it.
-
-- Platform defines products, prices, features, entitlements
-- Stripe is synced to match platform state
-- No manual Stripe dashboard configuration
-- Platform state → Stripe sync (never reverse)
-- Stripe webhooks confirm sync success, not drive state
-
 ## Non-Negotiables
 
+* Platform is source of truth — Stripe syncs FROM platform, never reverse
+* All billing configuration in code, not Stripe dashboard
 * Webhook signature must be verified (reject unverifiable events)
 * Stripe event ID must be used for idempotency
 * Webhooks must handle out-of-order delivery
-* UI must only display states derivable from platform-truth
-* No Stripe dashboard design — all configuration in code
-
-## Subscription Lifecycle
-
-```
-Platform defines plan
-        ↓
-Sync to Stripe (create Product + Price)
-        ↓
-User selects plan in UI
-        ↓
-Create Stripe Checkout Session
-        ↓
-User completes payment
-        ↓
-Webhook confirms → Update platform state
-        ↓
-Entitlements derived from platform state
-```
+* Entitlements derived from platform state, not Stripe metadata
 
 ## Context
 

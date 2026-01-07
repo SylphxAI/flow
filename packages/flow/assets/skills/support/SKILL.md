@@ -7,26 +7,25 @@ description: Support - help center, tickets, docs. Use when building support.
 
 ## Tech Stack
 
+* **Framework**: Next.js (with Turbopack)
 * **Email**: Resend
-* **Framework**: Next.js
 
 ## Non-Negotiables
 
-* Unsubscribe must work reliably
-* Support contact must be discoverable
-* Newsletter/marketing must respect consent preferences
+* Self-service must be prioritized over contact forms
+* Support context must include user state (plan, usage, recent actions)
+* Response time expectations must be set and met
 
 ## Context
 
-Support is where user trust is won or lost. When something goes wrong, how easy is it to get help? When help arrives, does it actually solve the problem? Great support turns frustrated users into loyal advocates.
+Support is where trust is won or lost. Users who need help are often frustrated — the support experience either deepens their trust or confirms their fears.
 
-Consider the entire help-seeking journey: finding help, explaining the problem, getting resolution. Where is there friction? Where do users give up? What would make users feel genuinely cared for?
+Great support isn't just fast responses — it's making users not need support in the first place. Every support ticket is a signal that something in the product could be clearer.
 
 ## Driving Questions
 
-* When users need help, can they find it easily?
-* What problems do users have that they can't solve themselves?
-* How long does it take to resolve a typical support request?
-* What would reduce support volume without reducing user satisfaction?
-* Where do users get stuck and give up on getting help?
-* What would make the support experience genuinely delightful?
+* What are the most common support requests and can they be self-served?
+* What context does support need that they don't have?
+* Where does the product create confusion that leads to support tickets?
+* How would we handle a surge in support volume?
+* What would make users feel supported before they ask for help?

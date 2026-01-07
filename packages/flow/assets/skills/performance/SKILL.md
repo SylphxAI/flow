@@ -15,6 +15,7 @@ description: Performance - Core Web Vitals, bundle size. Use when optimizing spe
 
 * Core Web Vitals must meet thresholds (LCP < 2.5s, CLS < 0.1, INP < 200ms)
 * Performance regressions must be detectable
+* JavaScript bundle size must be monitored and optimized
 
 ## Context
 

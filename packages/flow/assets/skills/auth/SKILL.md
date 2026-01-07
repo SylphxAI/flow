@@ -8,30 +8,17 @@ description: Authentication patterns - sign-in, SSO, passkeys, sessions. Use whe
 ## Tech Stack
 
 * **Auth**: Better Auth
-* **Framework**: Next.js
+* **Framework**: Next.js (with Turbopack)
 * **Database**: Neon (Postgres)
 * **ORM**: Drizzle
 
 ## Non-Negotiables
 
+* All authentication via Better Auth (no custom implementation)
 * All authorization decisions must be server-enforced (no client-trust)
 * Email verification required for high-impact capabilities
+* Session token in httpOnly cookie only
 * If SSO provider secrets are missing, hide the option (no broken UI)
-* Session management via Better Auth (no custom implementation)
-
-## Auth Flow
-
-```
-User initiates sign-in
-        ↓
-Better Auth handles provider/credentials
-        ↓
-Session created server-side
-        ↓
-Session token in httpOnly cookie
-        ↓
-All requests validated server-side
-```
 
 ## Context
 

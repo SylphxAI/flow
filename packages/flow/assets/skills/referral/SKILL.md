@@ -9,24 +9,22 @@ description: Referral systems - referral programs, viral loops. Use for referral
 
 * **Analytics**: PostHog
 * **Database**: Neon (Postgres)
+* **ORM**: Drizzle
 
 ## Non-Negotiables
 
-* Referral rewards must have clawback capability for fraud
-* Attribution must be auditable (who referred whom, when, reward status)
-* Velocity controls must exist to prevent abuse
+* Referral attribution must be accurate and auditable
+* Rewards must be fraud-resistant (no self-referral, duplicate abuse)
+* Terms must be clear and enforced consistently
 
 ## Context
 
-Referral programs can drive explosive growth — or become fraud magnets. The best referral programs make sharing natural and rewarding. The worst become liability when abusers exploit them.
-
-Consider both sides: what makes users want to share? And what prevents bad actors from gaming the system? A referral program that's easy to abuse is worse than no referral program.
+Referrals turn happy users into growth engines. But poorly designed referral programs create fraud opportunities and erode trust. The best referral programs feel generous, not gameable.
 
 ## Driving Questions
 
-* Why would a user share this product with someone they know?
-* How easy is it for a bad actor to generate fake referrals?
-* What fraud patterns exist that we haven't addressed?
-* What is the actual ROI of the referral program?
-* Where do users drop off in the referral/share flow?
-* If we redesigned referrals from scratch, what would be different?
+* What would make users genuinely want to refer others?
+* How do we prevent referral fraud without punishing legitimate users?
+* Is referral attribution working correctly across all channels?
+* What's the referral conversion rate and what affects it?
+* Are referral rewards actually motivating behavior?

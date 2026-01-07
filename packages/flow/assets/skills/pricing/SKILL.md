@@ -11,36 +11,13 @@ description: Pricing strategy - tiers, feature gating. Use when designing pricin
 * **Database**: Neon (Postgres)
 * **ORM**: Drizzle
 
-## Platform-Led Pricing
-
-Platform is the source of truth for all pricing.
-
-- Products, prices, tiers, features defined in platform code
-- Stripe Products/Prices created via sync, not manually
-- No Stripe dashboard configuration
-- Pricing changes → code change → sync to Stripe
-- Historical prices remain in Stripe (immutable)
-
 ## Non-Negotiables
 
-* All pricing configuration must be in code
-* No manual Stripe dashboard changes
+* All pricing configuration must be in code (platform is SSOT)
+* No manual Stripe dashboard configuration
+* Stripe Products/Prices created via sync from platform
 * Pricing drift must be detectable and auto-correctable
 * Feature entitlements derived from platform state, not Stripe metadata
-
-## Pricing Model
-
-```typescript
-// Platform defines pricing (code is SSOT)
-const plans = {
-  free: { price: 0, features: ['basic'] },
-  pro: { price: 29, features: ['basic', 'advanced', 'priority'] },
-  enterprise: { price: 299, features: ['basic', 'advanced', 'priority', 'sla'] }
-}
-
-// Sync to Stripe on deploy/startup
-await syncPricingToStripe(plans)
-```
 
 ## Context
 

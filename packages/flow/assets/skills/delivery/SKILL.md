@@ -18,7 +18,7 @@ description: Delivery - CI/CD, testing, releases. Use when improving pipelines.
 * Build must fail-fast on missing required configuration
 * CI must block on: lint, typecheck, tests, build
 * `/en/*` must redirect (no duplicate content)
-* Security headers (CSP, HSTS) must be verified by tests
+* Security headers must be verified by tests
 * Consent gating must be verified by tests
 
 ## Context

@@ -8,30 +8,16 @@ description: Data modeling - entities, relationships, schemas. Use when designin
 ## Tech Stack
 
 * **API**: tRPC
-* **Framework**: Next.js
+* **Framework**: Next.js (with Turbopack)
 * **Database**: Neon (Postgres)
 * **ORM**: Drizzle
 
 ## Non-Negotiables
 
 * All authorization must be server-enforced (no client-trust)
-* Platform is source of truth for billing/entitlements (Stripe syncs FROM platform)
+* Platform is source of truth — third-party services sync FROM platform
 * UI must never contradict server-truth
 * High-value mutations must have audit trail (who/when/why/before/after)
-
-## Platform-Led Data Flow
-
-```
-Platform State (SSOT)
-        ↓
-  Third-party services sync FROM platform
-        ↓
-  Webhooks confirm sync success
-        ↓
-  Never reverse the flow
-```
-
-Platform defines products, prices, entitlements. External services reflect platform state.
 
 ## Context
 

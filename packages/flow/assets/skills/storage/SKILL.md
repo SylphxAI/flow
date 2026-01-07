@@ -8,40 +8,26 @@ description: File storage - uploads, CDN, blobs. Use when handling files.
 ## Tech Stack
 
 * **Storage**: Vercel Blob
+* **Framework**: Next.js (with Turbopack)
 * **Platform**: Vercel
-* **Framework**: Next.js
 
 ## Non-Negotiables
 
-* Uploads must be intent-based and server-verified
-* No direct client uploads to permanent storage
-* Server must validate blob ownership before attaching to resources
-* Abandoned uploads must be cleanable
-
-## Upload Flow
-
-```
-Client requests upload URL
-        ↓
-Server creates signed upload token
-        ↓
-Client uploads to Vercel Blob
-        ↓
-Server validates and attaches to resource
-        ↓
-Orphaned blobs cleaned periodically
-```
+* All file uploads must be validated (type, size, content)
+* Signed URLs for private content access
+* No user-uploaded content served from main domain (XSS prevention)
+* File deletion must cascade with parent entity deletion
 
 ## Context
 
-File uploads are a common attack vector. Users upload things you don't expect. Files live longer than you plan. Storage costs accumulate quietly.
+File storage is deceptively complex. Users expect uploads to just work, but there are many ways for it to fail — large files, slow connections, wrong formats, malicious content.
 
 Vercel Blob is the SSOT for file storage. No custom implementations.
 
 ## Driving Questions
 
-* Is all storage through Vercel Blob?
-* Are uploads validated server-side?
-* What happens to orphaned files?
-* What file types do we accept, and should we?
-* How much are we spending on storage?
+* What happens when an upload fails halfway?
+* How are large files handled without blocking?
+* What file types are allowed and how is it enforced?
+* How long are files retained after entity deletion?
+* What's the storage cost and is it sustainable?

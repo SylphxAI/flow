@@ -8,34 +8,17 @@ description: Internationalization - localization, translations. Use when adding 
 ## Tech Stack
 
 * **i18n**: next-intl
-* **Framework**: Next.js
+* **Framework**: Next.js (with Turbopack)
 
 ## Non-Negotiables
 
+* All i18n via next-intl (no custom implementation)
 * `/en/*` must not exist (permanently redirect to non-prefixed)
 * Missing translation keys must fail build
 * No hardcoded user-facing strings outside localization
 * Translation bundles must be split by namespace (no monolithic files)
 * Server Components for translations wherever possible
-
-## Bundle Strategy
-
-```
-messages/
-├── en/
-│   ├── common.json      # Shared strings
-│   ├── auth.json        # Auth flow
-│   ├── dashboard.json   # Dashboard
-│   └── settings.json    # Settings
-└── zh/
-    ├── common.json
-    ├── auth.json
-    ├── dashboard.json
-    └── settings.json
-```
-
-Each route loads only its required namespaces.
-Client bundles must not include server-only translations.
+* Client bundles must not include server-only translations
 
 ## Context
 

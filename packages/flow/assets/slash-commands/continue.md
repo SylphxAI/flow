@@ -52,74 +52,28 @@ The system must remain:
 - Testable
 - Observable
 
-## UI: Radix UI Everywhere (Mandatory)
+## Radix UI (Mandatory)
 
-Radix UI is mandatory. If Radix has a primitive for it, you MUST use it.
-No exceptions. No custom implementations. No alternative libraries.
-
-Before building any interactive component, check Radix first.
-If Radix provides it, use Radix. Period.
-
-Radix primitives are the SSOT for:
-- Dialogs, modals, sheets, drawers
-- Dropdowns, menus, context menus
-- Popovers, tooltips, hover cards
-- Tabs, accordions, collapsibles
-- Select, combobox, radio, checkbox, switch, toggle
-- Sliders, progress, scroll areas
-- Navigation menus, breadcrumbs
-- Toasts, alerts, alert dialogs
-- Avatar, aspect ratio, separator
-- Forms, labels, toolbar
-- Toggle groups, toggle buttons
-
+If Radix has a primitive for it, you MUST use it. No exceptions. No custom implementations.
 Any custom implementation of something Radix already provides is a bug.
-When similar UI problems arise, solve once with Radix, reuse everywhere.
 
-## Bootstrap: Super Admin
+## Bootstrap
 
-Simplest possible approach:
+Admin bootstrap via INITIAL_SUPERADMIN_EMAIL only. One-time, non-reentrant, non-bypassable.
 
-```
-INITIAL_SUPERADMIN_EMAIL=your@email.com
-```
+## Platform-Led Integrations
 
-Flow:
-1. Set env variable
-2. Register with that email
-3. Automatically elevated to super_admin
-4. Done
+Platform is source of truth. Third-party services sync FROM platform, never reverse.
+All configuration in code. No manual third-party dashboard configuration.
+Platform can switch providers without architectural change.
 
-Why singular:
-- Only one initial super_admin needed
-- They promote others via admin UI
-- Simple = fewer bugs
+## Re-authentication
 
-The bootstrap must:
-- Execute exactly once
-- Be non-reentrant
-- Not be bypassable
-- Not become permanent logic dependency
-
-## Third-Party Integrations: Platform-Led
-
-The platform is the source of truth. Third-party services sync FROM the platform, not TO it.
-
-**Stripe:**
-- Platform defines products, prices, features
-- Stripe is synced to match platform state
-- No manual Stripe dashboard configuration
-- Platform state → Stripe sync (never reverse)
-
-**All integrations:**
-- Design in platform first
-- Third-party services are implementation details
-- No dependency on third-party UI/configuration
-- Platform can switch providers without architectural change
+Sensitive actions require step-up re-authentication (password or email OTP).
+Verified session state must be scoped, time-bound, never implicitly reused.
 
 ## Technologies
 
-All must be used correctly, consistently, and idiomatically:
 tRPC, Next.js (with Turbopack), Radix UI, next-intl, Drizzle,
 Better Auth, Stripe, Upstash, Neon, Vercel,
 Resend (email), Vercel Blob (storage),
@@ -127,33 +81,6 @@ AI SDK with OpenRouter provider,
 Tailwind CSS (styling), @iconify-icon/react (icons),
 Bun, Biome, Bun test,
 Responsive Web Design.
-
-## Re-authentication Flow
-
-All sensitive operations require explicit re-authentication:
-
-```
-    Sensitive action triggered
-                ↓
-        Check verified session
-                ↓
-    Does the user have a password?
-        ├─ Yes → Verify password
-        └─ No  → Send email OTP (6 digits, 10-minute expiry)
-                ↓
-        Verification succeeds
-                ↓
-        Mark session as verified
-                ↓
-    Allow scoped, time-bound sensitive actions
-    (2FA setup, email change, account deletion, etc.)
-```
-
-The verified state must:
-- Have explicit scope
-- Have explicit expiration
-- Never be implicitly reused
-- Never be shared across sessions or contexts
 
 ---
 

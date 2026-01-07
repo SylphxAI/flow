@@ -11,35 +11,10 @@ description: Account security - MFA, sessions, recovery. Use when protecting use
 * **Framework**: Next.js
 * **Database**: Neon (Postgres)
 
-## Re-authentication Flow
-
-All sensitive operations require explicit re-authentication:
-
-```
-    Sensitive action triggered
-                ↓
-        Check verified session
-                ↓
-    Does the user have a password?
-        ├─ Yes → Verify password
-        └─ No  → Send email OTP (6 digits, 10-minute expiry)
-                ↓
-        Verification succeeds
-                ↓
-        Mark session as verified
-                ↓
-    Allow scoped, time-bound sensitive actions
-    (2FA setup, email change, account deletion, etc.)
-```
-
-The verified state must:
-- Have explicit scope
-- Have explicit expiration
-- Never be implicitly reused
-- Never be shared across sessions or contexts
-
 ## Non-Negotiables
 
+* Sensitive actions require step-up re-authentication (password or email OTP)
+* Verified session state must be scoped, time-bound, never implicitly reused
 * Session/device visibility and revocation must exist
 * All security-sensitive actions must be server-enforced and auditable
 * Account recovery must require step-up verification

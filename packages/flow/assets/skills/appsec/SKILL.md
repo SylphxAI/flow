@@ -8,13 +8,13 @@ description: Application security - OWASP, validation, secrets. Use when securin
 ## Tech Stack
 
 * **Rate Limiting**: Upstash Redis
-* **Framework**: Next.js
+* **Framework**: Next.js (with Turbopack)
 * **Platform**: Vercel
 
 ## Non-Negotiables
 
 * OWASP Top 10:2025 vulnerabilities must be addressed
-* CSP, HSTS, X-Frame-Options, X-Content-Type-Options headers must be present
+* Security headers present (CSP, HSTS, X-Frame-Options, X-Content-Type-Options)
 * CSRF protection on state-changing requests
 * No plaintext passwords in logs, returns, storage, or telemetry
 * MFA required for Admin/SUPER_ADMIN roles

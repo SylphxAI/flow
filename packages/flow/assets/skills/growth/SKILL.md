@@ -8,7 +8,7 @@ description: Growth - onboarding, activation, retention. Use for growth features
 ## Tech Stack
 
 * **Analytics**: PostHog
-* **Framework**: Next.js
+* **Framework**: Next.js (with Turbopack)
 
 ## Non-Negotiables
 

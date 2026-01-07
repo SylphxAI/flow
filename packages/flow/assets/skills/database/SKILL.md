@@ -13,27 +13,11 @@ description: Database - schema, indexes, migrations. Use when working with datab
 
 ## Non-Negotiables
 
+* All database access through Drizzle (no raw SQL unless necessary)
 * Migration files must exist, be complete, and be committed
 * CI must fail if schema changes aren't represented by migrations
 * No schema drift between environments
-* All queries through Drizzle (no raw SQL unless necessary)
-
-## Schema Design
-
-```typescript
-// Drizzle schema is SSOT
-export const users = pgTable('users', {
-  id: text('id').primaryKey(),
-  email: text('email').notNull().unique(),
-  role: text('role').notNull().default('user'),
-  createdAt: timestamp('created_at').defaultNow(),
-})
-
-// Relations explicit
-export const usersRelations = relations(users, ({ many }) => ({
-  sessions: many(sessions),
-}))
-```
+* Drizzle schema is SSOT for database structure
 
 ## Context
 
