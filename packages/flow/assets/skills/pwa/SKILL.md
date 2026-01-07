@@ -7,7 +7,7 @@ description: PWA - native app parity, offline-first, engagement. Use when buildi
 
 ## Tech Stack
 
-* **Framework**: Next.js
+* **Framework**: Next.js (with Turbopack)
 * **Service Worker**: Serwist (Next.js integration)
 * **Platform**: Vercel
 
@@ -17,6 +17,50 @@ description: PWA - native app parity, offline-first, engagement. Use when buildi
 * Cache invalidation on deploy must be correct (no stale content)
 * Offline experience must be functional, not just a fallback page
 * Installation prompt must be contextual (after value demonstrated)
+* Complete manifest.webmanifest required
+
+## Web App Manifest (Complete)
+
+```json
+{
+  "name": "App Name",
+  "short_name": "App",
+  "description": "...",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    { "src": "/screenshot-wide.png", "sizes": "1280x720", "type": "image/png", "form_factor": "wide" },
+    { "src": "/screenshot-narrow.png", "sizes": "720x1280", "type": "image/png", "form_factor": "narrow" }
+  ],
+  "shortcuts": [
+    { "name": "Action", "url": "/action", "icons": [{ "src": "/shortcut-icon.png", "sizes": "96x96" }] }
+  ],
+  "categories": ["productivity"],
+  "lang": "en",
+  "dir": "ltr"
+}
+```
+
+## Required Icons
+
+| Icon | Size | Purpose |
+|------|------|---------|
+| `favicon.ico` | 32x32 | Browser tab |
+| `icon.svg` | any | Modern browsers |
+| `apple-touch-icon.png` | 180x180 | iOS home screen |
+| `icon-192.png` | 192x192 | Android/PWA |
+| `icon-512.png` | 512x512 | Splash screen |
+| `icon-maskable.png` | 512x512 | Adaptive icon |
+| `og-image.png` | 1200x630 | Social sharing |
 
 ## Native App Parity
 

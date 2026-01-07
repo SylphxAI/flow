@@ -7,7 +7,7 @@ description: Performance - Core Web Vitals, bundle size. Use when optimizing spe
 
 ## Tech Stack
 
-* **Framework**: Next.js (SSR/ISR/Static)
+* **Framework**: Next.js (with Turbopack)
 * **Platform**: Vercel
 * **Tooling**: Bun
 
