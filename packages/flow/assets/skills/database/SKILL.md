@@ -21,7 +21,7 @@ description: Database - schema, indexes, migrations. Use when working with datab
 
 ## Context
 
-The database schema is the foundation everything else is built on. A bad schema creates friction for every feature built on top of it. Schema changes are expensive and risky — get the design right.
+Database handles physical implementation — schema, indexes, migrations, query performance. Conceptual modeling (entities, relationships) lives in `data-modeling`.
 
 Drizzle is the SSOT for database access. Type-safe, end-to-end.
 
@@ -31,4 +31,4 @@ Drizzle is the SSOT for database access. Type-safe, end-to-end.
 * Are migrations complete and committed?
 * What constraints are missing that would prevent invalid state?
 * Where are missing indexes causing slow queries?
-* How does the schema handle data lifecycle?
+* What queries are N+1 or unbounded?

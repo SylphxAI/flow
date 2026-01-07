@@ -21,15 +21,14 @@ description: Data modeling - entities, relationships, schemas. Use when designin
 
 ## Context
 
-Data architecture determines what's possible and what's painful. Good architecture makes new features easy; bad architecture makes everything hard. The question isn't "does it work today?" but "will it work when requirements change?"
+Data modeling is conceptual — entities, relationships, domain boundaries. Physical implementation (indexes, migrations, query performance) lives in `database`.
 
-Consider the boundaries between domains, the flow of data through the system, and the consistency guarantees at each step. Where are implicit assumptions that will break? Where is complexity hidden that will cause bugs?
+Consider: what are the real-world entities? How do they relate? What invariants must hold? What will break when requirements change?
 
 ## Driving Questions
 
 * If we were designing this from scratch, what would be different?
-* Where will the current architecture break as the product scales?
+* Where will the current model break as the product scales?
 * What implicit assumptions are waiting to cause bugs?
-* How do we know when state is inconsistent, and how do we recover?
 * Where is complexity hiding that makes the system hard to reason about?
-* What architectural decisions are we avoiding that we shouldn't?
+* What domain boundaries are we violating?

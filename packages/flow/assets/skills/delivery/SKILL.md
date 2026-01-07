@@ -23,9 +23,9 @@ description: Delivery - CI/CD, testing, releases. Use when improving pipelines.
 
 ## Context
 
-Delivery gates are the last line of defense before code reaches users. Every manual verification step is a gate that will eventually fail. Every untested assumption is a bug waiting to ship.
+Delivery handles pre-production — CI/CD pipeline, release gates, quality checks. Post-deployment operations (rollback, feature flags, runbooks) live in `deployments`.
 
-The question isn't "what tests do we have?" but "what could go wrong that we wouldn't catch?" Think about the deploy that breaks production at 2am — what would have prevented it?
+The question isn't "what tests do we have?" but "what could go wrong that we wouldn't catch?"
 
 ## Driving Questions
 
@@ -33,5 +33,4 @@ The question isn't "what tests do we have?" but "what could go wrong that we wou
 * Where does manual verification substitute for automation?
 * What flaky tests are training people to ignore failures?
 * How fast is the feedback loop, and what slows it down?
-* If a deploy breaks production, how fast can we detect and rollback?
 * What's the worst thing that shipped recently that tests should have caught?

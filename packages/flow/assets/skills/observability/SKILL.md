@@ -15,14 +15,13 @@ description: Observability - logging, metrics, tracing. Use when adding monitori
 
 * Correlation IDs must exist end-to-end (request → job → webhook)
 * Alerts must exist for critical failures
-* No PII in logs or error tracking
 * Errors must be actionable, not noise
 
 ## Context
 
 Observability is about answering questions when things go wrong. It's 3am, something is broken — can you figure out what happened? How fast?
 
-Good observability makes debugging easy. Bad observability means guessing, adding logs, redeploying, hoping.
+PII protection in logs is enforced via `privacy`. This skill focuses on making debugging effective.
 
 ## Driving Questions
 

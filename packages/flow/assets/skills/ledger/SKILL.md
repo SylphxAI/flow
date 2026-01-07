@@ -7,7 +7,6 @@ description: Financial ledger - transactions, audit trails. Use when tracking mo
 
 ## Tech Stack
 
-* **Payments**: Stripe
 * **Database**: Neon (Postgres)
 * **ORM**: Drizzle
 
@@ -16,14 +15,13 @@ description: Financial ledger - transactions, audit trails. Use when tracking mo
 * Balances must be immutable ledger (append-only), not mutable fields
 * No floating-point for money (use deterministic precision)
 * All financial mutations must be idempotent
-* Platform ledger is source of truth — Stripe syncs FROM platform
 * Every balance must be provable by replaying the ledger
 
 ## Context
 
-Financial systems are unforgiving. A bug that creates or destroys money — even briefly — is a serious incident. Users trust us with their money; that trust is easily lost and hard to regain.
+Ledger handles financial integrity — transaction history, balance correctness, audit trail. Payment processing lives in `billing`, pricing strategy lives in `pricing`.
 
-If balance/credits/wallet exists, it must be bulletproof. If it doesn't exist yet, consider whether the current design would support adding it correctly. Retrofitting financial integrity is painful.
+A bug that creates or destroys money is a serious incident. This must be bulletproof.
 
 ## Driving Questions
 
@@ -32,4 +30,3 @@ If balance/credits/wallet exists, it must be bulletproof. If it doesn't exist ye
 * What happens during concurrent transactions?
 * How would we detect if balances drifted from reality?
 * Can we prove every balance by replaying the ledger?
-* What financial edge cases (refunds, disputes, chargebacks) aren't handled?

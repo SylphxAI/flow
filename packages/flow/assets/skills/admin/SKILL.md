@@ -20,12 +20,13 @@ description: Admin panel - RBAC, config, admin tools. Use when building admin UI
 * All privilege grants must be audited (who/when/why)
 * Actions affecting money/access/security require step-up verification
 * Secrets must never be exposed through admin UI
-* MFA required for admin roles
 * Only super_admin can promote to admin or access system config
 
 ## Context
 
 The admin platform is where operational power lives — and where operational mistakes happen. A well-designed admin reduces human error while giving operators tools to resolve issues quickly.
+
+MFA requirements for admin roles are enforced via `account-security`.
 
 ## Driving Questions
 

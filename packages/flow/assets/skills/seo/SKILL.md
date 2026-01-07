@@ -7,7 +7,7 @@ description: SEO - meta tags, structured data. Use when optimizing for search.
 
 ## Tech Stack
 
-* **Framework**: Next.js (SSR-first for indexable/discovery)
+* **Framework**: Next.js (with Turbopack, SSR-first)
 
 ## Non-Negotiables
 

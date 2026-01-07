@@ -14,23 +14,22 @@ description: Billing - Stripe, webhooks, subscriptions. Use when implementing pa
 
 ## Non-Negotiables
 
-* Platform is source of truth — Stripe syncs FROM platform, never reverse
-* All billing configuration in code, not Stripe dashboard
 * Webhook signature must be verified (reject unverifiable events)
 * Stripe event ID must be used for idempotency
 * Webhooks must handle out-of-order delivery
-* Entitlements derived from platform state, not Stripe metadata
+* Subscription state changes must be audit-logged
+* Payment failures must trigger appropriate user communication
 
 ## Context
 
-Billing is where trust meets money. A bug here isn't just annoying — it's a financial and legal issue. Users must always see accurate state, and the system must never lose or duplicate charges.
+Billing handles the payment processing mechanics — webhooks, subscription lifecycle, payment methods. It's the plumbing that moves money. Pricing strategy and entitlements live in `pricing`.
 
-The platform owns billing logic. Stripe is a payment processor, not a product catalog.
+The platform owns billing logic. Stripe is a payment processor. All billing configuration must be in code, not Stripe dashboard.
 
 ## Driving Questions
 
-* Is all billing configuration in code, not Stripe dashboard?
-* Can we switch payment processors without redesigning billing?
-* What happens when webhooks arrive out of order?
+* Are webhooks handling all subscription lifecycle events?
+* What happens when payment fails mid-cycle?
 * How are disputes and chargebacks handled end-to-end?
+* Can failed webhooks be safely replayed?
 * Where could revenue leak (failed renewals, unhandled states)?

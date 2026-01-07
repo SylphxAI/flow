@@ -22,7 +22,7 @@ description: Authentication patterns - sign-in, SSO, passkeys, sessions. Use whe
 
 ## Context
 
-Authentication is the front door to every user's data. It needs to be both secure and frictionless. Users abandon products with painful sign-in flows, but weak auth leads to compromised accounts.
+Auth handles how users get sessions — sign-in, SSO, token issuance. Session management (visibility, revocation, step-up) lives in `account-security`.
 
 Better Auth is the SSOT for authentication. No custom auth implementations.
 
@@ -32,4 +32,3 @@ Better Auth is the SSOT for authentication. No custom auth implementations.
 * Are we building custom auth logic that Better Auth already provides?
 * What's the sign-in experience for first-time vs returning users?
 * What happens when a user loses access to their primary auth method?
-* Where is auth complexity hiding bugs or security issues?
