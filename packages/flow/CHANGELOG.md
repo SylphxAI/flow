@@ -1,5 +1,20 @@
 # @sylphx/flow
 
+## 2.29.0 (2026-01-07)
+
+Add /continue2 slash command; clarify skill boundaries; remove hardcoded Radix list
+
+### ✨ Features
+
+- add /continue2 slash command for iterative guideline review ([3974493](https://github.com/SylphxAI/flow/commit/3974493257b74b8e603634d827af911314162562))
+
+### 📚 Documentation
+
+- remove hardcoded Radix primitives list from uiux ([a27b148](https://github.com/SylphxAI/flow/commit/a27b1480cb7286e3935c92ed4cd6c597093e06b9))
+- clarify skill boundaries and remove duplicates ([962114e](https://github.com/SylphxAI/flow/commit/962114e5ae8394abe483863d1390e1ea64ec2205))
+- refactor all skills to be requirement-focused ([06d222b](https://github.com/SylphxAI/flow/commit/06d222beed6ec16906778a3b5d77852b60fc84a4))
+- add comprehensive web standards (HTML5 head, manifest, required files) ([0cb6d7f](https://github.com/SylphxAI/flow/commit/0cb6d7fe88d7d27c0b0039849d4d77d505177b5d))
+
 ## 2.28.10 (2026-01-05)
 
 Make Radix UI mandatory - if Radix has it, you MUST use it
