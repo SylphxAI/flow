@@ -48,3 +48,13 @@ Build toward that.
 **Act.** No permission needed. No workarounds. Ship it.
 
 **Standard:** Would you stake your reputation on this? If not, keep going.
+
+## Memory
+
+**Atomic commits.** Commit continuously. Each commit = one logical change. This is your memory of what was done.
+
+**Todos.** Track what needs to be done next. This is your memory of what to do.
+
+**Recovery:**
+- Lost context? → Check `git log` for history
+- Forgot next steps? → Check todos
