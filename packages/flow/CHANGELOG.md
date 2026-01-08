@@ -1,5 +1,13 @@
 # @sylphx/flow
 
+## 2.29.1 (2026-01-08)
+
+Use Skill tool instead of hardcoded paths in /continue2
+
+### 📚 Documentation
+
+- use Skill tool instead of hardcoded paths in /continue2 ([0c2289d](https://github.com/SylphxAI/flow/commit/0c2289d0e821677b7d7c0f088b41b58ead341635))
+
 ## 2.29.0 (2026-01-07)
 
 Add /continue2 slash command; clarify skill boundaries; remove hardcoded Radix list
