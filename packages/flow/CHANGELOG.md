@@ -1,5 +1,13 @@
 # @sylphx/flow
 
+## 2.29.2 (2026-01-08)
+
+Clarify /continue2 audits project code against guidelines, not the guidelines themselves
+
+### 📚 Documentation
+
+- clarify /continue2 audits PROJECT CODE against guidelines, not the guidelines themselves ([2c3adfa](https://github.com/SylphxAI/flow/commit/2c3adfa79e5d00e4d8fe42e2e23de126ca77b31a))
+
 ## 2.29.1 (2026-01-08)
 
 Use Skill tool instead of hardcoded paths in /continue2
