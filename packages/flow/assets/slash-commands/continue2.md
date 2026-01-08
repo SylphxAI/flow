@@ -13,19 +13,17 @@ Review all skill guidelines until perfection.
 
 Review each skill guideline one by one:
 
-1. Read the skill file
+1. Use the Skill tool to load the skill (e.g., `skill: "auth"`)
 2. Evaluate against criteria (below)
 3. Fix any issues found
 4. Move to next skill
 
-Skills to review (in order):
-- auth, account-security
+Skills to review (25 total):
+- auth, account-security, admin, appsec
 - billing, pricing, ledger
-- admin, appsec
 - database, data-modeling
-- delivery, deployments
-- observability, privacy
-- seo, performance, pwa
+- delivery, deployments, observability
+- privacy, seo, performance, pwa
 - uiux, i18n, growth
 - storage, support, referral
 - abuse-prevention, competitive-analysis, code-quality
@@ -36,6 +34,8 @@ After completing Phase 1, delegate a full review to a worker agent:
 
 ```
 Task: Review all 25 skill guidelines for issues.
+
+Use the Skill tool to load each skill (e.g., skill: "auth", skill: "billing", etc.)
 
 Check for:
 - Overlapping responsibilities between skills
