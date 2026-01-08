@@ -1,5 +1,13 @@
 # @sylphx/flow
 
+## 2.29.3 (2026-01-08)
+
+Add Memory section to Builder agent - atomic commits and todos for context recovery
+
+### 📚 Documentation
+
+- add Memory section to Builder agent - atomic commits + todos ([55e6940](https://github.com/SylphxAI/flow/commit/55e6940941899bae82dfbe6c09f68ce356b76323))
+
 ## 2.29.2 (2026-01-08)
 
 Clarify /continue2 audits project code against guidelines, not the guidelines themselves
