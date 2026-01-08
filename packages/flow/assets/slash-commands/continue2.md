@@ -1,24 +1,26 @@
 ---
 name: continue2
-description: Iterative guideline review - review each, delegate critique, repeat until perfect
+description: Iterative codebase review - apply each skill guideline to audit and fix the project
 ---
 
-# Continue2: Iterative Guideline Review
+# Continue2: Guideline-Driven Codebase Review
 
-Review all skill guidelines until perfection.
+Use skill guidelines to audit and improve the project codebase.
+
+**Important**: You are reviewing the PROJECT CODE against the guidelines, NOT reviewing the guidelines themselves.
 
 ## Process
 
-### Phase 1: Sequential Review
+### Phase 1: Sequential Audit
 
-Review each skill guideline one by one:
+For each skill guideline:
 
-1. Use the Skill tool to load the skill (e.g., `skill: "auth"`)
-2. Evaluate against criteria (below)
-3. Fix any issues found
+1. Use the Skill tool to load the guideline (e.g., `skill: "auth"`)
+2. Audit the project codebase against that guideline's non-negotiables
+3. Fix any violations found in the project code
 4. Move to next skill
 
-Skills to review (25 total):
+Skills to audit against (25 total):
 - auth, account-security, admin, appsec
 - billing, pricing, ledger
 - database, data-modeling
@@ -28,61 +30,32 @@ Skills to review (25 total):
 - storage, support, referral
 - abuse-prevention, competitive-analysis, code-quality
 
-### Phase 2: Delegate to Reviewer
+### Phase 2: Delegate Full Audit
 
-After completing Phase 1, delegate a full review to a worker agent:
+After Phase 1, delegate a comprehensive review to a worker agent:
 
 ```
-Task: Review all 25 skill guidelines for issues.
+Task: Audit the project codebase against all 25 skill guidelines.
 
-Use the Skill tool to load each skill (e.g., skill: "auth", skill: "billing", etc.)
+For each skill:
+1. Load the guideline using Skill tool (e.g., skill: "auth")
+2. Check if the project code complies with the non-negotiables
+3. Report any violations found
 
-Check for:
-- Overlapping responsibilities between skills
-- Missing cross-references where skills relate
-- Inconsistent formatting or structure
-- Missing SSOT designations where needed
-- Tutorial-style content (HOW) instead of requirements (WHAT)
-- Vague or unverifiable non-negotiables
-
-Return: List of specific issues found, or "No issues found."
+Return: List of specific violations in the codebase, or "No violations found."
 ```
 
 ### Phase 3: Fix and Repeat
 
-If reviewer found issues:
-1. Fix all reported issues
+If reviewer found violations:
+1. Fix all violations in the project code
 2. Return to Phase 2
 
-If reviewer found no issues:
+If no violations found:
 - Done. Commit and release.
-
-## Evaluation Criteria
-
-Each skill must have:
-
-**Structure**:
-- YAML frontmatter (name, description)
-- Tech Stack section (if applicable)
-- Non-Negotiables section
-- Context section (with cross-references to related skills)
-- Driving Questions section
-
-**Content Quality**:
-- Requirements state WHAT, not HOW
-- Non-negotiables are verifiable (can be checked)
-- Context clarifies boundaries with related skills
-- No code examples or templates
-- No tutorial-style explanations
-
-**Consistency**:
-- Tech stack entries follow pattern: `* **Component**: Technology`
-- Next.js always includes `(with Turbopack)`
-- Cross-references use backtick format: `lives in \`skill-name\``
-- SSOT is designated where concepts overlap
 
 ## Exit Condition
 
 The loop terminates when:
-- A reviewer agent returns "No issues found"
-- Or explicitly: no overlaps, no missing cross-refs, no formatting issues, no HOW content
+- A reviewer agent returns "No violations found"
+- The project codebase fully complies with all skill guidelines
