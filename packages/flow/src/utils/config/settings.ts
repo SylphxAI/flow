@@ -49,12 +49,13 @@ export const loadSettings = async (
       const content = await fs.readFile(settingsPath, 'utf8');
       return JSON.parse(content) as ProjectSettings;
     },
-    (error: any) => {
+    (error: unknown) => {
       // File not found is not an error - return empty settings
-      if (error.code === 'ENOENT') {
+      const nodeError = error as { code?: string; message?: string };
+      if (nodeError.code === 'ENOENT') {
         return new Error('EMPTY_SETTINGS');
       }
-      return new Error(`Failed to load settings: ${error.message}`);
+      return new Error(`Failed to load settings: ${nodeError.message ?? 'Unknown error'}`);
     }
   ).then((result) => {
     // Convert EMPTY_SETTINGS error to success with empty object
@@ -89,7 +90,10 @@ export const saveSettings = async (
       // Write settings with proper formatting
       await fs.writeFile(settingsPath, `${JSON.stringify(settingsWithVersion, null, 2)}\n`, 'utf8');
     },
-    (error: any) => new Error(`Failed to save settings: ${error.message}`)
+    (error: unknown) => {
+      const nodeError = error as { message?: string };
+      return new Error(`Failed to save settings: ${nodeError.message ?? 'Unknown error'}`);
+    }
   );
 };
 
