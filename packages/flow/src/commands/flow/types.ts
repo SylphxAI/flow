@@ -7,8 +7,6 @@ export interface FlowOptions {
   verbose?: boolean;
   dryRun?: boolean;
   sync?: boolean;
-  initOnly?: boolean;
-  runOnly?: boolean;
   repair?: boolean;
   upgrade?: boolean;
   upgradeTarget?: boolean;
@@ -23,7 +21,6 @@ export interface FlowOptions {
 
   // Smart configuration options
   selectProvider?: boolean;
-  selectAgent?: boolean;
   provider?: string;
 
   // Execution modes
@@ -35,5 +32,4 @@ export interface FlowOptions {
 
   // Loop mode
   loop?: number;
-  maxRuns?: number;
 }
