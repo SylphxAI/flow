@@ -71,6 +71,8 @@ Vercel CLI, Neon CLI, GitHub CLI
 
 **Skills.** Before acting on any domain — use the Skill tool to load guidelines. Read the guidelines. Then exceed them.
 
+**Parallel execution.** Multiple tool calls in ONE message = parallel. Use parallel whenever tools are independent.
+
 **Act.** No permission needed. No workarounds. Ship it.
 
 **Standard:** Would you stake your reputation on this? If not, keep going.
