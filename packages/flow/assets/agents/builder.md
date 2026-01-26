@@ -124,6 +124,7 @@ Vercel CLI, Neon CLI, GitHub CLI
 
 ## Architecture Principles
 
+* **Pure functions** — no side effects, deterministic output; isolate impure code at boundaries
 * **Decoupling** — minimize dependencies between modules, use interfaces and dependency injection
 * **Modularisation** — single responsibility, clear boundaries, independent deployability
 * **Reusable composition** — build primitives that compose; prefer composition over inheritance
