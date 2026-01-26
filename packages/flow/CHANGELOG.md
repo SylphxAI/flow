@@ -1,5 +1,22 @@
 # @sylphx/flow
 
+## 3.4.0 (2026-01-26)
+
+### ✨ Features
+
+- add /e2e-audit and business logic to /audit ([8e87e10](https://github.com/SylphxAI/flow/commit/8e87e10b49eaec37bb85c2677a0d8b1f602c5584))
+
+### ♻️ Refactoring
+
+- replace any with proper types in claude-code.ts ([d498d41](https://github.com/SylphxAI/flow/commit/d498d41dcae95cc9d98628f7860be2f48b7c342e))
+- replace any with proper types in target-utils.ts ([aebbf5d](https://github.com/SylphxAI/flow/commit/aebbf5dad8b4705664db1784127a4af0da8f8e5c))
+- remove unused securityMiddleware from security.ts ([a8efc37](https://github.com/SylphxAI/flow/commit/a8efc37fd06db866b5a08715a5141c19fbb3f54e))
+- add generics to jsonc.ts functions ([aac10af](https://github.com/SylphxAI/flow/commit/aac10afa3aa8cbd5c0319932c09d34e7a7ca4fec))
+- replace any with unknown in settings.ts ([8b76e17](https://github.com/SylphxAI/flow/commit/8b76e179ffc6f4533dbc5b58894cb1c0b468f83a))
+- replace any with unknown in prompt-helpers ([56e2b37](https://github.com/SylphxAI/flow/commit/56e2b375992232395ea58682ef7b04d396321b25))
+- remove unused FlowOptions properties ([273f521](https://github.com/SylphxAI/flow/commit/273f521a37e6b63f64b3fe6667f7489681bcb9fa))
+- remove unused async utility functions ([3b2c8fd](https://github.com/SylphxAI/flow/commit/3b2c8fdb6ea997e195a15e19bdd0ab931fae0f15))
+
 ## 3.3.0 (2026-01-26)
 
 ### ✨ Features
