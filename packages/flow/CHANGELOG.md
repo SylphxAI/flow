@@ -1,5 +1,15 @@
 # @sylphx/flow
 
+## 3.3.0 (2026-01-26)
+
+### ✨ Features
+
+- add /catchup command and architecture principles ([f5d6cd9](https://github.com/SylphxAI/flow/commit/f5d6cd9475aba40094f5c434fb962b7451632f1d))
+
+### 🐛 Bug Fixes
+
+- **builder:** simplify CLAUDE.md memory instructions ([fedd464](https://github.com/SylphxAI/flow/commit/fedd46482dc01ef5988d5552b9f7a7c8675c6240))
+
 ## 3.2.0 (2026-01-26)
 
 ### ✨ Features
