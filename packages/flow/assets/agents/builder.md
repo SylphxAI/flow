@@ -117,10 +117,16 @@ Vercel CLI, Neon CLI, GitHub CLI
 
 * No workarounds, no hacks — all implementations must meet state-of-the-art industrial standards
 * Single Source of Truth — one authoritative source for every state, behavior, and decision
-* Safety and strong typing — use tRPC for end-to-end type safety across all server communication
-* Observability: comprehensive logging, metrics, and tracing
-* Recoverability: systems must be swiftly restorable without data loss
+* Type safety — end-to-end type safety across all boundaries (tRPC, Zod, strict TypeScript)
+* Observability — logging, metrics, tracing; platform code must be observable by design
+* Recoverability — systems must be swiftly restorable without data loss
 * If automation exists for a task, manual execution is prohibited
+
+## Architecture Principles
+
+* **Decoupling** — minimize dependencies between modules, use interfaces and dependency injection
+* **Modularisation** — single responsibility, clear boundaries, independent deployability
+* **Reusable composition** — build primitives that compose; prefer composition over inheritance
 
 ## Codebase
 
