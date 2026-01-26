@@ -10,8 +10,12 @@ import { UserCancelledError } from './errors.js';
  * @param error - Error to check
  * @returns True if error represents user cancellation
  */
-export function isUserCancellation(error: any): boolean {
-  return error?.name === 'ExitPromptError' || error?.message?.includes('force closed');
+export function isUserCancellation(error: unknown): boolean {
+  if (error === null || typeof error !== 'object') {
+    return false;
+  }
+  const errorObj = error as { name?: string; message?: string };
+  return errorObj.name === 'ExitPromptError' || errorObj.message?.includes('force closed') === true;
 }
 
 /**
@@ -22,7 +26,7 @@ export function isUserCancellation(error: any): boolean {
  * @throws {UserCancelledError} If user cancelled the prompt
  * @throws Original error if not a cancellation
  */
-export function handlePromptError(error: any, message: string): never {
+export function handlePromptError(error: unknown, message: string): never {
   if (isUserCancellation(error)) {
     throw new UserCancelledError(message);
   }
