@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 3.1.0 (2026-01-26)
+
+### ✨ Features
+
+- add /review slash command for ruthless self-critique ([1c4f35c](https://github.com/SylphxAI/flow/commit/1c4f35c6e5ac755921f44b04f53dbac306fab9cc))
+
 ## 3.0.1 (2026-01-26)
 
 ### 🐛 Bug Fixes
