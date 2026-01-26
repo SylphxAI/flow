@@ -174,7 +174,7 @@ export const MCP_SERVER_REGISTRY: Record<string, MCPServerDefinition> = {
       },
     },
     category: 'core',
-    defaultInInit: true,
+    defaultInInit: false,
   },
 
   playwright: {
