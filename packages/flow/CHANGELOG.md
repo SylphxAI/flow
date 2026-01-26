@@ -1,5 +1,13 @@
 # @sylphx/flow
 
+## 2.30.0 (2026-01-26)
+
+Add comprehensive development guidelines to Builder agent
+
+### 📚 Documentation
+
+- add development guidelines to Builder agent ([87e5e86](https://github.com/SylphxAI/flow/commit/87e5e8660b27c8000b6ddbd9b040ce548876efb0))
+
 ## 2.29.3 (2026-01-08)
 
 Add Memory section to Builder agent - atomic commits and todos for context recovery
