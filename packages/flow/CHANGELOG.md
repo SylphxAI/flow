@@ -1,5 +1,27 @@
 # @sylphx/flow
 
+## 3.0.0 (2026-01-26)
+
+Simplify Flow: remove skills and slash-commands, keep only Builder agent; add /issues and /refactor commands; disable coderag by default
+
+### ✨ Features
+
+- add /issues and /refactor slash commands ([e343c61](https://github.com/SylphxAI/flow/commit/e343c619b5265dca76b8960ff39c593cf286895f))
+
+### 🐛 Bug Fixes
+
+- disable coderag MCP by default ([12a19b1](https://github.com/SylphxAI/flow/commit/12a19b1d3177f1ab83be3c80ee427a3036f0dc43))
+
+### 📚 Documentation
+
+- add parallel execution guideline to Builder Method section ([e78f1eb](https://github.com/SylphxAI/flow/commit/e78f1eb8949aa85635a198afc8e0defd8b8f67a8))
+- add semantic commits, comments, documentation, and semantic HTML to Builder ([fce442b](https://github.com/SylphxAI/flow/commit/fce442b17ed43fa002d9089ba4731bbab3b561e2))
+- add Tech Stack section to Builder agent ([b01e428](https://github.com/SylphxAI/flow/commit/b01e42891d3908f78c6bb0f0bd93874a3a4b8056))
+
+### 🔧 Chores
+
+- remove skills, slash-commands, and other agents - keep only Builder ([2e8dd84](https://github.com/SylphxAI/flow/commit/2e8dd847d2fa00595470dfd142d610a926958446))
+
 ## 2.30.0 (2026-01-26)
 
 Add comprehensive development guidelines to Builder agent
