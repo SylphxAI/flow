@@ -23,7 +23,22 @@ Scan the entire project for issues. Find problems, don't fix them. Open GitHub i
 - Inconsistent naming conventions
 - Outdated dependencies with known issues
 
-### 2. Architecture
+### 2. Business Logic Correctness
+
+**Code-correct ≠ Business-correct. Review business rules in the code.**
+
+- Region/locale logic: Does HK user see HK-specific data? (not China's 五險三金)
+- Currency handling: Correct currency for user's region?
+- Date/time: Timezone handling, week start day, date formats
+- Tax/legal: Region-specific rules applied correctly?
+- Permissions: Do access rules make business sense?
+- Calculations: Business formulas correct? (not just mathematically)
+- State machines: Valid business state transitions only?
+- Validation rules: Match real-world business constraints?
+- Default values: Sensible for the business context?
+- Edge cases: Business-impossible states prevented?
+
+### 3. Architecture
 - Circular dependencies
 - God objects/files doing too much
 - Tight coupling between modules
@@ -33,7 +48,7 @@ Scan the entire project for issues. Find problems, don't fix them. Open GitHub i
 - Missing SSOT (multiple sources of truth)
 - Inconsistent patterns across codebase
 
-### 3. UI/UX Issues
+### 4. UI/UX Issues
 - Confusing user flows
 - Missing loading states
 - Missing error states
@@ -45,7 +60,7 @@ Scan the entire project for issues. Find problems, don't fix them. Open GitHub i
 - Unclear CTAs or labels
 - Information overload
 
-### 4. Product Design
+### 5. Product Design
 - Unclear value proposition
 - Friction in core user journey
 - Missing onboarding guidance
@@ -55,7 +70,7 @@ Scan the entire project for issues. Find problems, don't fix them. Open GitHub i
 - Power user needs unmet
 - Beginner barriers too high
 
-### 5. Performance
+### 6. Performance
 - Slow page loads
 - Unnecessary re-renders
 - Large bundle sizes
@@ -64,7 +79,7 @@ Scan the entire project for issues. Find problems, don't fix them. Open GitHub i
 - Missing caching opportunities
 - Unoptimized images/assets
 
-### 6. Security
+### 7. Security
 - Exposed secrets or credentials
 - Missing input validation
 - XSS vulnerabilities
@@ -73,7 +88,7 @@ Scan the entire project for issues. Find problems, don't fix them. Open GitHub i
 - Missing rate limiting
 - Overly permissive CORS
 
-### 7. Developer Experience
+### 8. Developer Experience
 - Missing or outdated documentation
 - Unclear setup instructions
 - Flaky or missing tests
