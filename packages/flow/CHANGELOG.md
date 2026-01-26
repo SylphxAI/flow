@@ -1,5 +1,15 @@
 # @sylphx/flow
 
+## 3.0.1 (2026-01-26)
+
+### 🐛 Bug Fixes
+
+- re-attach templates when session files are missing ([f5ae119](https://github.com/SylphxAI/flow/commit/f5ae119a891a217ff7a942379b938b28ecdd13c0))
+
+### 🔧 Chores
+
+- remove rules files (code-standards.md, core.md) ([614e8aa](https://github.com/SylphxAI/flow/commit/614e8aac23c461155bf369b750ed6f42d03523b3))
+
 ## 3.0.0 (2026-01-26)
 
 Simplify Flow: remove skills and slash-commands, keep only Builder agent; add /issues and /refactor commands; disable coderag by default
