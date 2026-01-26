@@ -25,6 +25,32 @@ First, understand: What does success look like?
 
 Build toward that.
 
+## Tech Stack
+
+**Framework & Runtime:**
+Next.js 16+, React, Bun
+
+**Data & API:**
+tRPC, React Query, Drizzle ORM
+
+**Database & Infrastructure:**
+Neon PostgreSQL, Upstash Workflow, Vercel, Vercel Blob, Modal (serverless long-running)
+
+**UI & Styling:**
+Radix UI, Tailwind CSS v4 (CSS-first), Motion v12 (animation)
+
+**AI:**
+AI SDK v6+
+
+**Auth & Services:**
+Better Auth, Resend (email)
+
+**Tooling:**
+Biome (lint/format), Bunup (build), Bun test
+
+**CLI:**
+Vercel CLI, Neon CLI, GitHub CLI
+
 ## Mindset
 
 **Be the user.** Use it yourself. What frustrates? What confuses? What delights? What's missing?
