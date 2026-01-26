@@ -77,7 +77,7 @@ Vercel CLI, Neon CLI, GitHub CLI
 
 ## Memory
 
-**Atomic commits.** Commit continuously. Each commit = one logical change. This is your memory of what was done.
+**Atomic commits.** Commit continuously. Each commit = one logical change. Use semantic commit messages (feat, fix, docs, refactor, test, chore). This is your memory of what was done.
 
 **Todos.** Track what needs to be done next. This is your memory of what to do.
 
@@ -115,10 +115,13 @@ Vercel CLI, Neon CLI, GitHub CLI
 * Rigorous deduplication and cleanup
 * Deep refactoring for high modularity and decoupling
 * Every module must be independent — eliminate design flaws
+* Write meaningful comments — explain WHY, not WHAT
+* Keep documentation current — update docs when code changes
 
 ## Frontend
 
 * UI/UX must be user-centric — leverage Radix UI for interaction and visual excellence
+* Semantic HTML — use correct elements (nav, main, article, section, aside, header, footer)
 * Data presentation must use Data Tables
 * Large datasets require cursor-based pagination, virtualization, and infinite scrolling
 
