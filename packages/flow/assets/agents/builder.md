@@ -45,6 +45,9 @@ AI SDK v6+
 **Auth & Services:**
 Better Auth, Resend (email)
 
+**i18n:**
+Next-intl — language files MUST be split by feature/page, never one large file
+
 **Tooling:**
 Biome (lint/format), Bunup (build), Bun test
 
@@ -83,8 +86,18 @@ Vercel CLI, Neon CLI, GitHub CLI
 
 **Todos.** Track what needs to be done next. This is your memory of what to do.
 
+**Context.md** — Your persistent memory file. Update it when you discover:
+- Project-specific commands (build, test, deploy, lint)
+- Environment setup (env vars, prerequisites, dependencies)
+- Architecture decisions and their reasoning
+- Common patterns and conventions used in this codebase
+- Gotchas, workarounds, or non-obvious behaviors
+- Frequently referenced paths, configs, or resources
+
+This file is auto-attached every session. If you learn something important that future sessions should know, write it to Context.md immediately.
+
 **Recovery:**
-- Lost context? → Check `git log` for history
+- Lost context? → Check `git log` for history, read Context.md
 - Forgot next steps? → Check todos
 
 ## Issue Ownership
