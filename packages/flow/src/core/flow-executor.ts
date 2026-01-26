@@ -86,15 +86,28 @@ export class FlowExecutor {
     const existingSession = await this.sessionManager.getActiveSession(projectHash);
 
     if (existingSession) {
-      // Joining existing session - silent
-      await this.sessionManager.startSession(
-        projectPath,
-        projectHash,
-        target,
-        existingSession.backupPath
-      );
-      this.cleanupHandler.registerCleanupHooks(projectHash);
-      return { joined: true };
+      // Verify attached files still exist before joining
+      const targetObj = typeof target === 'string' ? this.resolveTarget(target) : target;
+      const agentsDir = path.join(projectPath, targetObj.config.agentDir);
+      const filesExist = existsSync(agentsDir) && (await fs.readdir(agentsDir)).length > 0;
+
+      if (filesExist) {
+        // Joining existing session - silent
+        await this.sessionManager.startSession(
+          projectPath,
+          projectHash,
+          target,
+          existingSession.backupPath
+        );
+        this.cleanupHandler.registerCleanupHooks(projectHash);
+        return { joined: true };
+      }
+
+      // Files missing - invalidate session and re-attach
+      if (options.verbose) {
+        console.log(chalk.dim('Session files missing, re-attaching...'));
+      }
+      await this.sessionManager.endSession(projectHash);
     }
 
     // First session - optionally create project docs, stash, backup, attach (all silent)
