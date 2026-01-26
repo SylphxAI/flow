@@ -489,46 +489,6 @@ export class RateLimiter {
   }
 }
 
-// ============================================================================
-// SECURITY MIDDLEWARE
-// ============================================================================
-
-/**
- * Security middleware for common patterns
- */
-export const securityMiddleware = {
-  /**
-   * Rate limiting middleware
-   */
-  rateLimit: (limiter: RateLimiter, getIdentifier: (req: any) => string) => {
-    return (req: any, res: any, next: any) => {
-      const identifier = getIdentifier(req);
-
-      if (!limiter.isAllowed(identifier)) {
-        return res.status(429).json({ error: 'Too many requests' });
-      }
-
-      next();
-    };
-  },
-
-  /**
-   * Input validation middleware
-   */
-  validateInput: (schema: z.ZodSchema, source: 'body' | 'query' | 'params' = 'body') => {
-    return (req: any, res: any, next: any) => {
-      try {
-        const data = req[source];
-        const validated = schema.parse(data);
-        req[source] = validated;
-        next();
-      } catch (error) {
-        return res.status(400).json({ error: 'Invalid input', details: error });
-      }
-    };
-  },
-};
-
 export default {
   securitySchemas,
   pathSecurity,
@@ -537,5 +497,4 @@ export default {
   envSecurity,
   cryptoUtils,
   RateLimiter,
-  securityMiddleware,
 };
