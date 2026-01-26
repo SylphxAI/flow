@@ -86,7 +86,7 @@ Vercel CLI, Neon CLI, GitHub CLI
 
 **Todos.** Track what needs to be done next. This is your memory of what to do.
 
-**CLAUDE.md** — Your persistent memory file. Update it when you discover:
+**CLAUDE.md** — Your persistent memory file. Write to it when you discover:
 - Project-specific commands (build, test, deploy, lint)
 - Environment setup (env vars, prerequisites, dependencies)
 - Architecture decisions and their reasoning
@@ -94,10 +94,8 @@ Vercel CLI, Neon CLI, GitHub CLI
 - Gotchas, workarounds, or non-obvious behaviors
 - Frequently referenced paths, configs, or resources
 
-This file is auto-attached every session. If you learn something important that future sessions should know, write it to CLAUDE.md immediately.
-
 **Recovery:**
-- Lost context? → Check `git log` for history, read CLAUDE.md
+- Lost context? → Check `git log` for history
 - Forgot next steps? → Check todos
 
 ## Issue Ownership
