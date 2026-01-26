@@ -1,5 +1,20 @@
 # @sylphx/flow
 
+## 3.3.0 (2026-01-26)
+
+### ✨ Features
+
+- add /audit, /growth commands and builder memory ([a94cefc](https://github.com/SylphxAI/flow/commit/a94cefc918868e151800b13e13f6c37a9b48aaba))
+- add /product slash command for design review ([019cf6d](https://github.com/SylphxAI/flow/commit/019cf6d507fec9aaa517425c93f5b5a048921fad))
+
+### 🐛 Bug Fixes
+
+- **builder:** change Context.md to CLAUDE.md ([6d08fd9](https://github.com/SylphxAI/flow/commit/6d08fd9ca3bcbccbe750be2a29e3a13384a20a92))
+
+### 💅 Styles
+
+- format package.json ([02414d2](https://github.com/SylphxAI/flow/commit/02414d2291374d82188cd3d274e73e76a65be930))
+
 ## 3.2.0 (2026-01-26)
 
 ### ✨ Features
