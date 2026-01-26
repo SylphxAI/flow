@@ -4,10 +4,16 @@ import path from 'node:path';
 import chalk from 'chalk';
 import { installToDirectory } from '../core/installers/file-installer.js';
 import { createMCPInstaller } from '../core/installers/mcp-installer.js';
-import type { AgentMetadata } from '../types/target-config.types.js';
+import type { AgentMetadata, FrontMatterMetadata } from '../types/target-config.types.js';
 import type { CommonOptions, MCPServerConfigUnion, SetupResult, Target } from '../types.js';
 import { getAgentsDir } from '../utils/config/paths.js';
-import { fileUtils, generateHelpText, pathUtils, yamlUtils } from '../utils/config/target-utils.js';
+import {
+  type ConfigData,
+  fileUtils,
+  generateHelpText,
+  pathUtils,
+  yamlUtils,
+} from '../utils/config/target-utils.js';
 import { CLIError } from '../utils/error-handler.js';
 import { sanitize } from '../utils/security/security.js';
 import {
@@ -16,6 +22,23 @@ import {
   stripFrontMatter,
   transformMCPConfig as transformMCP,
 } from './shared/index.js';
+
+/** Claude Code configuration data with MCP servers */
+interface ClaudeCodeConfigData extends ConfigData {
+  mcpServers?: Record<string, unknown>;
+}
+
+/** Claude Code agent metadata */
+interface ClaudeCodeAgentMetadata {
+  name: string;
+  description: string;
+  model?: string;
+}
+
+/** Error with exit code from child process */
+interface ProcessExitError extends Error {
+  code: number | null;
+}
 
 /**
  * Claude Code target - composition approach with all original functionality
@@ -86,8 +109,11 @@ export const claudeCodeTarget: Target = {
   /**
    * Read Claude Code configuration with structure normalization
    */
-  async readConfig(cwd: string): Promise<any> {
-    const config = await fileUtils.readConfig(claudeCodeTarget.config, cwd);
+  async readConfig(cwd: string): Promise<ClaudeCodeConfigData> {
+    const config = (await fileUtils.readConfig(
+      claudeCodeTarget.config,
+      cwd
+    )) as ClaudeCodeConfigData;
 
     // Ensure the config has the expected structure for Claude Code
     if (!config.mcpServers) {
@@ -258,7 +284,7 @@ Please begin your response with a comprehensive summary of all the instructions 
           if (code === 0) {
             resolve();
           } else {
-            const error = new Error(`Claude Code exited with code ${code}`) as any;
+            const error = new Error(`Claude Code exited with code ${code}`) as ProcessExitError;
             error.code = code;
             reject(error);
           }
@@ -494,26 +520,29 @@ Please begin your response with a comprehensive summary of all the instructions 
  * Convert OpenCode frontmatter to Claude Code format
  */
 function convertToClaudeCodeFormat(
-  openCodeMetadata: any,
+  openCodeMetadata: FrontMatterMetadata,
   content: string,
   sourcePath?: string
-): any {
+): ClaudeCodeAgentMetadata {
   // Use explicit name from metadata if available, otherwise extract from content or path
+  const metadataName = openCodeMetadata.name as string | undefined;
   const agentName =
-    openCodeMetadata.name || pathUtils.extractAgentName(content, openCodeMetadata, sourcePath);
+    metadataName || pathUtils.extractAgentName(content, openCodeMetadata, sourcePath);
 
   // Extract description from metadata or content
-  const description = openCodeMetadata.description || pathUtils.extractDescription(content);
+  const metadataDescription = openCodeMetadata.description as string | undefined;
+  const description = metadataDescription || pathUtils.extractDescription(content);
 
   // Only keep supported fields for Claude Code
-  const result: any = {
+  const result: ClaudeCodeAgentMetadata = {
     name: agentName,
     description: description,
   };
 
   // Only add model if it exists and is not 'inherit' (default)
-  if (openCodeMetadata.model && openCodeMetadata.model !== 'inherit') {
-    result.model = openCodeMetadata.model;
+  const model = openCodeMetadata.model as string | undefined;
+  if (model && model !== 'inherit') {
+    result.model = model;
   }
 
   // Remove unsupported fields that might cause issues
