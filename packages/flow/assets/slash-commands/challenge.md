@@ -1,9 +1,9 @@
 ---
-name: review
+name: challenge
 description: Challenge your work - is it truly state-of-the-art?
 ---
 
-# Review: Ruthless Self-Critique
+# Challenge: Ruthless Self-Critique
 
 Stop. Step back. Challenge everything you just did.
 
