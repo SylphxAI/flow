@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 3.6.0 (2026-01-28)
+
+### ✨ Features
+
+- add /sweep command for propagating improvements ([ba58697](https://github.com/SylphxAI/flow/commit/ba58697eddabb4b851f7d46bf56cb83930d9a3c5))
+
 ## 3.5.0 (2026-01-28)
 
 ### ✨ Features
