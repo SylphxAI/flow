@@ -144,6 +144,9 @@ Vercel CLI, Neon CLI, GitHub CLI
 * Semantic HTML — use correct elements (nav, main, article, section, aside, header, footer)
 * Data presentation must use Data Tables
 * Large datasets require cursor-based pagination, virtualization, and infinite scrolling
+* Modern interactions — inline editing, drag & drop, undo everywhere, keyboard shortcuts
+* Feedback — skeleton loading, optimistic UI, smooth transitions
+* Accessibility — keyboard navigation, screen reader support, WCAG contrast
 
 ## Public-Facing & Exposure
 

@@ -94,6 +94,16 @@ mcp__playwright__browser_take_screenshot  # Capture evidence
 - Responsive issues
 - Inconsistent styling
 
+### Modern UI Patterns (Test for)
+- Can you edit inline or must open modal/page?
+- Can you drag & drop to reorder?
+- Is there undo after destructive actions?
+- Does it auto-save or require manual save?
+- Do keyboard shortcuts work (⌘K, ⌘S, etc.)?
+- Are loading states smooth (skeleton) or jarring (spinner)?
+- Are transitions animated or instant jumps?
+- Do inputs have search/autocomplete where useful?
+
 ## Browser Tools Reference
 
 ```

@@ -50,17 +50,28 @@ Scan the entire project for issues. Find problems, don't fix them. Open GitHub i
 
 ### 4. UI/UX Issues
 - Confusing user flows
-- Missing loading states
-- Missing error states
-- Missing empty states
+- Missing loading states (use skeleton, not spinner)
+- Missing error states (with recovery actions)
+- Missing empty states (with guidance)
 - Inconsistent spacing/typography
 - Non-responsive layouts
-- Accessibility violations (contrast, keyboard nav)
+- Accessibility violations (contrast, keyboard nav, screen reader)
 - Missing feedback on user actions
 - Unclear CTAs or labels
 - Information overload
 
-### 5. Product Design
+### 5. Modern UI Patterns (Lack of)
+- No inline editing (everything requires modal/page)
+- No drag & drop where it makes sense
+- No undo capability (destructive actions are permanent)
+- No auto-save (users must remember to save)
+- No keyboard shortcuts for power users
+- No command palette (⌘K) for quick navigation
+- Outdated inputs (dropdowns instead of combobox with search)
+- No optimistic UI (waiting for server on every action)
+- Jarring transitions (no smooth state changes)
+
+### 6. Product Design
 - Unclear value proposition
 - Friction in core user journey
 - Missing onboarding guidance
@@ -70,7 +81,7 @@ Scan the entire project for issues. Find problems, don't fix them. Open GitHub i
 - Power user needs unmet
 - Beginner barriers too high
 
-### 6. Performance
+### 7. Performance
 - Slow page loads
 - Unnecessary re-renders
 - Large bundle sizes
@@ -79,7 +90,7 @@ Scan the entire project for issues. Find problems, don't fix them. Open GitHub i
 - Missing caching opportunities
 - Unoptimized images/assets
 
-### 7. Security
+### 8. Security
 - Exposed secrets or credentials
 - Missing input validation
 - XSS vulnerabilities
@@ -88,7 +99,7 @@ Scan the entire project for issues. Find problems, don't fix them. Open GitHub i
 - Missing rate limiting
 - Overly permissive CORS
 
-### 8. Developer Experience
+### 9. Developer Experience
 - Missing or outdated documentation
 - Unclear setup instructions
 - Flaky or missing tests
@@ -96,7 +107,7 @@ Scan the entire project for issues. Find problems, don't fix them. Open GitHub i
 - Missing type definitions
 - Confusing folder structure
 
-### 9. Public-Facing & Exposure
+### 10. Public-Facing & Exposure
 - **SEO**: Missing/poor title tags, meta descriptions, structured data
 - **Social Sharing**: Missing OG tags, Twitter cards, poor share previews
 - **Landing/Home**: Unclear value prop above the fold, weak CTAs

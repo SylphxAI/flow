@@ -44,6 +44,8 @@ Based on this specific project's nature, determine what "excellence" means here.
 - Would users choose this over competitors?
 - Is it intuitive, fast, polished?
 - Are edge cases handled gracefully?
+- Does it feel **modern**? (inline editing, drag & drop, ⌘K, undo everywhere)
+- Or does it feel **dated**? (modal forms, no shortcuts, destructive actions)
 
 ### Accessibility & Inclusivity
 - Can everyone use this? Keyboard users? Screen reader users?

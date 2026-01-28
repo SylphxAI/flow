@@ -70,7 +70,16 @@ Evaluate product design holistically — from user experience to business impact
 - [ ] **Recovery** — Helpful error messages with solutions?
 - [ ] **Help** — Documentation accessible when needed?
 
-## 4. Accessibility & Inclusivity
+## 4. Modern Interaction Patterns
+
+- **Direct manipulation**: Can users interact with content directly (inline edit, drag to reorder)?
+- **Instant feedback**: Optimistic UI, skeleton loading, smooth transitions?
+- **Power user support**: Keyboard shortcuts, command palette (⌘K)?
+- **Trust**: Undo everywhere, auto-save, visible sync status?
+- **Smart inputs**: Search in dropdowns, autocomplete, paste to upload?
+- Does it feel like a 2025 app or a 2015 form?
+
+## 5. Accessibility & Inclusivity
 
 - Works without mouse (keyboard navigation)?
 - Works with screen readers?
@@ -80,14 +89,14 @@ Evaluate product design holistically — from user experience to business impact
 - Works on old devices/browsers?
 - Internationalization-ready?
 
-## 5. Competitive Edge
+## 6. Competitive Edge
 
 - What do competitors do better? Can we match or exceed?
 - What do we do uniquely well? Is it emphasized?
 - What's missing in the market that we could own?
 - If a user tried competitor after us, would they come back? Why?
 
-## 6. Public-Facing & Exposure
+## 7. Public-Facing & Exposure
 
 - **Landing Page**: Does it convert? Value prop clear in 5 seconds?
 - **SEO**: Are we discoverable? Right keywords targeted?
