@@ -12,16 +12,16 @@ Scan the entire project for issues. Find problems, don't fix them. Open GitHub i
 ## Scan Areas
 
 ### 1. Code Quality
-- Dead code, unused imports, unused variables
+- Dead code, unused imports, unreachable code
 - TODOs, FIXMEs, HACKs left in code
-- `any` types, missing type safety
+- Weak typing (`any`, missing types, unsafe casts)
 - Hardcoded values that should be config
-- Console.logs, debug code in production
-- Copy-paste duplication
-- Functions > 50 lines, files > 300 lines
-- Missing error handling
-- Inconsistent naming conventions
-- Outdated dependencies with known issues
+- Debug artifacts in production (console.logs, commented code)
+- Copy-paste duplication (DRY violations)
+- Overly complex functions/files (hard to understand at a glance)
+- Missing or inconsistent error handling
+- Naming that doesn't convey intent
+- Outdated or vulnerable dependencies
 
 ### 2. Business Logic Correctness
 
@@ -95,6 +95,15 @@ Scan the entire project for issues. Find problems, don't fix them. Open GitHub i
 - Slow CI/CD pipeline
 - Missing type definitions
 - Confusing folder structure
+
+### 9. Public-Facing & Exposure
+- **SEO**: Missing/poor title tags, meta descriptions, structured data
+- **Social Sharing**: Missing OG tags, Twitter cards, poor share previews
+- **Landing/Home**: Unclear value prop above the fold, weak CTAs
+- **README**: Missing badges, unclear quick start, no screenshots
+- **Docs**: Incomplete, outdated, hard to navigate
+- **Analytics**: Missing tracking, no conversion funnels
+- **Branding**: Inconsistent voice, visuals, messaging
 
 ## Process
 

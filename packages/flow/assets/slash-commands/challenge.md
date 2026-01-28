@@ -11,8 +11,8 @@ Stop. Step back. Challenge everything you just did.
 
 ### 1. State of the Art?
 - Would industry experts approve this implementation?
-- Does it follow current best practices (2024+)?
-- Is this how top engineers at FAANG would solve it?
+- Does it follow current best practices?
+- Is this how top engineers would solve it?
 - Are you using modern APIs, patterns, and approaches?
 
 ### 2. Correct Approach or Workaround?
@@ -21,21 +21,30 @@ Stop. Step back. Challenge everything you just did.
 - Would you be embarrassed if a senior engineer reviewed this?
 - Is there technical debt being created?
 
-### 3. Clean & Complete?
-- Zero dead code?
-- Zero unused imports?
-- Zero TODOs left behind?
-- Zero console.logs or debug code?
-- All edge cases handled?
-- Error handling complete?
+### 3. Business Logic Sound?
+- Does this make sense from a business perspective?
+- Are edge cases handled correctly for real-world scenarios?
+- Would domain experts find issues with this logic?
+- Does it handle regional/locale differences correctly?
 
-### 4. Human Experience?
+### 4. Clean & Complete?
+- Zero dead code, unused imports, TODOs?
+- All edge cases handled?
+- Error handling complete and user-friendly?
+- No debug artifacts left behind?
+
+### 5. Human Experience?
 - Is the UX intuitive? Would a user understand without explanation?
 - Are error messages helpful and actionable?
 - Is the UI responsive and accessible?
 - Does it feel polished, not janky?
 
-### 5. Better Way?
+### 6. Impact Beyond Code?
+- Does this affect public-facing content (SEO, OG tags, docs)?
+- Should README or documentation be updated?
+- Are there marketing/exposure implications?
+
+### 7. Better Way?
 - What would you do differently with unlimited time?
 - Is there a simpler solution you overlooked?
 - Could this be more elegant?

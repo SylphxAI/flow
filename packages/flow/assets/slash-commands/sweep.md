@@ -51,18 +51,11 @@ For each similar case found:
 
 ## Examples
 
-### Bug Fix Sweep
+### Code Pattern Sweep
 ```
 Fixed: Null check missing in UserProfile
 Sweep: Find all components accessing user data without null checks
 Result: Fixed 12 similar issues across 8 files
-```
-
-### Pattern Improvement Sweep
-```
-Improved: Converted callback to async/await in fetchData
-Sweep: Find all callback-style async code
-Result: Modernized 23 functions to async/await
 ```
 
 ### Type Safety Sweep
@@ -72,18 +65,32 @@ Sweep: Find all `any` types in API layer
 Result: Added proper types to 15 API functions
 ```
 
-### Component Pattern Sweep
+### Business Logic Sweep
 ```
-Created: Reusable ErrorBoundary with retry
-Sweep: Find all try-catch error handling in components
-Result: Replaced 8 ad-hoc error handlers with ErrorBoundary
+Fixed: HK user was seeing CN tax options
+Sweep: Find all region-dependent logic, verify correctness
+Result: Fixed 5 similar locale issues across settings, billing, reports
 ```
 
-### Performance Optimization Sweep
+### UX Pattern Sweep
 ```
-Optimized: Added useMemo to expensive calculation
-Sweep: Find all expensive calculations in render
-Result: Memoized 6 similar calculations
+Improved: Added loading state to save button
+Sweep: Find all async actions without loading feedback
+Result: Added loading states to 8 similar interactions
+```
+
+### Error Handling Sweep
+```
+Created: Reusable ErrorBoundary with retry
+Sweep: Find all ad-hoc error handling in components
+Result: Standardized error handling across 12 components
+```
+
+### Public-Facing Sweep
+```
+Fixed: Missing OG tags on product page
+Sweep: Find all public pages missing proper meta tags
+Result: Added OG/Twitter cards to 6 pages
 ```
 
 ## Output
@@ -111,6 +118,7 @@ Cases Fixed: [count]
 
 * **One fix = comprehensive sweep** — never leave similar issues behind
 * **Think in patterns** — what class of problem did you just solve?
-* **Be thorough** — check everywhere, including tests and docs
-* **Maintain consistency** — all similar code should look similar
+* **Sweep all dimensions** — code, business logic, UX, public-facing
+* **Be thorough** — check everywhere: code, tests, docs, marketing pages
+* **Maintain consistency** — similar things should look and work similarly
 * **This is how you reach State of the Art** — excellence everywhere, not just in spots

@@ -46,6 +46,12 @@ mcp__playwright__browser_snapshot - Get current page state
 - [ ] Boundary values (min/max)
 - [ ] Invalid inputs
 
+**Public-Facing Pages:**
+- [ ] Landing/home page — value prop clear? CTA works?
+- [ ] Pricing page — accurate? Links work?
+- [ ] Docs/help — accessible? Search works?
+- [ ] Social sharing — OG previews correct? Links work?
+
 ### 3. Test Business Logic
 
 **Region/Locale Consistency:**

@@ -48,6 +48,13 @@ gh issue list --state open --limit 20
 gh pr list --state open --limit 10
 ```
 
+### Business & Marketing Strategy
+- What's the monetization model? Is it working?
+- Who are the competitors? How does this differentiate?
+- What's the go-to-market strategy?
+- How are users being acquired? (SEO, social, paid, referral)
+- What public-facing assets exist? (landing page, blog, socials)
+
 ### Branch Analysis
 ```bash
 git branch -a

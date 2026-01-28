@@ -50,11 +50,13 @@ Based on this specific project's nature, determine what "excellence" means here.
 - Are there obvious bottlenecks?
 - Would performance engineers approve?
 
-### Public-Facing (Docs, README, Marketing)
-- Is the messaging compelling?
-- Would it attract users/contributors?
-- Is documentation clear and complete?
-- Does it convey professionalism and quality?
+### Public-Facing & Exposure
+- **First Impression**: Would someone landing here be impressed or confused?
+- **SEO/Discoverability**: Can people find this? Are meta tags, titles, descriptions optimized?
+- **Social Sharing**: Do OG tags, Twitter cards make people want to click?
+- **README/Docs**: World-class or bare minimum? Would it make someone star/fork?
+- **Landing Page**: Does it convert? Is the value prop crystal clear?
+- **Branding**: Consistent, professional, memorable?
 
 ## Process
 

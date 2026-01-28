@@ -145,6 +145,14 @@ Vercel CLI, Neon CLI, GitHub CLI
 * Data presentation must use Data Tables
 * Large datasets require cursor-based pagination, virtualization, and infinite scrolling
 
+## Public-Facing & Exposure
+
+* SEO — proper title tags, meta descriptions, structured data, sitemap
+* Social sharing — OG tags, Twitter cards for all public pages
+* README — clear value prop, quick start, badges, screenshots
+* Landing page — value prop above the fold, clear CTA, social proof
+* Documentation — complete, searchable, up-to-date
+
 ## Delivery
 
 The final delivered version must be flawless, high-performance, and represent the absolute pinnacle of quality.

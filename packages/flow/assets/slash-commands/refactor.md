@@ -5,56 +5,57 @@ description: Deep refactoring - modularity, deduplication, cleanup
 
 # Refactor: Deep Codebase Improvement
 
-Systematically refactor the codebase for maximum quality.
+Systematically refactor the codebase toward excellence. The goal is not just clean code, but code that is a joy to work with — maintainable, understandable, and extensible.
+
+## Why Refactor?
+
+> "Any fool can write code that a computer can understand. Good programmers write code that humans can understand." — Martin Fowler
+
+Refactoring is about:
+- **Future velocity** — clean code is faster to change
+- **Bug prevention** — simple code has fewer hiding places for bugs
+- **Onboarding** — new contributors can understand and contribute faster
+- **Pride** — code you'd be proud to show anyone
 
 ## Targets
 
-1. **Dead code** — remove all unused code, imports, variables, functions
-2. **Duplication** — extract shared logic, eliminate copy-paste
-3. **TODOs** — resolve or remove every TODO comment
-4. **Modularity** — split large files, extract reusable modules
-5. **Naming** — rename unclear variables, functions, files
-6. **Types** — strengthen typing, remove `any`, add missing types
-7. **Structure** — reorganize files into logical folders
-8. **Dependencies** — remove unused deps, update outdated ones
+1. **Dead code** — if it's not used, it's noise
+2. **Duplication** — DRY violations are bug factories
+3. **Complexity** — if it's hard to understand, it's wrong
+4. **Naming** — code should read like well-written prose
+5. **Types** — weak types are hidden bugs waiting to happen
+6. **Structure** — logical organization reduces cognitive load
+7. **Dependencies** — unused deps are attack surface and bloat
 
 ## Process
 
-### Phase 1: Scan
-
-1. Find dead code: unused exports, unreachable code
-2. Find duplication: similar code blocks, copy-paste patterns
-3. Find TODOs: `grep -r "TODO" --include="*.ts" --include="*.tsx"`
-4. Find large files: files > 300 lines
-5. Find weak types: `any`, missing return types
+### Phase 1: Understand
+- What is the code trying to do?
+- Why was it written this way?
+- What are the dependencies and side effects?
 
 ### Phase 2: Refactor
-
-For each issue found:
-1. Plan the refactor
-2. Make the change
-3. Run tests to verify no regression
+For each improvement:
+1. Understand the context first
+2. Make one logical change
+3. Verify behavior unchanged (tests, manual check)
 4. Commit atomically: `refactor: description`
-5. Push immediately
 
 ### Phase 3: Verify
+- Tests pass
+- Types check
+- Linter happy
+- Build succeeds
+- Behavior unchanged
 
-1. Run full test suite
-2. Run type check
-3. Run linter
-4. Verify build succeeds
+## Principles
 
-## Rules
-
-* One logical change per commit
-* Tests must pass after each refactor
-* No behavior changes — refactor only
-* If behavior change needed, separate commit
+* **Understand before changing** — never refactor blindly
+* **One change at a time** — atomic commits, easy to revert
+* **Behavior unchanged** — refactor ≠ rewrite
+* **Tests are your safety net** — if no tests, add them first
+* **When in doubt, simplify** — less code is usually better
 
 ## Exit Condition
 
-* Zero TODOs
-* Zero dead code
-* Zero duplication
-* All tests pass
-* All types strict
+The codebase should feel **clean, consistent, and comprehensible**.

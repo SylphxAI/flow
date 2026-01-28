@@ -87,6 +87,14 @@ Evaluate product design holistically — from user experience to business impact
 - What's missing in the market that we could own?
 - If a user tried competitor after us, would they come back? Why?
 
+## 6. Public-Facing & Exposure
+
+- **Landing Page**: Does it convert? Value prop clear in 5 seconds?
+- **SEO**: Are we discoverable? Right keywords targeted?
+- **Social Sharing**: Do shared links look compelling? OG tags set?
+- **README**: Would a developer star this? Quick start clear?
+- **Docs**: Can users self-serve? Search works?
+
 ## Process
 
 1. **Walk through** the entire product as each user type
