@@ -1,5 +1,15 @@
 # @sylphx/flow
 
+## 3.5.0 (2026-01-28)
+
+### ✨ Features
+
+- add /excellence command, rename /review to /challenge ([533c0d0](https://github.com/SylphxAI/flow/commit/533c0d016380d7b37680633d6773792030b07753))
+
+### ♻️ Refactoring
+
+- rename /review to /challenge ([ec3d9b5](https://github.com/SylphxAI/flow/commit/ec3d9b5510dc76337e64711aea614b00c2ba8de9))
+
 ## 3.4.0 (2026-01-26)
 
 ### ✨ Features
