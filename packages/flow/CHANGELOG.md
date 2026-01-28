@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 3.6.1 (2026-01-28)
+
+### ♻️ Refactoring
+
+- comprehensive review of all commands and builder ([73b103a](https://github.com/SylphxAI/flow/commit/73b103a4d6901079408d9e4e0237cad4e4087f14))
+
 ## 3.6.0 (2026-01-28)
 
 ### ✨ Features
