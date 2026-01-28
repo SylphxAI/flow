@@ -45,6 +45,17 @@ Based on this specific project's nature, determine what "excellence" means here.
 - Is it intuitive, fast, polished?
 - Are edge cases handled gracefully?
 
+### Accessibility & Inclusivity
+- Can everyone use this? Keyboard users? Screen reader users?
+- Does it meet WCAG standards (contrast, focus, labels)?
+- Does it respect user preferences (reduced motion, dark mode)?
+- Is it an afterthought or designed-in from the start?
+
+### Mobile & Responsive
+- Does it work beautifully on all screen sizes?
+- Are touch interactions first-class, not degraded?
+- Is mobile a real use case or an afterthought?
+
 ### Performance
 - Is it best-in-class or just acceptable?
 - Are there obvious bottlenecks?
