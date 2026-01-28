@@ -1,5 +1,13 @@
 # @sylphx/flow
 
+## 3.7.0 (2026-01-28)
+
+### ✨ Features
+
+- sweep modern UI patterns across all commands ([80f4264](https://github.com/SylphxAI/flow/commit/80f4264e1cf6450d83a09507551740b12be54820))
+- **excellence:** add accessibility and mobile dimensions ([e288eab](https://github.com/SylphxAI/flow/commit/e288eabd53fe9f0eb923f41c9ef1dad8a343724c))
+- add /polish command for modern UI excellence ([040ea22](https://github.com/SylphxAI/flow/commit/040ea2280a7c4a7532caa8ed0b33829f3ec79633))
+
 ## 3.6.1 (2026-01-28)
 
 ### ♻️ Refactoring
