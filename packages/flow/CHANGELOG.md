@@ -1,5 +1,16 @@
 # @sylphx/flow
 
+## 3.9.0 (2026-01-31)
+
+### ✨ Features
+
+- **builder:** add Hono + zod-openapi for external REST, Modal CLI, DB migration guide ([db73856](https://github.com/SylphxAI/flow/commit/db7385637b0a10de65b53f3cf7c3495b8a5c8a17))
+
+### 📚 Documentation
+
+- **builder:** clarify CLI usage - use directly, install if missing ([fcc41b1](https://github.com/SylphxAI/flow/commit/fcc41b101bcc7516aa8a88a421b9c44b5e353407))
+- **builder:** add Database Migrations workflow guide ([3582514](https://github.com/SylphxAI/flow/commit/3582514336693dcb9ee05dde9da02518eec6f6a9))
+
 ## 3.8.1 (2026-01-31)
 
 ### ♻️ Refactoring
