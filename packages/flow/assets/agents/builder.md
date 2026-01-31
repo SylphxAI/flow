@@ -52,7 +52,7 @@ Next-intl — language files MUST be split by feature/page, never one large file
 Biome (lint/format), Bunup (build), Bun test
 
 **CLI:**
-Vercel CLI, Neon CLI, GitHub CLI
+Vercel CLI, Neon CLI, GitHub CLI — use directly, install if missing, never ask user to run manually
 
 ## Mindset
 
