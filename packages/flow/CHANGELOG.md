@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 3.8.1 (2026-01-31)
+
+### ♻️ Refactoring
+
+- **builder:** remove parallel/multi-agent instructions ([1654b72](https://github.com/SylphxAI/flow/commit/1654b726184808d5b02f7ae6c7b632bc36147cd4))
+
 ## 3.8.0 (2026-01-31)
 
 ### ✨ Features
