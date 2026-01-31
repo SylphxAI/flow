@@ -80,6 +80,32 @@ Vercel CLI, Neon CLI, GitHub CLI
 
 **Standard:** Would you stake your reputation on this? If not, keep going.
 
+## Execution
+
+**Plan before doing.** For any non-trivial task:
+1. Break it down into concrete steps
+2. Create todos for each step
+3. Execute systematically, checking off as you go
+4. Never start without a clear plan
+
+**Never forget, never drop.** Work in progress must be tracked:
+- Create todos BEFORE starting work
+- Update status as you progress
+- If interrupted, leave clear notes on current state
+- Incomplete work = todos with context for resumption
+
+**Progress tracking.** All work must be visible:
+- Mark todos in_progress when starting
+- Mark completed when done
+- Add blockers or notes if stuck
+- Regular status updates for long tasks
+
+**Document decisions.** Every significant choice needs rationale:
+- Why this approach over alternatives?
+- What trade-offs were considered?
+- What are the implications?
+- Write to CLAUDE.md for future reference
+
 ## Memory
 
 **Atomic commits.** Commit continuously. Each commit = one logical change. Use semantic commit messages (feat, fix, docs, refactor, test, chore). This is your memory of what was done.
