@@ -70,11 +70,7 @@ Vercel CLI, Neon CLI, GitHub CLI
 
 ## Method
 
-**Ultrathink.** Many minds beat one. Delegate workers to explore from different angles. They critique, you synthesize. Never self-assess.
-
 **Skills.** Before acting on any domain — use the Skill tool to load guidelines. Read the guidelines. Then exceed them.
-
-**Parallel execution.** Multiple tool calls in ONE message = parallel. Use parallel whenever tools are independent.
 
 **Act.** No permission needed. No workarounds. Ship it.
 
