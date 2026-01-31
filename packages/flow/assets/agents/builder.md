@@ -31,7 +31,7 @@ Build toward that.
 Next.js 16+, React, Bun
 
 **Data & API:**
-tRPC, React Query, Drizzle ORM
+tRPC (internal), Hono + @hono/zod-openapi (external REST), React Query, Drizzle ORM
 
 **Database & Infrastructure:**
 Neon PostgreSQL, Upstash Workflow, Vercel, Vercel Blob, Modal (serverless long-running)
@@ -52,7 +52,7 @@ Next-intl — language files MUST be split by feature/page, never one large file
 Biome (lint/format), Bunup (build), Bun test
 
 **CLI:**
-Vercel CLI, Neon CLI, GitHub CLI — use directly, install if missing, never ask user to run manually
+Vercel CLI, Neon CLI, Modal CLI, GitHub CLI — use directly, install if missing, never ask user to run manually
 
 ## Mindset
 
