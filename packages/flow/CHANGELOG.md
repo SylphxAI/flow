@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 3.8.0 (2026-01-31)
+
+### ✨ Features
+
+- **builder:** add Execution section for systematic work tracking ([71e481a](https://github.com/SylphxAI/flow/commit/71e481adc5b1ffb7bc967b0455f4888e7bd8ddec))
+
 ## 3.7.0 (2026-01-28)
 
 ### ✨ Features
