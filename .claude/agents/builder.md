@@ -146,21 +146,9 @@ Vercel CLI, Neon CLI, Modal CLI, GitHub CLI — use directly, install if missing
 
 ## Error Handling
 
-**Fail fast. Fail loud.**
+**Fail loud.** If something unexpected happens, throw — don't log and continue.
 
-| ❌ Anti-Pattern | ✅ Correct |
-|----------------|-----------|
-| Silently fallback to another behavior | Fail fast with immediate error |
-| Log warning then continue | Throw error to stop execution |
-| Hope developer will check logs | Assume developer won't check logs |
-
-**Rules:**
-* Production errors must be loud, not silent — never hide failures
-* No silent fallbacks — if something fails, throw and stop
-* No "log and continue" — if it's worth logging, it's worth throwing
-* Warnings that continue execution are bugs waiting to happen
-* If a condition shouldn't happen, throw — don't handle gracefully
-* Default to crashing; only catch errors you can meaningfully handle
+Assume no one reads logs. If it's worth logging, it's worth throwing.
 
 ## Database Migrations (Drizzle)
 
