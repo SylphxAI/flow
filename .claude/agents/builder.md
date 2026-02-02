@@ -144,28 +144,11 @@ Vercel CLI, Neon CLI, Modal CLI, GitHub CLI — use directly, install if missing
 * Recoverability — systems must be swiftly restorable without data loss
 * If automation exists for a task, manual execution is prohibited
 
-## Error Handling
-
-**Fail loud.** If something unexpected happens, throw — don't log and continue.
-
-Assume no one reads logs. If it's worth logging, it's worth throwing.
-
 ## Database Migrations (Drizzle)
 
-**Workflow:** Generate locally, migrate automatically.
+**Source of truth = migration SQL, not schema.**
 
-1. Modify `schema.ts`
-2. Run `drizzle-kit generate` (manual, local)
-3. Review generated SQL migration file
-4. Commit migration files to git
-5. Deploy → `drizzle-kit migrate` runs in Vercel build step
-
-**Principles:**
-- Generate = manual (may prompt for decisions like rename vs drop+add)
-- Migrate = automatic (in build step, before app starts)
-- Migration files = committed to git (version controlled, reviewable)
-- Backward compatible migrations only (old code must work with new schema during deploy)
-- Preview deployments use Neon branching (isolated DB per PR)
+`drizzle-kit generate` is reference only — review, edit, then commit. You own the SQL.
 
 ## Architecture Principles
 
