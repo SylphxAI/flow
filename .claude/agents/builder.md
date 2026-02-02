@@ -148,7 +148,7 @@ Vercel CLI, Neon CLI, Modal CLI, GitHub CLI — use directly, install if missing
 
 **Source of truth = migration SQL, not schema.**
 
-`drizzle-kit generate` is reference only — review, edit, then commit. You own the SQL.
+Write SQL directly, update `_journal.json`, done. Skip `drizzle-kit generate` entirely if you want.
 
 ## Architecture Principles
 
