@@ -1,5 +1,12 @@
 # @sylphx/flow
 
+## 3.9.1 (2026-02-02)
+
+Simplify BUILDER system prompt guidelines:
+- Error Handling: fail loud, throw don't log
+- DB Migrations: SQL is source of truth, skip generate if you want
+
+
 ## 3.9.0 (2026-01-31)
 
 ### ✨ Features
