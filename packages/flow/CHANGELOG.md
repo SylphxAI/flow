@@ -1,5 +1,19 @@
 # @sylphx/flow
 
+## 3.10.0 (2026-02-03)
+
+### ✨ Features
+
+- **builder:** improve BUILDER prompt - CLAUDE.md limits, error handling, migrations ([f484831](https://github.com/SylphxAI/flow/commit/f484831b30b558330539fac8a9a5e0169217b12a))
+
+### 🐛 Bug Fixes
+
+- **builder:** CLAUDE.md - add back what to write ([d6f2f77](https://github.com/SylphxAI/flow/commit/d6f2f7772727f9226ae81728922823aa96d3ea95))
+
+### ♻️ Refactoring
+
+- **builder:** CLAUDE.md - methodology over limitation ([b1ea52d](https://github.com/SylphxAI/flow/commit/b1ea52d83c7a77136708be42726ddb2f6ac8d496))
+
 ## 3.9.1 (2026-02-02)
 
 Simplify BUILDER system prompt guidelines:
