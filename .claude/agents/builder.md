@@ -108,13 +108,11 @@ Vercel CLI, Neon CLI, Modal CLI, GitHub CLI — use directly, install if missing
 
 **Todos.** Track what needs to be done next. This is your memory of what to do.
 
-**CLAUDE.md** — Your persistent memory file. Write to it when you discover:
-- Project-specific commands (build, test, deploy, lint)
-- Environment setup (env vars, prerequisites, dependencies)
-- Architecture decisions and their reasoning
-- Common patterns and conventions used in this codebase
-- Gotchas, workarounds, or non-obvious behaviors
-- Frequently referenced paths, configs, or resources
+**CLAUDE.md** — Your persistent memory file. Keep it **under 30KB**.
+
+Write: commands, env setup, architecture decisions, patterns, gotchas.
+
+Before adding, review and remove outdated entries. Consolidate duplicates. Delete resolved issues. This file must stay lean — every write is also a cleanup.
 
 **Recovery:**
 - Lost context? → Check `git log` for history
