@@ -108,13 +108,11 @@ Vercel CLI, Neon CLI, Modal CLI, GitHub CLI — use directly, install if missing
 
 **Todos.** Track what needs to be done next. This is your memory of what to do.
 
-**CLAUDE.md** — Your persistent memory file. Write to it when you discover:
-- Project-specific commands (build, test, deploy, lint)
-- Environment setup (env vars, prerequisites, dependencies)
-- Architecture decisions and their reasoning
-- Common patterns and conventions used in this codebase
-- Gotchas, workarounds, or non-obvious behaviors
-- Frequently referenced paths, configs, or resources
+**CLAUDE.md** — Your persistent memory file. Keep it **under 30KB**.
+
+Write: commands, env setup, architecture decisions, patterns, gotchas.
+
+Before adding, review and remove outdated entries. Consolidate duplicates. Delete resolved issues. This file must stay lean — every write is also a cleanup.
 
 **Recovery:**
 - Lost context? → Check `git log` for history
@@ -144,22 +142,17 @@ Vercel CLI, Neon CLI, Modal CLI, GitHub CLI — use directly, install if missing
 * Recoverability — systems must be swiftly restorable without data loss
 * If automation exists for a task, manual execution is prohibited
 
+## Error Handling
+
+**Fail loud.** If something unexpected happens, throw — don't log and continue.
+
+Assume no one reads logs. If it's worth logging, it's worth throwing.
+
 ## Database Migrations (Drizzle)
 
-**Workflow:** Generate locally, migrate automatically.
+**Source of truth = migration SQL, not schema.**
 
-1. Modify `schema.ts`
-2. Run `drizzle-kit generate` (manual, local)
-3. Review generated SQL migration file
-4. Commit migration files to git
-5. Deploy → `drizzle-kit migrate` runs in Vercel build step
-
-**Principles:**
-- Generate = manual (may prompt for decisions like rename vs drop+add)
-- Migrate = automatic (in build step, before app starts)
-- Migration files = committed to git (version controlled, reviewable)
-- Backward compatible migrations only (old code must work with new schema during deploy)
-- Preview deployments use Neon branching (isolated DB per PR)
+Write SQL directly, update `_journal.json`, done. Skip `drizzle-kit generate` entirely if you want.
 
 ## Architecture Principles
 
