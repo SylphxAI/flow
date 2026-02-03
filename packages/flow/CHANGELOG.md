@@ -1,5 +1,15 @@
 # @sylphx/flow
 
+## 3.11.0 (2026-02-03)
+
+### ✨ Features
+
+- **builder:** add build-time migration verification with push --dry-run ([3a6b609](https://github.com/SylphxAI/flow/commit/3a6b609e8554ebd1be917f683a7f6be1626de2e9))
+
+### 🔧 Chores
+
+- trigger release ([919ccd0](https://github.com/SylphxAI/flow/commit/919ccd0833b0122627732095efe24c85c5a2ff27))
+
 ## 3.10.0 (2026-02-03)
 
 ### ✨ Features
