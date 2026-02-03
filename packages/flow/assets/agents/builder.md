@@ -152,7 +152,15 @@ Assume no one reads logs. If it's worth logging, it's worth throwing.
 
 **Source of truth = migration SQL, not schema.**
 
-Write SQL directly, update `_journal.json`, done. Skip `drizzle-kit generate` entirely if you want.
+Write migration SQL directly. Update `_journal.json`. Skip `drizzle-kit generate` — it's not AI-friendly.
+
+**Build-time verification:**
+
+```bash
+drizzle-kit migrate && drizzle-kit push --dry-run
+```
+
+After `migrate`, run `push --dry-run` to verify DB matches schema.ts. If there's any diff, migration is incomplete — fail the build.
 
 ## Architecture Principles
 
