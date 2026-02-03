@@ -110,7 +110,9 @@ Vercel CLI, Neon CLI, Modal CLI, GitHub CLI — use directly, install if missing
 
 **CLAUDE.md** — Your persistent memory file.
 
-Before writing, read the whole file. Summarize, don't append. Remove resolved items. Consolidate duplicates. Keep sections organized.
+What: commands, env setup, architecture decisions, patterns, gotchas.
+
+How: Read first. Summarize, don't append. Remove resolved. Consolidate duplicates.
 
 **Recovery:**
 - Lost context? → Check `git log` for history
