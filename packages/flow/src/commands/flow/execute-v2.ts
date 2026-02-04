@@ -242,6 +242,9 @@ export async function executeFlowV2(
   const autoUpgrade = new AutoUpgrade(projectPath);
   const upgradeResult = await autoUpgrade.runAutoUpgrade(selectedTargetId);
 
+  // Start periodic background checks (every 30 minutes)
+  autoUpgrade.startPeriodicCheck(selectedTargetId);
+
   // Show upgrade notice (minimal - only if upgraded)
   if (upgradeResult.flowUpgraded && upgradeResult.flowVersion) {
     console.log(chalk.dim(`↑ flow ${upgradeResult.flowVersion.latest}`));

@@ -43,10 +43,14 @@ export interface AutoUpgradeOptions {
   skipTarget?: boolean;
 }
 
+// Default interval: 30 minutes
+const DEFAULT_CHECK_INTERVAL_MS = 30 * 60 * 1000;
+
 export class AutoUpgrade {
   private projectPath: string;
   private options: AutoUpgradeOptions;
   private targetInstaller: TargetInstaller;
+  private periodicCheckInterval: NodeJS.Timeout | null = null;
 
   constructor(projectPath: string = process.cwd(), options: AutoUpgradeOptions = {}) {
     this.projectPath = projectPath;
@@ -394,6 +398,66 @@ export class AutoUpgrade {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Start periodic background checks for updates
+   * Runs every intervalMs (default 30 minutes)
+   * Silently upgrades if updates are available
+   * @param targetId - Optional target CLI ID to check
+   * @param intervalMs - Check interval in milliseconds (default 30 minutes)
+   */
+  startPeriodicCheck(targetId?: string, intervalMs: number = DEFAULT_CHECK_INTERVAL_MS): void {
+    // Clear any existing interval
+    this.stopPeriodicCheck();
+
+    // Start periodic check
+    this.periodicCheckInterval = setInterval(() => {
+      this.performPeriodicUpgrade(targetId).catch(() => {
+        // Silent fail
+      });
+    }, intervalMs);
+
+    // Don't prevent process from exiting
+    this.periodicCheckInterval.unref();
+  }
+
+  /**
+   * Stop periodic background checks
+   */
+  stopPeriodicCheck(): void {
+    if (this.periodicCheckInterval) {
+      clearInterval(this.periodicCheckInterval);
+      this.periodicCheckInterval = null;
+    }
+  }
+
+  /**
+   * Perform periodic upgrade check and silent upgrade
+   */
+  private async performPeriodicUpgrade(targetId?: string): Promise<void> {
+    // Perform background check first (updates version info)
+    await this.performBackgroundCheck(targetId);
+
+    // Read the fresh version info
+    const info = await this.readVersionInfo();
+    if (!info) return;
+
+    const currentVersion = await this.getCurrentFlowVersion();
+
+    // Silently upgrade Flow if needed
+    if (info.flowLatest && info.flowLatest !== currentVersion) {
+      await this.upgradeFlowSilent();
+    }
+
+    // Silently upgrade target if needed
+    if (targetId && info.targetLatest?.[targetId] && info.targetCurrent?.[targetId]) {
+      const current = info.targetCurrent[targetId];
+      const latest = info.targetLatest[targetId];
+      if (current !== latest) {
+        await this.upgradeTargetSilent(targetId);
+      }
     }
   }
 }
