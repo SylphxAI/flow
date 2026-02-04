@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 3.13.0 (2026-02-04)
+
+### ✨ Features
+
+- **auto-upgrade:** add periodic background update check every 30 minutes ([4a14414](https://github.com/SylphxAI/flow/commit/4a14414350f31899a5dadaf596216c53406f7ffc))
+
 ## 3.12.1 (2026-02-04)
 
 ### 🐛 Bug Fixes
