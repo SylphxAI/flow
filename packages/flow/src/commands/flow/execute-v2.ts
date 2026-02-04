@@ -238,20 +238,10 @@ export async function executeFlowV2(
   // Show minimal header
   showHeader(version, targetName);
 
-  // Step 2: Auto-upgrade (silent, returns status)
-  const autoUpgrade = new AutoUpgrade(projectPath);
-  const upgradeResult = await autoUpgrade.runAutoUpgrade(selectedTargetId);
-
   // Start periodic background checks (every 30 minutes)
+  // No blocking check on startup - updates happen in background
+  const autoUpgrade = new AutoUpgrade(projectPath);
   autoUpgrade.startPeriodicCheck(selectedTargetId);
-
-  // Show upgrade notice (minimal - only if upgraded)
-  if (upgradeResult.flowUpgraded && upgradeResult.flowVersion) {
-    console.log(chalk.dim(`↑ flow ${upgradeResult.flowVersion.latest}`));
-  }
-  if (upgradeResult.targetUpgraded && upgradeResult.targetVersion) {
-    console.log(chalk.dim(`↑ ${targetName.toLowerCase()} ${upgradeResult.targetVersion.latest}`));
-  }
 
   // Create executor
   const executor = new FlowExecutor();
