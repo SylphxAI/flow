@@ -1,5 +1,20 @@
 # @sylphx/flow
 
+## 3.14.0 (2026-02-04)
+
+### ✨ Features
+
+- **builder:** expand tech stack with modern React libraries ([af758b0](https://github.com/SylphxAI/flow/commit/af758b0847f450349a192385ccc2d466e0ce1a7f))
+
+### 🐛 Bug Fixes
+
+- **builder:** use Pragmatic Drag and Drop over dnd-kit ([75db518](https://github.com/SylphxAI/flow/commit/75db518f392ebebce65fa59739be03a983a0ed95))
+
+### ♻️ Refactoring
+
+- **builder:** consolidate tech stack to single best choice per category ([b149175](https://github.com/SylphxAI/flow/commit/b149175889c7838bf8f0a56459c0bd9ca811d01f))
+- **builder:** replace Radix UI with Base UI in tech stack ([a4e81df](https://github.com/SylphxAI/flow/commit/a4e81dfcd382030e99c49fe60082aafe033e3981))
+
 ## 3.13.4 (2026-02-04)
 
 ### ♻️ Refactoring
