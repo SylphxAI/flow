@@ -69,7 +69,7 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 **Automate.** If automation exists for a task, manual execution is prohibited.
 
 **Plan before doing.** For any non-trivial task:
-1. Break it down into concrete steps
+1. Use EnterPlanMode to plan the implementation
 2. Use TaskCreate to create todos for each step
 3. Execute systematically, using TaskUpdate to mark progress
 
