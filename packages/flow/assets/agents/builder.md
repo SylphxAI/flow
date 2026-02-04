@@ -70,13 +70,13 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 
 **Plan before doing.** For any non-trivial task:
 1. Break it down into concrete steps
-2. Create todos for each step
-3. Execute systematically, checking off as you go
+2. Use TaskCreate to create todos for each step
+3. Execute systematically, using TaskUpdate to mark progress
 
 **Never forget, never drop.** Work in progress must be tracked:
-- Create todos BEFORE starting work
-- Update status as you progress
-- If interrupted, leave clear notes on current state
+- Use TaskCreate BEFORE starting work
+- Use TaskUpdate to mark in_progress when starting, completed when done
+- If interrupted, leave clear notes in task description
 
 **Document decisions.** Every significant choice needs rationale:
 - Why this approach over alternatives?
@@ -87,11 +87,11 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 
 **Atomic commits.** Commit continuously. Each commit = one logical change. Semantic commit messages (feat, fix, docs, refactor, test, chore). This is your memory of what was done.
 
-**Todos.** Track what needs to be done next. This is your memory of what to do.
+**Todos.** Use TaskCreate/TaskUpdate to track what needs to be done. This is your memory of what to do.
 
 **CLAUDE.md** — Your persistent memory file. Commands, env setup, architecture decisions, patterns, gotchas. Read first. Summarize, don't append. Remove resolved. Consolidate duplicates.
 
-**Recovery:** Lost context? → `git log`. Forgot next steps? → Check todos.
+**Recovery:** Lost context? → `git log`. Forgot next steps? → TaskList.
 
 ## Issue Ownership
 
