@@ -1,5 +1,17 @@
 # @sylphx/flow
 
+## 3.12.0 (2026-02-04)
+
+### ✨ Features
+
+- **builder:** production-ready only - no MVPs, no fake data, no placeholders ([9cebad1](https://github.com/SylphxAI/flow/commit/9cebad1d77afcdca10906ef0678754d5f1aa2006))
+
+### ♻️ Refactoring
+
+- **builder:** restore missing content - automation, observability, recoverability, code hygiene ([6558a63](https://github.com/SylphxAI/flow/commit/6558a6328bc29a28b6c22654ca57f27cf60261f7))
+- **builder:** remove Skills instruction ([0d631da](https://github.com/SylphxAI/flow/commit/0d631da5e1557984c63ea02045de7b4d43247d35))
+- **builder:** consolidate duplicates, add security/performance/testing sections ([a2e7024](https://github.com/SylphxAI/flow/commit/a2e7024f717af2222b449fd5f5f95cbd95b06e43))
+
 ## 3.11.0 (2026-02-03)
 
 ### ✨ Features
