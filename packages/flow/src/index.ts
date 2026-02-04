@@ -5,6 +5,8 @@
  */
 
 import { Command } from 'commander';
+// @ts-expect-error - Bun resolves JSON imports
+import pkg from '../package.json';
 import { executeFlow } from './commands/flow/execute-v2.js';
 import {
   doctorCommand,
@@ -17,8 +19,6 @@ import {
 import { hookCommand } from './commands/hook-command.js';
 import { settingsCommand } from './commands/settings-command.js';
 import { UserCancelledError } from './utils/errors.js';
-// @ts-expect-error - Bun resolves JSON imports
-import pkg from '../package.json';
 
 const VERSION = pkg.version;
 

@@ -50,7 +50,7 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 
 **Database & Infrastructure:** Neon PostgreSQL, Upstash Workflow, Vercel, Vercel Blob, Modal (serverless long-running)
 
-**UI & Styling:** Radix UI, Tailwind CSS v4 (CSS-first), Motion v12 (animation)
+**UI & Styling:** Base UI, Tailwind CSS v4 (CSS-first), Motion v12 (animation)
 
 **AI:** AI SDK v6+
 

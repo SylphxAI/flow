@@ -114,10 +114,14 @@ export class TemplateLoader {
         const domainPath = path.join(skillsDir, domain);
         const stat = await fs.stat(domainPath);
 
-        if (!stat.isDirectory()) return null;
+        if (!stat.isDirectory()) {
+          return null;
+        }
 
         const skillFile = path.join(domainPath, 'SKILL.md');
-        if (!existsSync(skillFile)) return null;
+        if (!existsSync(skillFile)) {
+          return null;
+        }
 
         const content = await fs.readFile(skillFile, 'utf-8');
         return { name: `${domain}/SKILL.md`, content };
@@ -155,7 +159,9 @@ export class TemplateLoader {
         const filePath = path.join(singleFilesDir, entry);
         const stat = await fs.stat(filePath);
 
-        if (!stat.isFile()) return null;
+        if (!stat.isFile()) {
+          return null;
+        }
 
         const content = await fs.readFile(filePath, 'utf-8');
         return { path: entry, content };

@@ -79,7 +79,9 @@ export class AutoUpgrade {
   private async shouldCheck(intervalMs: number): Promise<boolean> {
     try {
       const info = await this.readVersionInfo();
-      if (!info?.lastCheckTime) return true;
+      if (!info?.lastCheckTime) {
+        return true;
+      }
       return Date.now() - info.lastCheckTime >= intervalMs;
     } catch {
       return true;
@@ -111,7 +113,9 @@ export class AutoUpgrade {
       lastCheckTime: Date.now(),
     });
 
-    if (!latestVersion) return;
+    if (!latestVersion) {
+      return;
+    }
 
     // Upgrade if newer version available
     if (latestVersion !== currentVersion) {
@@ -152,9 +156,15 @@ export class AutoUpgrade {
       const { stdout } = await execAsync('which flow || where flow');
       const flowPath = stdout.trim().toLowerCase();
 
-      if (flowPath.includes('bun')) return 'bun';
-      if (flowPath.includes('pnpm')) return 'pnpm';
-      if (flowPath.includes('yarn')) return 'yarn';
+      if (flowPath.includes('bun')) {
+        return 'bun';
+      }
+      if (flowPath.includes('pnpm')) {
+        return 'pnpm';
+      }
+      if (flowPath.includes('yarn')) {
+        return 'yarn';
+      }
     } catch {
       // Fall through
     }

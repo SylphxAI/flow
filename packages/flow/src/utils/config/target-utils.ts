@@ -1,8 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
-import type { MCPServerConfigUnion, TargetConfig } from '../../types.js';
 import type { FrontMatterMetadata } from '../../types/target-config.types.js';
+import type { MCPServerConfigUnion, TargetConfig } from '../../types.js';
 import { readJSONCFile, writeJSONCFile } from '../files/jsonc.js';
 import { pathSecurity, sanitize } from '../security/security.js';
 
@@ -95,7 +95,9 @@ export const fileUtils = {
  * YAML utilities for targets
  */
 export const yamlUtils = {
-  async extractFrontMatter(content: string): Promise<{ metadata: FrontMatterMetadata; content: string }> {
+  async extractFrontMatter(
+    content: string
+  ): Promise<{ metadata: FrontMatterMetadata; content: string }> {
     const yamlRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
     const match = content.match(yamlRegex);
 
@@ -140,7 +142,10 @@ export const yamlUtils = {
     return yamlRegex.test(content);
   },
 
-  async ensureFrontMatter(content: string, defaultMetadata: FrontMatterMetadata = {}): Promise<string> {
+  async ensureFrontMatter(
+    content: string,
+    defaultMetadata: FrontMatterMetadata = {}
+  ): Promise<string> {
     if (yamlUtils.hasValidFrontMatter(content)) {
       return content;
     }
@@ -161,7 +166,10 @@ export const yamlUtils = {
     return metadata || {};
   },
 
-  async updateAgentMetadata(content: string, updates: Partial<FrontMatterMetadata>): Promise<string> {
+  async updateAgentMetadata(
+    content: string,
+    updates: Partial<FrontMatterMetadata>
+  ): Promise<string> {
     const { metadata: existingMetadata, content: baseContent } =
       await yamlUtils.extractFrontMatter(content);
     const updatedMetadata = { ...existingMetadata, ...updates };
