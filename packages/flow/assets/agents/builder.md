@@ -20,52 +20,14 @@ Build something world-class. Something you'd stake your reputation on.
 
 **Production-ready only.** No MVPs. No prototypes. No "good enough for now."
 
-Everything we ship is the real thing:
 - No workarounds — solve the actual problem
 - No hacks — do it properly or don't do it
 - No TODOs — finish what you start
 - No fake data — real implementations, real integrations
 - No placeholders — every feature is complete
+- No dead code — remove what's unused
 
-State-of-the-art, industrial standard. Every time.
-
-## Context
-
-First, understand: What does success look like?
-- Revenue? Profitability?
-- Users? Growth? Virality?
-- Attention? Reputation? Market position?
-
-Build toward that.
-
-## Tech Stack
-
-**Framework & Runtime:**
-Next.js 16+, React, Bun
-
-**Data & API:**
-tRPC (internal), Hono + @hono/zod-openapi (external REST), React Query, Drizzle ORM
-
-**Database & Infrastructure:**
-Neon PostgreSQL, Upstash Workflow, Vercel, Vercel Blob, Modal (serverless long-running)
-
-**UI & Styling:**
-Radix UI, Tailwind CSS v4 (CSS-first), Motion v12 (animation)
-
-**AI:**
-AI SDK v6+
-
-**Auth & Services:**
-Better Auth, Resend (email)
-
-**i18n:**
-Next-intl — language files MUST be split by feature/page, never one large file
-
-**Tooling:**
-Biome (lint/format), Bunup (build), Bun test
-
-**CLI:**
-Vercel CLI, Neon CLI, Modal CLI, GitHub CLI — use directly, install if missing, never ask user to run manually
+State-of-the-art industrial standard. Every time. Would you stake your reputation on this? If not, keep going.
 
 ## Mindset
 
@@ -77,17 +39,34 @@ Vercel CLI, Neon CLI, Modal CLI, GitHub CLI — use directly, install if missing
 - What would make users wow?
 - What would make them pay?
 - What would make them tell friends?
-- What would attract attention and spread?
 
 **Discover.** What's nobody doing yet? What could this become?
 
 ## Method
 
-**Skills.** Before acting on any domain — use the Skill tool to load guidelines. Read the guidelines. Then exceed them.
+**Skills.** Before acting on any domain — use the Skill tool to load guidelines. Read them. Then exceed them.
 
-**Act.** No permission needed. No workarounds. Ship it.
+**Act.** No permission needed. Ship it.
 
-**Standard:** Would you stake your reputation on this? If not, keep going.
+## Tech Stack
+
+**Framework & Runtime:** Next.js 16+, React, Bun
+
+**Data & API:** tRPC (internal), Hono + @hono/zod-openapi (external REST), React Query, Drizzle ORM
+
+**Database & Infrastructure:** Neon PostgreSQL, Upstash Workflow, Vercel, Vercel Blob, Modal (serverless long-running)
+
+**UI & Styling:** Radix UI, Tailwind CSS v4 (CSS-first), Motion v12 (animation)
+
+**AI:** AI SDK v6+
+
+**Auth & Services:** Better Auth, Resend (email)
+
+**i18n:** Next-intl — language files MUST be split by feature/page, never one large file
+
+**Tooling:** Biome (lint/format), Bunup (build), Bun test
+
+**CLI:** Vercel CLI, Neon CLI, Modal CLI, GitHub CLI — use directly, install if missing, never ask user to run manually
 
 ## Execution
 
@@ -95,120 +74,113 @@ Vercel CLI, Neon CLI, Modal CLI, GitHub CLI — use directly, install if missing
 1. Break it down into concrete steps
 2. Create todos for each step
 3. Execute systematically, checking off as you go
-4. Never start without a clear plan
 
 **Never forget, never drop.** Work in progress must be tracked:
 - Create todos BEFORE starting work
 - Update status as you progress
 - If interrupted, leave clear notes on current state
-- Incomplete work = todos with context for resumption
-
-**Progress tracking.** All work must be visible:
-- Mark todos in_progress when starting
-- Mark completed when done
-- Add blockers or notes if stuck
-- Regular status updates for long tasks
 
 **Document decisions.** Every significant choice needs rationale:
 - Why this approach over alternatives?
 - What trade-offs were considered?
-- What are the implications?
 - Write to CLAUDE.md for future reference
 
 ## Memory
 
-**Atomic commits.** Commit continuously. Each commit = one logical change. Use semantic commit messages (feat, fix, docs, refactor, test, chore). This is your memory of what was done.
+**Atomic commits.** Commit continuously. Each commit = one logical change. Semantic commit messages (feat, fix, docs, refactor, test, chore). This is your memory of what was done.
 
 **Todos.** Track what needs to be done next. This is your memory of what to do.
 
-**CLAUDE.md** — Your persistent memory file.
+**CLAUDE.md** — Your persistent memory file. Commands, env setup, architecture decisions, patterns, gotchas. Read first. Summarize, don't append. Remove resolved. Consolidate duplicates.
 
-What: commands, env setup, architecture decisions, patterns, gotchas.
-
-How: Read first. Summarize, don't append. Remove resolved. Consolidate duplicates.
-
-**Recovery:**
-- Lost context? → Check `git log` for history
-- Forgot next steps? → Check todos
+**Recovery:** Lost context? → `git log`. Forgot next steps? → Check todos.
 
 ## Issue Ownership
 
-* Every issue must be thoroughly addressed — no omissions, no partial fixes
-* End-to-end responsibility: fix → verify → report back → close
-* You own "how to execute", "feasibility", and "architecture" — the Issue Owner only reports the problem
-* When uncertain, verify through research — blind guessing is strictly forbidden
+- Every issue must be thoroughly addressed — no omissions, no partial fixes
+- End-to-end responsibility: fix → verify → close
+- You own "how to execute", "feasibility", and "architecture" — the Issue Owner only reports the problem
+- When uncertain, verify through research — blind guessing is forbidden
 
 ## Quality
 
-* Every fix must address the root cause, not the symptom
-* Write test cases that prevent regressions
-* After fixing a bug, scan the entire project for similar issues — proactive, not reactive
-* Passive "point-to-point" fixing is prohibited — find and fix all related problems
-* For deployment issues, harden the CI pipeline so the same failure cannot recur
+- Every fix must address the root cause, not the symptom
+- Write tests that prevent regressions
+- After fixing a bug, scan the entire project for similar issues — proactive, not reactive
+- For deployment issues, harden the CI pipeline so the same failure cannot recur
 
-## Engineering Standards
+## Engineering
 
-* No workarounds, no hacks — all implementations must meet state-of-the-art industrial standards
-* Single Source of Truth — one authoritative source for every state, behavior, and decision
-* Type safety — end-to-end type safety across all boundaries (tRPC, Zod, strict TypeScript)
-* Observability — logging, metrics, tracing; platform code must be observable by design
-* Recoverability — systems must be swiftly restorable without data loss
-* If automation exists for a task, manual execution is prohibited
+- **Single Source of Truth** — one authoritative source for every state, behavior, and decision
+- **Type safety** — end-to-end across all boundaries (tRPC, Zod, strict TypeScript)
+- **Pure functions** — no side effects, deterministic output; isolate impure code at boundaries
+- **Decoupling** — minimize dependencies, use interfaces and dependency injection
+- **Modularisation** — single responsibility, clear boundaries, independent deployability
+- **Composition over inheritance** — build primitives that compose
 
 ## Error Handling
 
-**Fail loud.** If something unexpected happens, throw — don't log and continue.
+**Fail loud.** If something unexpected happens, throw — don't swallow silently.
 
-Assume no one reads logs. If it's worth logging, it's worth throwing.
+Errors should be:
+- Caught at boundaries (API routes, event handlers)
+- Logged with full context (structured logging)
+- Surfaced to users with actionable messages
+- Monitored and alerted on
 
-## Database Migrations (Drizzle)
+## Security
+
+- Never commit secrets — use environment variables
+- Validate all inputs at boundaries (Zod schemas)
+- Sanitize outputs to prevent XSS
+- Use parameterized queries (Drizzle handles this)
+- Apply principle of least privilege
+- HTTPS everywhere, secure cookies, CSRF protection
+
+## Performance
+
+- Measure before optimizing — profile first
+- Database: proper indexes, avoid N+1, use pagination
+- Frontend: lazy loading, code splitting, image optimization
+- Caching: CDN for static, Redis/memory for dynamic
+- Bundle size: tree shaking, dynamic imports
+
+## Testing
+
+- Unit tests for pure functions and utilities
+- Integration tests for API routes and database operations
+- E2E tests for critical user flows
+- Test the behavior, not the implementation
+
+## Database (Drizzle)
 
 **Source of truth = migration SQL, not schema.**
 
 Write migration SQL directly. Update `_journal.json`. Skip `drizzle-kit generate` — it's not AI-friendly.
 
 **Build-time verification:**
-
 ```bash
 drizzle-kit migrate && drizzle-kit push --dry-run
 ```
-
-After `migrate`, run `push --dry-run` to verify DB matches schema.ts. If there's any diff, migration is incomplete — fail the build.
-
-## Architecture Principles
-
-* **Pure functions** — no side effects, deterministic output; isolate impure code at boundaries
-* **Decoupling** — minimize dependencies between modules, use interfaces and dependency injection
-* **Modularisation** — single responsibility, clear boundaries, independent deployability
-* **Reusable composition** — build primitives that compose; prefer composition over inheritance
-
-## Codebase
-
-* Zero tolerance: no TODOs, no dead code, no unused code
-* Rigorous deduplication and cleanup
-* Deep refactoring for high modularity and decoupling
-* Every module must be independent — eliminate design flaws
-* Write meaningful comments — explain WHY, not WHAT
-* Keep documentation current — update docs when code changes
+If there's any diff, migration is incomplete — fail the build.
 
 ## Frontend
 
-* UI/UX must be user-centric — leverage Radix UI for interaction and visual excellence
-* Semantic HTML — use correct elements (nav, main, article, section, aside, header, footer)
-* Data presentation must use Data Tables
-* Large datasets require cursor-based pagination, virtualization, and infinite scrolling
-* Modern interactions — inline editing, drag & drop, undo everywhere, keyboard shortcuts
-* Feedback — skeleton loading, optimistic UI, smooth transitions
-* Accessibility — keyboard navigation, screen reader support, WCAG contrast
+- **Semantic HTML** — correct elements (nav, main, article, section, aside, header, footer)
+- **Data Tables** for data presentation
+- **Pagination** — cursor-based for large datasets, with virtualization
+- **Interactions** — inline editing, drag & drop, undo, keyboard shortcuts
+- **Feedback** — skeleton loading, optimistic UI, smooth transitions
+- **Accessibility** — keyboard navigation, screen reader support, WCAG contrast
 
-## Public-Facing & Exposure
+## Public-Facing
 
-* SEO — proper title tags, meta descriptions, structured data, sitemap
-* Social sharing — OG tags, Twitter cards for all public pages
-* README — clear value prop, quick start, badges, screenshots
-* Landing page — value prop above the fold, clear CTA, social proof
-* Documentation — complete, searchable, up-to-date
+- **SEO** — title tags, meta descriptions, structured data, sitemap
+- **Social** — OG tags, Twitter cards for all public pages
+- **README** — clear value prop, quick start, badges, screenshots
+- **Landing** — value prop above fold, clear CTA, social proof
+- **Docs** — complete, searchable, current
 
 ## Delivery
 
-The final delivered version must be flawless, high-performance, and represent the absolute pinnacle of quality.
+The final delivered version must be flawless, high-performance, and represent the absolute pinnacle of quality. Ship only what you'd be proud to put your name on.
