@@ -1,7 +1,7 @@
 /**
  * Auto-Upgrade Service
  * Non-blocking version check with cache
- * Checks in background, shows result on next run
+ * Only manages Flow updates - target CLIs manage their own updates
  */
 
 import { exec } from 'node:child_process';
@@ -13,8 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import chalk from 'chalk';
 import ora from 'ora';
-import { detectPackageManager, getUpgradeCommand } from '../utils/package-manager-detector.js';
-import { TargetInstaller } from './target-installer.js';
+import { getUpgradeCommand } from '../utils/package-manager-detector.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,40 +21,30 @@ const __dirname = path.dirname(__filename);
 // Version info file (stores last background check result)
 const VERSION_FILE = path.join(os.homedir(), '.sylphx-flow', 'versions.json');
 
+// Default interval: 30 minutes
+const DEFAULT_CHECK_INTERVAL_MS = 30 * 60 * 1000;
+
 interface VersionInfo {
   flowLatest?: string;
-  targetLatest?: Record<string, string>;
-  targetCurrent?: Record<string, string>;
 }
 
 const execAsync = promisify(exec);
 
 export interface UpgradeStatus {
   flowNeedsUpgrade: boolean;
-  targetNeedsUpgrade: boolean;
   flowVersion: { current: string; latest: string } | null;
-  targetVersion: { current: string; latest: string } | null;
 }
 
 export interface AutoUpgradeOptions {
   verbose?: boolean;
-  skipFlow?: boolean;
-  skipTarget?: boolean;
 }
 
-// Default interval: 30 minutes
-const DEFAULT_CHECK_INTERVAL_MS = 30 * 60 * 1000;
-
 export class AutoUpgrade {
-  private projectPath: string;
   private options: AutoUpgradeOptions;
-  private targetInstaller: TargetInstaller;
   private periodicCheckInterval: NodeJS.Timeout | null = null;
 
-  constructor(projectPath: string = process.cwd(), options: AutoUpgradeOptions = {}) {
-    this.projectPath = projectPath;
+  constructor(options: AutoUpgradeOptions = {}) {
     this.options = options;
-    this.targetInstaller = new TargetInstaller(projectPath);
   }
 
   /**
@@ -103,20 +92,18 @@ export class AutoUpgrade {
    * Check for available upgrades (instant, reads from last background check)
    * Background check runs every time for fresh data next run
    */
-  async checkForUpgrades(targetId?: string): Promise<UpgradeStatus> {
+  async checkForUpgrades(): Promise<UpgradeStatus> {
     const info = await this.readVersionInfo();
     const currentVersion = await this.getCurrentFlowVersion();
 
     // Trigger background check for next run (non-blocking, every time)
-    this.checkInBackground(targetId);
+    this.checkInBackground();
 
     // No previous check = no upgrade info yet
     if (!info) {
       return {
         flowNeedsUpgrade: false,
-        targetNeedsUpgrade: false,
         flowVersion: null,
-        targetVersion: null,
       };
     }
 
@@ -126,21 +113,9 @@ export class AutoUpgrade {
         ? { current: currentVersion, latest: info.flowLatest }
         : null;
 
-    // Check if target needs upgrade
-    let targetVersion: { current: string; latest: string } | null = null;
-    if (targetId && info.targetLatest?.[targetId] && info.targetCurrent?.[targetId]) {
-      const current = info.targetCurrent[targetId];
-      const latest = info.targetLatest[targetId];
-      if (current !== latest) {
-        targetVersion = { current, latest };
-      }
-    }
-
     return {
       flowNeedsUpgrade: !!flowVersion,
-      targetNeedsUpgrade: !!targetVersion,
       flowVersion,
-      targetVersion,
     };
   }
 
@@ -148,9 +123,9 @@ export class AutoUpgrade {
    * Check versions in background (non-blocking)
    * Runs every time, updates info for next run
    */
-  private checkInBackground(targetId?: string): void {
+  private checkInBackground(): void {
     // Fire and forget - don't await
-    this.performBackgroundCheck(targetId).catch(() => {
+    this.performBackgroundCheck().catch(() => {
       // Silent fail
     });
   }
@@ -158,13 +133,9 @@ export class AutoUpgrade {
   /**
    * Perform the actual version check (called in background)
    */
-  private async performBackgroundCheck(targetId?: string): Promise<void> {
+  private async performBackgroundCheck(): Promise<void> {
     const oldInfo = await this.readVersionInfo();
-
-    const newInfo: VersionInfo = {
-      targetLatest: oldInfo?.targetLatest || {},
-      targetCurrent: oldInfo?.targetCurrent || {},
-    };
+    const newInfo: VersionInfo = {};
 
     // Check Flow version from npm (with timeout)
     try {
@@ -173,35 +144,6 @@ export class AutoUpgrade {
     } catch {
       // Keep old value if check fails
       newInfo.flowLatest = oldInfo?.flowLatest;
-    }
-
-    // Check target version from npm and local (with timeout)
-    if (targetId) {
-      const installation = this.targetInstaller.getInstallationInfo(targetId);
-      if (installation) {
-        // Check latest version from npm
-        try {
-          const { stdout } = await execAsync(`npm view ${installation.package} version`, {
-            timeout: 5000,
-          });
-          newInfo.targetLatest = newInfo.targetLatest || {};
-          newInfo.targetLatest[targetId] = stdout.trim();
-        } catch {
-          // Keep old value
-        }
-
-        // Check current installed version (local command)
-        try {
-          const { stdout } = await execAsync(installation.checkCommand, { timeout: 5000 });
-          const match = stdout.match(/v?(\d+\.\d+\.\d+)/);
-          if (match) {
-            newInfo.targetCurrent = newInfo.targetCurrent || {};
-            newInfo.targetCurrent[targetId] = match[1];
-          }
-        } catch {
-          // Keep old value
-        }
-      }
     }
 
     await this.writeVersionInfo(newInfo);
@@ -265,86 +207,22 @@ export class AutoUpgrade {
   }
 
   /**
-   * Upgrade target CLI to latest version
-   * Tries built-in upgrade command first, falls back to package manager
-   * @param targetId - Target CLI ID to upgrade
-   * @returns True if upgrade successful, false otherwise
-   */
-  async upgradeTarget(targetId: string): Promise<boolean> {
-    const installation = this.targetInstaller.getInstallationInfo(targetId);
-    if (!installation) {
-      return false;
-    }
-
-    const packageManager = detectPackageManager(this.projectPath);
-    const spinner = ora(`Upgrading ${installation.name}...`).start();
-
-    try {
-      // For Claude Code, use built-in update command if available
-      if (targetId === 'claude-code') {
-        try {
-          await execAsync('claude update');
-          spinner.succeed(chalk.green(`✓ ${installation.name} upgraded`));
-          return true;
-        } catch {
-          // Fall back to npm upgrade
-        }
-      }
-
-      // For OpenCode, use built-in upgrade command if available
-      if (targetId === 'opencode') {
-        try {
-          await execAsync('opencode upgrade');
-          spinner.succeed(chalk.green(`✓ ${installation.name} upgraded`));
-          return true;
-        } catch {
-          // Fall back to npm upgrade
-        }
-      }
-
-      // Fall back to npm/bun/pnpm/yarn upgrade
-      const upgradeCmd = getUpgradeCommand(installation.package, packageManager);
-      await execAsync(upgradeCmd);
-
-      spinner.succeed(chalk.green(`✓ ${installation.name} upgraded`));
-      return true;
-    } catch (error) {
-      spinner.fail(chalk.red(`✗ ${installation.name} upgrade failed`));
-
-      if (this.options.verbose) {
-        console.error(error);
-      }
-
-      return false;
-    }
-  }
-
-  /**
    * Run auto-upgrade check and upgrade if needed (silent)
-   * @param targetId - Optional target CLI ID to check and upgrade
    * @returns Upgrade result with status info
    */
-  async runAutoUpgrade(targetId?: string): Promise<{
+  async runAutoUpgrade(): Promise<{
     flowUpgraded: boolean;
     flowVersion?: { current: string; latest: string };
-    targetUpgraded: boolean;
-    targetVersion?: { current: string; latest: string };
   }> {
-    const status = await this.checkForUpgrades(targetId);
+    const status = await this.checkForUpgrades();
     const result = {
       flowUpgraded: false,
       flowVersion: status.flowVersion ?? undefined,
-      targetUpgraded: false,
-      targetVersion: status.targetVersion ?? undefined,
     };
 
-    // Perform upgrades silently
+    // Perform upgrade silently
     if (status.flowNeedsUpgrade) {
       result.flowUpgraded = await this.upgradeFlowSilent();
-    }
-
-    if (status.targetNeedsUpgrade && targetId) {
-      result.targetUpgraded = await this.upgradeTargetSilent(targetId);
     }
 
     return result;
@@ -365,56 +243,18 @@ export class AutoUpgrade {
   }
 
   /**
-   * Upgrade target CLI silently (no spinner/output)
-   */
-  private async upgradeTargetSilent(targetId: string): Promise<boolean> {
-    const installation = this.targetInstaller.getInstallationInfo(targetId);
-    if (!installation) {
-      return false;
-    }
-
-    try {
-      if (targetId === 'claude-code') {
-        try {
-          await execAsync('claude update');
-          return true;
-        } catch {
-          // Fall back to npm
-        }
-      }
-
-      if (targetId === 'opencode') {
-        try {
-          await execAsync('opencode upgrade');
-          return true;
-        } catch {
-          // Fall back to npm
-        }
-      }
-
-      const packageManager = detectPackageManager(this.projectPath);
-      const upgradeCmd = getUpgradeCommand(installation.package, packageManager);
-      await execAsync(upgradeCmd);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  /**
    * Start periodic background checks for updates
    * Runs every intervalMs (default 30 minutes)
    * Silently upgrades if updates are available
-   * @param targetId - Optional target CLI ID to check
    * @param intervalMs - Check interval in milliseconds (default 30 minutes)
    */
-  startPeriodicCheck(targetId?: string, intervalMs: number = DEFAULT_CHECK_INTERVAL_MS): void {
+  startPeriodicCheck(intervalMs: number = DEFAULT_CHECK_INTERVAL_MS): void {
     // Clear any existing interval
     this.stopPeriodicCheck();
 
     // Start periodic check
     this.periodicCheckInterval = setInterval(() => {
-      this.performPeriodicUpgrade(targetId).catch(() => {
+      this.performPeriodicUpgrade().catch(() => {
         // Silent fail
       });
     }, intervalMs);
@@ -436,9 +276,9 @@ export class AutoUpgrade {
   /**
    * Perform periodic upgrade check and silent upgrade
    */
-  private async performPeriodicUpgrade(targetId?: string): Promise<void> {
+  private async performPeriodicUpgrade(): Promise<void> {
     // Perform background check first (updates version info)
-    await this.performBackgroundCheck(targetId);
+    await this.performBackgroundCheck();
 
     // Read the fresh version info
     const info = await this.readVersionInfo();
@@ -449,15 +289,6 @@ export class AutoUpgrade {
     // Silently upgrade Flow if needed
     if (info.flowLatest && info.flowLatest !== currentVersion) {
       await this.upgradeFlowSilent();
-    }
-
-    // Silently upgrade target if needed
-    if (targetId && info.targetLatest?.[targetId] && info.targetCurrent?.[targetId]) {
-      const current = info.targetCurrent[targetId];
-      const latest = info.targetLatest[targetId];
-      if (current !== latest) {
-        await this.upgradeTargetSilent(targetId);
-      }
     }
   }
 }
