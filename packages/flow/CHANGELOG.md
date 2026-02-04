@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 3.13.2 (2026-02-04)
+
+### ♻️ Refactoring
+
+- **builder:** replace tRPC with Hono + zod-openapi + hc ([330060b](https://github.com/SylphxAI/flow/commit/330060bc164def0e049db514f8361a6cfd1c2146))
+
 ## 3.13.1 (2026-02-04)
 
 ### ⚡️ Performance
