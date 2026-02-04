@@ -1,5 +1,17 @@
 # @sylphx/flow
 
+## 3.13.1 (2026-02-04)
+
+### ⚡️ Performance
+
+- major performance optimizations ([aaaf25c](https://github.com/SylphxAI/flow/commit/aaaf25cd20555a2fa2a52713ae78c15368565c34))
+
+### ♻️ Refactoring
+
+- **auto-upgrade:** fully non-blocking background updates ([eb0a2da](https://github.com/SylphxAI/flow/commit/eb0a2da355ad6418e3c96b19dfe3ee1d6222724c))
+- **auto-upgrade:** remove target CLI upgrade logic - only manage Flow updates ([65ad241](https://github.com/SylphxAI/flow/commit/65ad241e40aaf772b9e9e3a55c8f11693adfefe5))
+- **auto-upgrade:** remove blocking startup check, keep only periodic background check ([4f29c01](https://github.com/SylphxAI/flow/commit/4f29c01ce31bb30457240b9ff90114d3dd03c66e))
+
 ## 3.13.0 (2026-02-04)
 
 ### ✨ Features
