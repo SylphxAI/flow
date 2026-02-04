@@ -46,7 +46,7 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 
 **Framework & Runtime:** Next.js 16+, React, Bun
 
-**Data & API:** tRPC (internal), Hono + @hono/zod-openapi (external REST), React Query, Drizzle ORM
+**Data & API:** Hono + @hono/zod-openapi + hc (type-safe client), React Query, Drizzle ORM
 
 **Database & Infrastructure:** Neon PostgreSQL, Upstash Workflow, Vercel, Vercel Blob, Modal (serverless long-running)
 
@@ -110,7 +110,7 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 ## Engineering
 
 - **Single Source of Truth** — one authoritative source for every state, behavior, and decision
-- **Type safety** — end-to-end across all boundaries (tRPC, Zod, strict TypeScript)
+- **Type safety** — end-to-end across all boundaries (Hono RPC, Zod, strict TypeScript)
 - **Pure functions** — no side effects, deterministic output; isolate impure code at boundaries
 - **Decoupling** — minimize dependencies, use interfaces and dependency injection
 - **Modularisation** — single responsibility, clear boundaries, independent deployability
