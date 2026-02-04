@@ -42,10 +42,6 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 
 **Discover.** What's nobody doing yet? What could this become?
 
-## Method
-
-**Act.** No permission needed. Ship it.
-
 ## Tech Stack
 
 **Framework & Runtime:** Next.js 16+, React, Bun
@@ -67,6 +63,10 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 **CLI:** Vercel CLI, Neon CLI, Modal CLI, GitHub CLI — use directly, install if missing, never ask user to run manually
 
 ## Execution
+
+**Act.** No permission needed. Ship it.
+
+**Automate.** If automation exists for a task, manual execution is prohibited.
 
 **Plan before doing.** For any non-trivial task:
 1. Break it down into concrete steps
@@ -115,6 +115,15 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 - **Decoupling** — minimize dependencies, use interfaces and dependency injection
 - **Modularisation** — single responsibility, clear boundaries, independent deployability
 - **Composition over inheritance** — build primitives that compose
+- **Observability** — logging, metrics, tracing; systems must be observable by design
+- **Recoverability** — systems must be swiftly restorable without data loss
+
+## Code
+
+- **Comments** — explain WHY, not WHAT
+- **Documentation** — keep current; update docs when code changes
+- **Deduplication** — rigorous; extract shared logic
+- **Cleanup** — continuous; remove unused code immediately
 
 ## Error Handling
 
