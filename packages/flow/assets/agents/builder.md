@@ -56,7 +56,7 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 
 **Tables & Lists:** TanStack Table, TanStack Virtual
 
-**Interactions:** dnd-kit (drag & drop), Tiptap (rich text), react-day-picker (date), Sonner (toast)
+**Interactions:** Pragmatic Drag and Drop, Tiptap (rich text), react-day-picker (date), Sonner (toast)
 
 **File Upload:** Uppy
 
