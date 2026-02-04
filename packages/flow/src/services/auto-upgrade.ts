@@ -20,6 +20,7 @@ const DEFAULT_CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 
 interface VersionInfo {
   flowLatest?: string;
+  lastCheckTime?: number;
 }
 
 const execAsync = promisify(exec);
@@ -29,18 +30,18 @@ export class AutoUpgrade {
 
   /**
    * Start background update service
-   * Runs first check immediately, then every intervalMs (default 30 minutes)
+   * Runs first check immediately (if not recently checked), then every intervalMs
    * All checks and upgrades are non-blocking
    */
   start(intervalMs: number = DEFAULT_CHECK_INTERVAL_MS): void {
     this.stop();
 
-    // First check immediately (non-blocking)
-    this.checkAndUpgrade();
+    // First check immediately (non-blocking) - skips if recently checked
+    this.checkAndUpgrade(intervalMs);
 
     // Then periodic checks
     this.periodicCheckInterval = setInterval(() => {
-      this.checkAndUpgrade();
+      this.checkAndUpgrade(intervalMs);
     }, intervalMs);
 
     // Don't prevent process from exiting
@@ -59,12 +60,42 @@ export class AutoUpgrade {
 
   /**
    * Check for updates and upgrade if available (non-blocking)
+   * Skips if checked within intervalMs
    * Fire and forget - errors are silently ignored
    */
-  private checkAndUpgrade(): void {
-    this.performCheck().catch(() => {
-      // Silent fail
+  private checkAndUpgrade(intervalMs: number = DEFAULT_CHECK_INTERVAL_MS): void {
+    this.shouldCheck(intervalMs).then((shouldCheck) => {
+      if (shouldCheck) {
+        this.performCheck().catch(() => {
+          // Silent fail
+        });
+      }
     });
+  }
+
+  /**
+   * Check if enough time has passed since last check
+   */
+  private async shouldCheck(intervalMs: number): Promise<boolean> {
+    try {
+      const info = await this.readVersionInfo();
+      if (!info?.lastCheckTime) return true;
+      return Date.now() - info.lastCheckTime >= intervalMs;
+    } catch {
+      return true;
+    }
+  }
+
+  /**
+   * Read version info from disk
+   */
+  private async readVersionInfo(): Promise<VersionInfo | null> {
+    try {
+      const data = await fs.readFile(VERSION_FILE, 'utf-8');
+      return JSON.parse(data);
+    } catch {
+      return null;
+    }
   }
 
   /**
@@ -74,10 +105,13 @@ export class AutoUpgrade {
     const currentVersion = await this.getCurrentVersion();
     const latestVersion = await this.fetchLatestVersion();
 
-    if (!latestVersion) return;
+    // Save check time regardless of result
+    await this.saveVersionInfo({
+      flowLatest: latestVersion || undefined,
+      lastCheckTime: Date.now(),
+    });
 
-    // Save for reference (not used for decision making)
-    await this.saveVersionInfo({ flowLatest: latestVersion });
+    if (!latestVersion) return;
 
     // Upgrade if newer version available
     if (latestVersion !== currentVersion) {

@@ -161,14 +161,15 @@ export async function executeFlowV2(
 ): Promise<void> {
   const projectPath = process.cwd();
 
-  // Initialize config service early to check for saved preferences
+  // Initialize services and load config in parallel
   const configService = new GlobalConfigService();
-  await configService.initialize();
-
-  // Step 1: Determine target (silent auto-detect, only prompt when necessary)
   const targetInstaller = new TargetInstaller(projectPath);
-  const installedTargets = await targetInstaller.detectInstalledTargets();
-  const settings = await configService.loadSettings();
+
+  const [, installedTargets, settings] = await Promise.all([
+    configService.initialize(),
+    targetInstaller.detectInstalledTargets(),
+    configService.loadSettings(),
+  ]);
 
   let selectedTargetId: string | null = null;
 
@@ -275,9 +276,11 @@ export async function executeFlowV2(
       agent = enabledAgents.length > 0 ? enabledAgents[0] : 'builder';
     }
 
-    // Load agent content
-    const enabledRules = await configService.getEnabledRules();
-    const enabledOutputStyles = await configService.getEnabledOutputStyles();
+    // Load agent content (parallel fetch rules and styles)
+    const [enabledRules, enabledOutputStyles] = await Promise.all([
+      configService.getEnabledRules(),
+      configService.getEnabledOutputStyles(),
+    ]);
 
     const agentContent = await loadAgentContent(
       agent,

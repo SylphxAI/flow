@@ -70,6 +70,7 @@ export interface MCPConfig {
 
 export class GlobalConfigService {
   private flowHomeDir: string;
+  private flowConfigCache: FlowConfig | null = null;
 
   constructor() {
     this.flowHomeDir = path.join(os.homedir(), '.sylphx-flow');
@@ -259,13 +260,18 @@ export class GlobalConfigService {
 
   /**
    * Load Flow config (agents, rules, output styles)
+   * Cached for performance - call invalidateFlowConfigCache() after saving
    */
   async loadFlowConfig(): Promise<FlowConfig> {
+    if (this.flowConfigCache) {
+      return this.flowConfigCache;
+    }
+
     const configPath = this.getFlowConfigPath();
 
     if (!existsSync(configPath)) {
       // Default: all agents, all rules, all output styles enabled
-      return {
+      this.flowConfigCache = {
         version: '1.0.0',
         agents: {
           builder: { enabled: true },
@@ -279,10 +285,19 @@ export class GlobalConfigService {
         },
         outputStyles: {},
       };
+      return this.flowConfigCache;
     }
 
     const data = await fs.readFile(configPath, 'utf-8');
-    return JSON.parse(data);
+    this.flowConfigCache = JSON.parse(data);
+    return this.flowConfigCache;
+  }
+
+  /**
+   * Invalidate flow config cache (call after saving)
+   */
+  invalidateFlowConfigCache(): void {
+    this.flowConfigCache = null;
   }
 
   /**
@@ -292,6 +307,7 @@ export class GlobalConfigService {
     await this.initialize();
     const configPath = this.getFlowConfigPath();
     await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+    this.flowConfigCache = config; // Update cache
   }
 
   /**

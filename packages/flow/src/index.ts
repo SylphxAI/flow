@@ -4,9 +4,6 @@
  * AI-powered development flow management
  */
 
-import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import { executeFlow } from './commands/flow/execute-v2.js';
 import {
@@ -20,13 +17,10 @@ import {
 import { hookCommand } from './commands/hook-command.js';
 import { settingsCommand } from './commands/settings-command.js';
 import { UserCancelledError } from './utils/errors.js';
+// @ts-expect-error - Bun resolves JSON imports
+import pkg from '../package.json';
 
-// Read version from package.json
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const packageJsonPath = join(__dirname, '..', 'package.json');
-const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
-const VERSION = packageJson.version;
+const VERSION = pkg.version;
 
 /**
  * Create the main CLI application with enhanced Commander.js configuration

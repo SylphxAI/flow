@@ -22,39 +22,41 @@ export class TemplateLoader {
   }
 
   /**
-   * Load all templates for target
+   * Load all templates for target (parallel loading for performance)
    * Uses flat assets directory structure (no target-specific subdirectories)
    */
   async loadTemplates(_target: Target | string): Promise<FlowTemplates> {
-    const templates: FlowTemplates = {
-      agents: [],
-      commands: [],
-      skills: [],
-      rules: undefined,
-      mcpServers: [],
-      hooks: [],
-      singleFiles: [],
-    };
-
-    // Load agents
     const agentsDir = path.join(this.assetsDir, 'agents');
-    if (existsSync(agentsDir)) {
-      templates.agents = await this.loadAgents(agentsDir);
-    }
-
-    // Load commands (slash-commands directory)
     const commandsDir = path.join(this.assetsDir, 'slash-commands');
-    if (existsSync(commandsDir)) {
-      templates.commands = await this.loadCommands(commandsDir);
-    }
-
-    // Load skills (skills/<domain>/SKILL.md structure)
     const skillsDir = path.join(this.assetsDir, 'skills');
-    if (existsSync(skillsDir)) {
-      templates.skills = await this.loadSkills(skillsDir);
-    }
+    const mcpConfigPath = path.join(this.assetsDir, 'mcp-servers.json');
+    const outputStylesDir = path.join(this.assetsDir, 'output-styles');
 
-    // Load rules (check multiple possible locations)
+    // Load all directories in parallel
+    const [agents, commands, skills, mcpServers, singleFiles, rules] = await Promise.all([
+      existsSync(agentsDir) ? this.loadAgents(agentsDir) : [],
+      existsSync(commandsDir) ? this.loadCommands(commandsDir) : [],
+      existsSync(skillsDir) ? this.loadSkills(skillsDir) : [],
+      existsSync(mcpConfigPath) ? this.loadMCPServers(mcpConfigPath) : [],
+      existsSync(outputStylesDir) ? this.loadSingleFiles(outputStylesDir) : [],
+      this.loadRules(),
+    ]);
+
+    return {
+      agents,
+      commands,
+      skills,
+      rules,
+      mcpServers,
+      hooks: [],
+      singleFiles,
+    };
+  }
+
+  /**
+   * Load rules from possible locations
+   */
+  private async loadRules(): Promise<string | undefined> {
     const rulesLocations = [
       path.join(this.assetsDir, 'rules', 'AGENTS.md'),
       path.join(this.assetsDir, 'AGENTS.md'),
@@ -62,92 +64,67 @@ export class TemplateLoader {
 
     for (const rulesPath of rulesLocations) {
       if (existsSync(rulesPath)) {
-        templates.rules = await fs.readFile(rulesPath, 'utf-8');
-        break;
+        return fs.readFile(rulesPath, 'utf-8');
       }
     }
-
-    // Load MCP servers (if any)
-    const mcpConfigPath = path.join(this.assetsDir, 'mcp-servers.json');
-    if (existsSync(mcpConfigPath)) {
-      templates.mcpServers = await this.loadMCPServers(mcpConfigPath);
-    }
-
-    // Load output styles (single files)
-    const outputStylesDir = path.join(this.assetsDir, 'output-styles');
-    if (existsSync(outputStylesDir)) {
-      templates.singleFiles = await this.loadSingleFiles(outputStylesDir);
-    }
-
-    return templates;
+    return undefined;
   }
 
   /**
-   * Load agents from directory
+   * Load agents from directory (parallel file reads)
    */
   private async loadAgents(agentsDir: string): Promise<Array<{ name: string; content: string }>> {
-    const agents = [];
     const files = await fs.readdir(agentsDir);
+    const mdFiles = files.filter((f) => f.endsWith('.md'));
 
-    for (const file of files) {
-      if (!file.endsWith('.md')) {
-        continue;
-      }
-
-      const content = await fs.readFile(path.join(agentsDir, file), 'utf-8');
-      agents.push({ name: file, content });
-    }
-
-    return agents;
+    return Promise.all(
+      mdFiles.map(async (file) => ({
+        name: file,
+        content: await fs.readFile(path.join(agentsDir, file), 'utf-8'),
+      }))
+    );
   }
 
   /**
-   * Load commands/modes from directory
+   * Load commands/modes from directory (parallel file reads)
    */
   private async loadCommands(
     commandsDir: string
   ): Promise<Array<{ name: string; content: string }>> {
-    const commands = [];
     const files = await fs.readdir(commandsDir);
+    const mdFiles = files.filter((f) => f.endsWith('.md'));
 
-    for (const file of files) {
-      if (!file.endsWith('.md')) {
-        continue;
-      }
-
-      const content = await fs.readFile(path.join(commandsDir, file), 'utf-8');
-      commands.push({ name: file, content });
-    }
-
-    return commands;
+    return Promise.all(
+      mdFiles.map(async (file) => ({
+        name: file,
+        content: await fs.readFile(path.join(commandsDir, file), 'utf-8'),
+      }))
+    );
   }
 
   /**
-   * Load skills from directory
+   * Load skills from directory (parallel loading)
    * Skills are stored as <domain>/SKILL.md subdirectories
    */
   private async loadSkills(skillsDir: string): Promise<Array<{ name: string; content: string }>> {
-    const skills = [];
     const domains = await fs.readdir(skillsDir);
 
-    for (const domain of domains) {
-      const domainPath = path.join(skillsDir, domain);
-      const stat = await fs.stat(domainPath);
+    const results = await Promise.all(
+      domains.map(async (domain) => {
+        const domainPath = path.join(skillsDir, domain);
+        const stat = await fs.stat(domainPath);
 
-      if (!stat.isDirectory()) {
-        continue;
-      }
+        if (!stat.isDirectory()) return null;
 
-      // Look for SKILL.md in each domain directory
-      const skillFile = path.join(domainPath, 'SKILL.md');
-      if (existsSync(skillFile)) {
+        const skillFile = path.join(domainPath, 'SKILL.md');
+        if (!existsSync(skillFile)) return null;
+
         const content = await fs.readFile(skillFile, 'utf-8');
-        // Name includes subdirectory: "auth/SKILL.md"
-        skills.push({ name: `${domain}/SKILL.md`, content });
-      }
-    }
+        return { name: `${domain}/SKILL.md`, content };
+      })
+    );
 
-    return skills;
+    return results.filter((r): r is { name: string; content: string } => r !== null);
   }
 
   /**
@@ -166,25 +143,26 @@ export class TemplateLoader {
   }
 
   /**
-   * Load single files (CLAUDE.md, .cursorrules, etc.)
+   * Load single files (parallel loading)
    */
   private async loadSingleFiles(
     singleFilesDir: string
   ): Promise<Array<{ path: string; content: string }>> {
-    const files = [];
     const entries = await fs.readdir(singleFilesDir);
 
-    for (const entry of entries) {
-      const filePath = path.join(singleFilesDir, entry);
-      const stat = await fs.stat(filePath);
+    const results = await Promise.all(
+      entries.map(async (entry) => {
+        const filePath = path.join(singleFilesDir, entry);
+        const stat = await fs.stat(filePath);
 
-      if (stat.isFile()) {
+        if (!stat.isFile()) return null;
+
         const content = await fs.readFile(filePath, 'utf-8');
-        files.push({ path: entry, content });
-      }
-    }
+        return { path: entry, content };
+      })
+    );
 
-    return files;
+    return results.filter((r): r is { path: string; content: string } => r !== null);
   }
 
   /**
