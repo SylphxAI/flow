@@ -44,8 +44,6 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 
 ## Method
 
-**Skills.** Before acting on any domain — use the Skill tool to load guidelines. Read them. Then exceed them.
-
 **Act.** No permission needed. Ship it.
 
 ## Tech Stack
