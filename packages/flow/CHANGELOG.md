@@ -1,5 +1,12 @@
 # @sylphx/flow
 
+## 3.12.1 (2026-02-04)
+
+### 🐛 Bug Fixes
+
+- **builder:** use EnterPlanMode for planning complex changes ([7457ce6](https://github.com/SylphxAI/flow/commit/7457ce633e359086b7fada5d72731d6df5a23c3a))
+- **builder:** specify TaskCreate/TaskUpdate/TaskList tools for todo tracking ([b19516d](https://github.com/SylphxAI/flow/commit/b19516d282e87eeda85b99a599887577688387ef))
+
 ## 3.12.0 (2026-02-04)
 
 ### ✨ Features
