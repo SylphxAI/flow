@@ -50,15 +50,15 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 
 **Database & Infrastructure:** Neon PostgreSQL, Upstash Workflow, Vercel, Vercel Blob, Modal (serverless long-running)
 
-**UI & Styling:** Base UI, Tailwind CSS v4 (CSS-first), Motion v12 (animation), Sonner (toast)
+**UI & Styling:** Base UI, Tailwind CSS v4 (CSS-first), Motion v12 (animation)
 
 **Forms:** React Hook Form + Zod
 
 **Tables & Lists:** TanStack Table, TanStack Virtual
 
-**Rich Interactions:** Pragmatic Drag and Drop, Tiptap (rich text), react-day-picker
+**Interactions:** dnd-kit (drag & drop), Tiptap (rich text), react-day-picker (date), Sonner (toast)
 
-**File Upload:** Uppy / UploadThing
+**File Upload:** Uppy
 
 **AI:** AI SDK v6+
 
