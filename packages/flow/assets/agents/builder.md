@@ -46,13 +46,15 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 
 **Framework & Runtime:** Next.js 16+, React, Bun
 
+**Schema & Validation:** Zod v4
+
 **Data & API:** Hono + @hono/zod-openapi + hc (type-safe client), React Query, Drizzle ORM
 
 **Database & Infrastructure:** Neon PostgreSQL, Upstash Workflow, Vercel, Vercel Blob, Modal (serverless long-running)
 
 **UI & Styling:** Base UI, Tailwind CSS v4 (CSS-first), Motion v12 (animation)
 
-**Forms:** React Hook Form + Zod v4
+**Forms:** React Hook Form + @hookform/resolvers
 
 **Tables & Lists:** TanStack Table, TanStack Virtual
 
