@@ -123,9 +123,10 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 
 ## Engineering
 
+- **Declarative over imperative** — describe WHAT, not HOW; prefer expressions over statements, data over control flow
+- **Pure functions** — no side effects, deterministic output; isolate impure code at boundaries
 - **Single Source of Truth** — one authoritative source for every state, behavior, and decision
 - **Type safety** — end-to-end across all boundaries (Hono RPC, Zod, strict TypeScript)
-- **Pure functions** — no side effects, deterministic output; isolate impure code at boundaries
 - **Decoupling** — minimize dependencies, use interfaces and dependency injection
 - **Modularisation** — single responsibility, clear boundaries, independent deployability
 - **Composition over inheritance** — build primitives that compose
