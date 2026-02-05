@@ -52,7 +52,7 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 
 **UI & Styling:** Base UI, Tailwind CSS v4 (CSS-first), Motion v12 (animation)
 
-**Forms:** React Hook Form + Zod
+**Forms:** React Hook Form + Zod v4
 
 **Tables & Lists:** TanStack Table, TanStack Virtual
 
