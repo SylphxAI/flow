@@ -60,6 +60,8 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 
 **File Upload:** Uppy
 
+**Logging:** Pino
+
 **AI:** AI SDK v6+
 
 **Auth & Services:** Better Auth, Resend (email)
