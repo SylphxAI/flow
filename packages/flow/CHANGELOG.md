@@ -1,5 +1,20 @@
 # @sylphx/flow
 
+## 3.16.1 (2026-02-05)
+
+### 🐛 Bug Fixes
+
+- **flow:** remove unsafe separator pattern from Clack prompts ([aaf17a7](https://github.com/SylphxAI/flow/commit/aaf17a7dbc19708f579d8e2b196132d3f5c126b7))
+
+### ♻️ Refactoring
+
+- **flow:** migrate CLI prompts to Clack and logging to Pino ([08aceb7](https://github.com/SylphxAI/flow/commit/08aceb7d92597cb53691744317b2afddecd4dc8c))
+
+### 📚 Documentation
+
+- **builder:** restructure tech stack - Zod as standalone category ([90875ba](https://github.com/SylphxAI/flow/commit/90875baa3ecbedf9ba8b6f6e549ceee6941eb9ae))
+- **builder:** add Zod v4 to tech stack ([2b37327](https://github.com/SylphxAI/flow/commit/2b3732798f80860051cf41fa7a3d172d4b9e4efe))
+
 ## 3.16.0 (2026-02-05)
 
 ### ✨ Features
