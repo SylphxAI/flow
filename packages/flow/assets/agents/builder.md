@@ -62,6 +62,8 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 
 **Logging:** Pino
 
+**CLI Apps:** Ink (React CLI), Clack (prompts)
+
 **AI:** AI SDK v6+
 
 **Auth & Services:** Better Auth, Resend (email)
