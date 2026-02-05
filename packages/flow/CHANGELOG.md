@@ -1,5 +1,22 @@
 # @sylphx/flow
 
+## 3.16.0 (2026-02-05)
+
+### ✨ Features
+
+- **builder:** add Ink and Clack for CLI apps ([e9c3f15](https://github.com/SylphxAI/flow/commit/e9c3f1569f61bf9523c51afee31092584edf0db3))
+- **builder:** add Pino logging to tech stack ([76c9893](https://github.com/SylphxAI/flow/commit/76c98934c0926676e01705bae5ac719cc8bdd3d8))
+- **builder:** expand tech stack with modern React libraries ([af758b0](https://github.com/SylphxAI/flow/commit/af758b0847f450349a192385ccc2d466e0ce1a7f))
+
+### 🐛 Bug Fixes
+
+- **builder:** use Pragmatic Drag and Drop over dnd-kit ([75db518](https://github.com/SylphxAI/flow/commit/75db518f392ebebce65fa59739be03a983a0ed95))
+
+### ♻️ Refactoring
+
+- **builder:** consolidate tech stack to single best choice per category ([b149175](https://github.com/SylphxAI/flow/commit/b149175889c7838bf8f0a56459c0bd9ca811d01f))
+- **builder:** replace Radix UI with Base UI in tech stack ([a4e81df](https://github.com/SylphxAI/flow/commit/a4e81dfcd382030e99c49fe60082aafe033e3981))
+
 ## 3.15.0 (2026-02-05)
 
 ### ✨ Features
