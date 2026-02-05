@@ -3,11 +3,11 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import chalk from 'chalk';
-import ora from 'ora';
 import { getProjectSettingsFile } from '../config/constants.js';
 import type { Target } from '../types/target.types.js';
 import { CLIError } from '../utils/error-handler.js';
 import { detectPackageManager, getUpgradeCommand } from '../utils/package-manager-detector.js';
+import { createSpinner, log } from '../utils/prompts/index.js';
 import type { ProjectState } from './state-detector.js';
 import { targetManager } from './target-manager.js';
 
@@ -46,7 +46,7 @@ export class UpgradeManager {
     targetVersion: { current: string; latest: string } | null;
   }> {
     if (this.options.verbose) {
-      console.log('检查更新...');
+      log.info('Checking for updates...');
     }
 
     const [flowLatest, targetLatest] = await Promise.all([
@@ -95,7 +95,8 @@ export class UpgradeManager {
     }
 
     const packageManager = detectPackageManager(this.projectPath);
-    const spinner = ora('Upgrading Sylphx Flow...').start();
+    const spinner = createSpinner();
+    spinner.start('Upgrading Sylphx Flow...');
 
     try {
       // Backup current config
@@ -105,21 +106,21 @@ export class UpgradeManager {
 
       if (this.options.dryRun) {
         const cmd = getUpgradeCommand('@sylphx/flow', packageManager);
-        spinner.succeed(`Dry run: ${state.version} → ${state.latestVersion}`);
-        console.log(chalk.dim(`  Would run: ${cmd}`));
+        spinner.stop(chalk.green(`✓ Dry run: ${state.version} → ${state.latestVersion}`));
+        log.info(`Would run: ${cmd}`);
         return true;
       }
 
       // Auto-install using detected package manager
       if (autoInstall) {
         const installCmd = getUpgradeCommand('@sylphx/flow', packageManager);
-        spinner.text = `Installing latest version via ${packageManager}...`;
+        spinner.message(`Installing latest version via ${packageManager}...`);
 
         try {
           await execAsync(installCmd);
-          spinner.succeed(`Upgraded to ${state.latestVersion} using ${packageManager}`);
+          spinner.stop(chalk.green(`✓ Upgraded to ${state.latestVersion} using ${packageManager}`));
         } catch (error) {
-          spinner.warn(`Auto-install failed, please run: ${installCmd}`);
+          spinner.stop(chalk.yellow(`⚠ Auto-install failed, please run: ${installCmd}`));
           if (this.options.verbose) {
             console.error(error);
           }
@@ -127,7 +128,7 @@ export class UpgradeManager {
       } else {
         // Show manual upgrade command
         const installCmd = getUpgradeCommand('@sylphx/flow', packageManager);
-        spinner.info(`To upgrade, run: ${chalk.cyan(installCmd)}`);
+        spinner.stop(chalk.blue(`ℹ To upgrade, run: ${chalk.cyan(installCmd)}`));
 
         // Update config metadata
         const configPath = path.join(this.projectPath, getProjectSettingsFile());
@@ -143,7 +144,7 @@ export class UpgradeManager {
 
       return true;
     } catch (error) {
-      spinner.fail('Upgrade failed');
+      spinner.stop(chalk.red('✗ Upgrade failed'));
       throw new CLIError(
         `Failed to upgrade Sylphx Flow: ${error instanceof Error ? error.message : String(error)}`,
         'UPGRADE_FAILED'
@@ -172,17 +173,18 @@ export class UpgradeManager {
       return false;
     }
 
-    const spinner = ora(`Upgrading ${target.name}...`).start();
+    const spinner = createSpinner();
+    spinner.start(`Upgrading ${target.name}...`);
 
     try {
       // Use target-specific upgrade logic based on target ID
       // This is necessary because each CLI has different upgrade commands
       await this.upgradeTargetCLI(target, autoInstall);
 
-      spinner.succeed(`${target.name} upgraded to latest version`);
+      spinner.stop(chalk.green(`✓ ${target.name} upgraded to latest version`));
       return true;
     } catch (error) {
-      spinner.fail(`${target.name} upgrade failed`);
+      spinner.stop(chalk.red(`✗ ${target.name} upgrade failed`));
       throw new CLIError(
         `Failed to upgrade ${target.name}: ${error instanceof Error ? error.message : String(error)}`,
         'TARGET_UPGRADE_FAILED'
@@ -195,7 +197,7 @@ export class UpgradeManager {
    */
   private async upgradeTargetCLI(target: Target, autoInstall: boolean = false): Promise<void> {
     if (this.options.dryRun) {
-      console.log(`Dry run: upgrade ${target.id}`);
+      log.info(`Dry run: upgrade ${target.id}`);
       return;
     }
 
@@ -227,7 +229,7 @@ export class UpgradeManager {
       }
 
       default:
-        console.log(chalk.yellow(`No upgrade command available for ${target.name}`));
+        log.warn(`No upgrade command available for ${target.name}`);
     }
   }
 
@@ -235,14 +237,15 @@ export class UpgradeManager {
     const upgraded: string[] = [];
 
     for (const component of components) {
-      const spinner = ora(`升级 ${component}...`).start();
+      const spinner = createSpinner();
+      spinner.start(`Upgrading ${component}...`);
 
       try {
         await this.upgradeComponent(component);
-        spinner.succeed(`${component} 已升级`);
+        spinner.stop(chalk.green(`✓ ${component} upgraded`));
         upgraded.push(component);
       } catch (error) {
-        spinner.fail(`${component} 升级失败`);
+        spinner.stop(chalk.red(`✗ ${component} upgrade failed`));
         if (this.options.verbose) {
           console.error(error);
         }
@@ -280,7 +283,7 @@ export class UpgradeManager {
     // Reinstall latest version
     // Actual implementation would call the appropriate installer
     if (this.options.dryRun) {
-      console.log(`Dry run: reinstall ${component}`);
+      log.info(`Dry run: reinstall ${component}`);
     }
   }
 

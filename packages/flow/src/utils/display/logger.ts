@@ -1,10 +1,9 @@
 /**
  * Centralized logging utility for Sylphx Flow
- * Provides structured logging with different levels and output formats
+ * Provides structured logging with Pino backend and pretty printing
  */
 
-import { randomUUID } from 'node:crypto';
-import chalk from 'chalk';
+import pino from 'pino';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
@@ -33,27 +32,6 @@ export interface LoggerConfig {
   module?: string;
 }
 
-const LEVEL_PRIORITY: Record<LogLevel, number> = {
-  debug: 0,
-  info: 1,
-  warn: 2,
-  error: 3,
-};
-
-const LEVEL_COLORS: Record<LogLevel, (text: string) => string> = {
-  debug: chalk.gray,
-  info: chalk.blue,
-  warn: chalk.yellow,
-  error: chalk.red,
-};
-
-const LEVEL_SYMBOLS: Record<LogLevel, string> = {
-  debug: '🔍',
-  info: 'ℹ',
-  warn: '⚠',
-  error: '✗',
-};
-
 /**
  * Logger interface for dependency injection and testing
  */
@@ -76,6 +54,7 @@ export interface Logger {
 interface LoggerState {
   config: LoggerConfig;
   context?: Record<string, unknown>;
+  pinoInstance: pino.Logger;
 }
 
 /**
@@ -84,6 +63,49 @@ interface LoggerState {
 interface CreateLoggerOptions {
   config?: Partial<LoggerConfig>;
   context?: Record<string, unknown>;
+}
+
+/**
+ * Map our log levels to Pino levels
+ */
+const LEVEL_MAP: Record<LogLevel, string> = {
+  debug: 'debug',
+  info: 'info',
+  warn: 'warn',
+  error: 'error',
+};
+
+/**
+ * Create a Pino instance based on configuration
+ */
+function createPinoInstance(config: LoggerConfig, context?: Record<string, unknown>): pino.Logger {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const usePretty = config.format === 'pretty' && !isProduction;
+
+  const pinoConfig: pino.LoggerOptions = {
+    level: config.level,
+    base: context ? { ...context } : undefined,
+    timestamp: config.includeTimestamp ? pino.stdTimeFunctions.isoTime : false,
+  };
+
+  if (usePretty) {
+    // Use pino-pretty for development
+    return pino({
+      ...pinoConfig,
+      transport: {
+        target: 'pino-pretty',
+        options: {
+          colorize: config.colors,
+          translateTime: 'HH:MM:ss',
+          ignore: 'pid,hostname',
+          messageFormat: '{msg}',
+        },
+      },
+    });
+  }
+
+  // JSON output for production or when format is 'json'
+  return pino(pinoConfig);
 }
 
 /**
@@ -97,152 +119,19 @@ export function createLogger(options: Partial<LoggerConfig> | CreateLoggerOption
     : (options as Partial<LoggerConfig>);
   const initialContext = isOptionsStyle ? (options as CreateLoggerOptions).context : undefined;
 
+  const defaultConfig: LoggerConfig = {
+    level: 'info',
+    format: 'pretty',
+    includeTimestamp: true,
+    includeContext: true,
+    colors: true,
+    ...config,
+  };
+
   const state: LoggerState = {
-    config: {
-      level: 'info',
-      format: 'pretty',
-      includeTimestamp: true,
-      includeContext: true,
-      colors: true,
-      ...config,
-    },
+    config: defaultConfig,
     context: initialContext,
-  };
-
-  /**
-   * Check if a log level should be output
-   */
-  const shouldLog = (level: LogLevel): boolean => {
-    return LEVEL_PRIORITY[level] >= LEVEL_PRIORITY[state.config.level];
-  };
-
-  /**
-   * Create a log entry
-   */
-  const createLogEntry = (
-    level: LogLevel,
-    message: string,
-    error?: Error,
-    additionalContext?: Record<string, unknown>
-  ): LogEntry => {
-    const entry: LogEntry = {
-      id: randomUUID(),
-      timestamp: new Date().toISOString(),
-      level,
-      message,
-      module: state.context?.module,
-      function: state.context?.function,
-    };
-
-    // Merge contexts
-    if (state.config.includeContext) {
-      entry.context = { ...state.context, ...additionalContext };
-    }
-
-    // Add error information if provided
-    if (error) {
-      entry.error = {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      };
-
-      // Add error code if it's a CLIError
-      if ('code' in error && typeof error.code === 'string') {
-        entry.error.code = error.code;
-      }
-    }
-
-    return entry;
-  };
-
-  /**
-   * Format a log entry for output
-   */
-  const formatEntry = (entry: LogEntry): string => {
-    switch (state.config.format) {
-      case 'json':
-        return JSON.stringify(entry);
-
-      case 'simple': {
-        const levelStr = entry.level.toUpperCase().padEnd(5);
-        const moduleStr = entry.module ? `[${entry.module}] ` : '';
-        return `${levelStr} ${moduleStr}${entry.message}`;
-      }
-      default: {
-        const parts: string[] = [];
-
-        // Timestamp
-        if (state.config.includeTimestamp) {
-          const time = new Date(entry.timestamp).toLocaleTimeString();
-          parts.push(chalk.gray(time));
-        }
-
-        // Level symbol and name
-        const colorFn = state.config.colors ? LEVEL_COLORS[entry.level] : (s: string) => s;
-        parts.push(
-          `${colorFn(LEVEL_SYMBOLS[entry.level])} ${colorFn(entry.level.toUpperCase().padEnd(5))}`
-        );
-
-        // Module
-        if (entry.module) {
-          parts.push(chalk.cyan(`[${entry.module}]`));
-        }
-
-        // Function
-        if (entry.function) {
-          parts.push(chalk.gray(`${entry.function}()`));
-        }
-
-        // Message
-        parts.push(entry.message);
-
-        let result = parts.join(' ');
-
-        // Context
-        if (entry.context && Object.keys(entry.context).length > 0) {
-          const contextStr = JSON.stringify(entry.context, null, 2);
-          result += `\n${chalk.gray('  Context: ')}${chalk.gray(contextStr)}`;
-        }
-
-        // Error details
-        if (entry.error) {
-          result += `\n${chalk.red('  Error: ')}${chalk.red(entry.error.message)}`;
-          if (entry.error.code) {
-            result += `\n${chalk.red('  Code: ')}${chalk.red(entry.error.code)}`;
-          }
-          if (entry.error.stack) {
-            result += `\n${chalk.gray(entry.error.stack)}`;
-          }
-        }
-
-        return result;
-      }
-    }
-  };
-
-  /**
-   * Internal logging method
-   */
-  const logInternal = (
-    level: LogLevel,
-    message: string,
-    error?: Error,
-    additionalContext?: Record<string, any>
-  ): void => {
-    if (!shouldLog(level)) {
-      return;
-    }
-
-    const entry = createLogEntry(level, message, error, additionalContext);
-    const formatted = formatEntry(entry);
-
-    // Output to appropriate stream
-    if (level === 'error') {
-      console.error(formatted);
-    } else {
-      console.log(formatted);
-    }
+    pinoInstance: createPinoInstance(defaultConfig, initialContext),
   };
 
   /**
@@ -267,41 +156,75 @@ export function createLogger(options: Partial<LoggerConfig> | CreateLoggerOption
    */
   const setLevel = (level: LogLevel): void => {
     state.config.level = level;
+    state.pinoInstance.level = level;
   };
 
   /**
    * Update logger configuration
+   * Note: Recreates Pino instance when configuration changes
    */
   const updateConfig = (config: Partial<LoggerConfig>): void => {
     state.config = { ...state.config, ...config };
+    state.pinoInstance = createPinoInstance(state.config, state.context);
   };
 
   /**
    * Debug level logging
    */
   const debug = (message: string, context?: Record<string, unknown>): void => {
-    logInternal('debug', message, undefined, context);
+    if (context && state.config.includeContext) {
+      state.pinoInstance.debug(context, message);
+    } else {
+      state.pinoInstance.debug(message);
+    }
   };
 
   /**
    * Info level logging
    */
   const info = (message: string, context?: Record<string, unknown>): void => {
-    logInternal('info', message, undefined, context);
+    if (context && state.config.includeContext) {
+      state.pinoInstance.info(context, message);
+    } else {
+      state.pinoInstance.info(message);
+    }
   };
 
   /**
    * Warning level logging
    */
   const warn = (message: string, context?: Record<string, unknown>): void => {
-    logInternal('warn', message, undefined, context);
+    if (context && state.config.includeContext) {
+      state.pinoInstance.warn(context, message);
+    } else {
+      state.pinoInstance.warn(message);
+    }
   };
 
   /**
    * Error level logging
    */
   const error = (message: string, errorObj?: Error, context?: Record<string, unknown>): void => {
-    logInternal('error', message, errorObj, context);
+    const errorContext: Record<string, unknown> = { ...context };
+
+    if (errorObj) {
+      errorContext.err = {
+        name: errorObj.name,
+        message: errorObj.message,
+        stack: errorObj.stack,
+      };
+
+      // Add error code if it's a CLIError
+      if ('code' in errorObj && typeof errorObj.code === 'string') {
+        (errorContext.err as Record<string, unknown>).code = errorObj.code;
+      }
+    }
+
+    if (Object.keys(errorContext).length > 0 && state.config.includeContext) {
+      state.pinoInstance.error(errorContext, message);
+    } else {
+      state.pinoInstance.error(message);
+    }
   };
 
   /**

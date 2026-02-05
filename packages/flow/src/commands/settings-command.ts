@@ -5,7 +5,6 @@
 
 import chalk from 'chalk';
 import { Command } from 'commander';
-import inquirer from 'inquirer';
 import {
   computeEffectiveServers,
   getRequiredEnvVars,
@@ -15,6 +14,15 @@ import {
 import { GlobalConfigService } from '../services/global-config.js';
 import { TargetInstaller } from '../services/target-installer.js';
 import { UserCancelledError } from '../utils/errors.js';
+import {
+  createSeparator,
+  log,
+  promptConfirm,
+  promptMultiselect,
+  promptPassword,
+  promptSelect,
+  type SelectOption,
+} from '../utils/prompts/index.js';
 import { buildAvailableTargets, promptForDefaultTarget } from '../utils/target-selection.js';
 import { handleCheckboxConfig } from './settings/index.js';
 
@@ -39,9 +47,8 @@ export const settingsCommand = new Command('settings')
       }
     } catch (error: unknown) {
       // Handle user cancellation (Ctrl+C)
-      const err = error as Error & { name?: string };
-      if (err.name === 'ExitPromptError' || err.message?.includes('force closed')) {
-        throw new UserCancelledError('Settings cancelled by user');
+      if (error instanceof UserCancelledError) {
+        throw error;
       }
       throw error;
     }
@@ -52,28 +59,26 @@ export const settingsCommand = new Command('settings')
  */
 async function showMainMenu(configService: GlobalConfigService): Promise<void> {
   while (true) {
-    const { choice } = await inquirer.prompt([
-      {
-        type: 'list',
-        name: 'choice',
-        message: 'What would you like to configure?',
-        choices: [
-          { name: '🤖 Agents & Default Agent', value: 'agents' },
-          { name: '📋 Rules', value: 'rules' },
-          { name: '🎨 Output Styles', value: 'outputStyles' },
-          new inquirer.Separator(),
-          { name: '📡 MCP Servers', value: 'mcp' },
-          { name: '🔑 Provider & API Keys (Claude Code)', value: 'provider' },
-          { name: '🎯 Target Platform', value: 'target' },
-          { name: '⚙️  General Settings', value: 'general' },
-          new inquirer.Separator(),
-          { name: '← Back / Exit', value: 'exit' },
-        ],
-      },
-    ]);
+    const menuOptions: SelectOption<string>[] = [
+      { label: '🤖 Agents & Default Agent', value: 'agents' },
+      { label: '📋 Rules', value: 'rules' },
+      { label: '🎨 Output Styles', value: 'outputStyles' },
+      createSeparator(),
+      { label: '📡 MCP Servers', value: 'mcp' },
+      { label: '🔑 Provider & API Keys (Claude Code)', value: 'provider' },
+      { label: '🎯 Target Platform', value: 'target' },
+      { label: '⚙️  General Settings', value: 'general' },
+      createSeparator(),
+      { label: '← Back / Exit', value: 'exit' },
+    ];
+
+    const choice = await promptSelect({
+      message: 'What would you like to configure?',
+      options: menuOptions,
+    });
 
     if (choice === 'exit') {
-      console.log(chalk.green('\n✓ Settings saved\n'));
+      log.success('Settings saved');
       break;
     }
 
@@ -108,7 +113,7 @@ async function openSection(section: string, configService: GlobalConfigService):
       await configureGeneral(configService);
       break;
     default:
-      console.log(chalk.red(`Unknown section: ${section}`));
+      log.error(`Unknown section: ${section}`);
   }
 }
 
@@ -136,18 +141,14 @@ async function configureAgents(configService: GlobalConfigService): Promise<void
   });
 
   // Additional step: select default agent from enabled ones
-  const { defaultAgent } = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'defaultAgent',
-      message: 'Select default agent:',
-      choices: selected.map((key) => ({
-        name: availableAgents[key as keyof typeof availableAgents],
-        value: key,
-      })),
-      default: settings.defaultAgent || 'builder',
-    },
-  ]);
+  const defaultAgent = await promptSelect({
+    message: 'Select default agent:',
+    options: selected.map((key) => ({
+      label: availableAgents[key as keyof typeof availableAgents],
+      value: key,
+    })),
+    initialValue: settings.defaultAgent || 'builder',
+  });
 
   flowConfig.agents = updated;
   await configService.saveFlowConfig(flowConfig);
@@ -155,7 +156,7 @@ async function configureAgents(configService: GlobalConfigService): Promise<void
   settings.defaultAgent = defaultAgent;
   await configService.saveSettings(settings);
 
-  console.log(chalk.dim(`  Default agent: ${defaultAgent}`));
+  log.info(`Default agent: ${defaultAgent}`);
 }
 
 /**
@@ -214,25 +215,28 @@ async function configureMCP(configService: GlobalConfigService): Promise<void> {
   const effectiveServers = computeEffectiveServers(savedServers);
   const allServerIds = Object.keys(MCP_SERVER_REGISTRY) as MCPServerID[];
 
-  const { selectedServers } = await inquirer.prompt([
-    {
-      type: 'checkbox',
-      name: 'selectedServers',
-      message: 'Select MCP servers to enable:',
-      choices: allServerIds.map((id) => {
-        const server = MCP_SERVER_REGISTRY[id];
-        const effective = effectiveServers[id];
-        const requiredEnvVars = getRequiredEnvVars(id);
-        const requiresText =
-          requiredEnvVars.length > 0 ? chalk.dim(` (requires ${requiredEnvVars.join(', ')})`) : '';
-        return {
-          name: `${server.name} - ${server.description}${requiresText}`,
-          value: id,
-          checked: effective.enabled, // Use SSOT effective state
-        };
-      }),
-    },
-  ]);
+  // Build multiselect options
+  const serverOptions = allServerIds.map((id) => {
+    const server = MCP_SERVER_REGISTRY[id];
+    const effective = effectiveServers[id];
+    const requiredEnvVars = getRequiredEnvVars(id);
+    const requiresText =
+      requiredEnvVars.length > 0 ? chalk.dim(` (requires ${requiredEnvVars.join(', ')})`) : '';
+    return {
+      label: `${server.name} - ${server.description}${requiresText}`,
+      value: id,
+      hint: effective.enabled ? 'enabled' : undefined,
+    };
+  });
+
+  // Get initial values from effective state
+  const initialValues = allServerIds.filter((id) => effectiveServers[id].enabled);
+
+  const selectedServers = await promptMultiselect<MCPServerID>({
+    message: 'Select MCP servers to enable:',
+    options: serverOptions,
+    initialValues,
+  });
 
   // Update servers - save ALL servers with explicit enabled state
   const updatedServers: Record<string, { enabled: boolean; env: Record<string, string> }> = {};
@@ -245,7 +249,7 @@ async function configureMCP(configService: GlobalConfigService): Promise<void> {
   }
 
   // Ask for API keys for newly enabled servers
-  for (const serverId of selectedServers as MCPServerID[]) {
+  for (const serverId of selectedServers) {
     const serverDef = MCP_SERVER_REGISTRY[serverId];
     const requiredEnvVars = getRequiredEnvVars(serverId);
 
@@ -255,26 +259,18 @@ async function configureMCP(configService: GlobalConfigService): Promise<void> {
       for (const envKey of requiredEnvVars) {
         const hasKey = serverState.env?.[envKey];
 
-        const { shouldConfigure } = await inquirer.prompt([
-          {
-            type: 'confirm',
-            name: 'shouldConfigure',
-            message: hasKey
-              ? `Update ${envKey} for ${serverDef.name}?`
-              : `Configure ${envKey} for ${serverDef.name}?`,
-            default: !hasKey,
-          },
-        ]);
+        const shouldConfigure = await promptConfirm({
+          message: hasKey
+            ? `Update ${envKey} for ${serverDef.name}?`
+            : `Configure ${envKey} for ${serverDef.name}?`,
+          initialValue: !hasKey,
+        });
 
         if (shouldConfigure) {
-          const { apiKey } = await inquirer.prompt([
-            {
-              type: 'password',
-              name: 'apiKey',
-              message: `Enter ${envKey}:`,
-              mask: '*',
-            },
-          ]);
+          const apiKey = await promptPassword({
+            message: `Enter ${envKey}:`,
+            mask: '*',
+          });
 
           serverState.env[envKey] = apiKey;
         }
@@ -285,8 +281,8 @@ async function configureMCP(configService: GlobalConfigService): Promise<void> {
   mcpConfig.servers = updatedServers;
   await configService.saveMCPConfig(mcpConfig);
 
-  console.log(chalk.green(`\n✓ MCP configuration saved`));
-  console.log(chalk.dim(`  Enabled servers: ${selectedServers.length}`));
+  log.success('MCP configuration saved');
+  log.info(`Enabled servers: ${selectedServers.length}`);
 }
 
 /**
@@ -297,21 +293,19 @@ async function configureProvider(configService: GlobalConfigService): Promise<vo
 
   const providerConfig = await configService.loadProviderConfig();
 
-  const { defaultProvider } = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'defaultProvider',
-      message: 'Select default provider:',
-      choices: [
-        { name: 'Default (Claude Code built-in)', value: 'default' },
-        { name: 'Kimi', value: 'kimi' },
-        { name: 'Z.ai', value: 'zai' },
-        new inquirer.Separator(),
-        { name: 'Ask me every time', value: 'ask-every-time' },
-      ],
-      default: providerConfig.claudeCode.defaultProvider,
-    },
-  ]);
+  const providerOptions: SelectOption<string>[] = [
+    { label: 'Default (Claude Code built-in)', value: 'default' },
+    { label: 'Kimi', value: 'kimi' },
+    { label: 'Z.ai', value: 'zai' },
+    createSeparator(),
+    { label: 'Ask me every time', value: 'ask-every-time' },
+  ];
+
+  const defaultProvider = await promptSelect({
+    message: 'Select default provider:',
+    options: providerOptions,
+    initialValue: providerConfig.claudeCode.defaultProvider,
+  });
 
   providerConfig.claudeCode.defaultProvider = defaultProvider;
 
@@ -319,26 +313,18 @@ async function configureProvider(configService: GlobalConfigService): Promise<vo
   if (defaultProvider === 'kimi' || defaultProvider === 'zai') {
     const currentKey = providerConfig.claudeCode.providers[defaultProvider]?.apiKey;
 
-    const { shouldConfigure } = await inquirer.prompt([
-      {
-        type: 'confirm',
-        name: 'shouldConfigure',
-        message: currentKey
-          ? `Update ${defaultProvider} API key?`
-          : `Configure ${defaultProvider} API key?`,
-        default: !currentKey,
-      },
-    ]);
+    const shouldConfigure = await promptConfirm({
+      message: currentKey
+        ? `Update ${defaultProvider} API key?`
+        : `Configure ${defaultProvider} API key?`,
+      initialValue: !currentKey,
+    });
 
     if (shouldConfigure) {
-      const { apiKey } = await inquirer.prompt([
-        {
-          type: 'password',
-          name: 'apiKey',
-          message: 'Enter API key:',
-          mask: '*',
-        },
-      ]);
+      const apiKey = await promptPassword({
+        message: 'Enter API key:',
+        mask: '*',
+      });
 
       if (!providerConfig.claudeCode.providers[defaultProvider]) {
         providerConfig.claudeCode.providers[defaultProvider] = { enabled: true };
@@ -353,8 +339,8 @@ async function configureProvider(configService: GlobalConfigService): Promise<vo
 
   await configService.saveProviderConfig(providerConfig);
 
-  console.log(chalk.green('\n✓ Provider configuration saved'));
-  console.log(chalk.dim(`  Default provider: ${defaultProvider}`));
+  log.success('Provider configuration saved');
+  log.info(`Default provider: ${defaultProvider}`);
 }
 
 /**
@@ -367,7 +353,7 @@ async function configureTarget(configService: GlobalConfigService): Promise<void
   const targetInstaller = new TargetInstaller();
 
   // Detect which targets are installed
-  console.log(chalk.dim('Detecting installed AI CLIs...\n'));
+  log.info('Detecting installed AI CLIs...');
   const installedTargets = await targetInstaller.detectInstalledTargets();
 
   const defaultTarget = await promptForDefaultTarget(installedTargets, settings.defaultTarget);
@@ -376,8 +362,8 @@ async function configureTarget(configService: GlobalConfigService): Promise<void
   await configService.saveSettings(settings);
 
   if (defaultTarget === 'ask-every-time') {
-    console.log(chalk.green('\n✓ Target platform saved'));
-    console.log(chalk.dim('  Default: Ask every time (auto-detect or prompt)'));
+    log.success('Target platform saved');
+    log.info('Default: Ask every time (auto-detect or prompt)');
   } else {
     const availableTargets = buildAvailableTargets(installedTargets);
     const selectedTarget = availableTargets.find((t) => t.value === defaultTarget);
@@ -385,8 +371,8 @@ async function configureTarget(configService: GlobalConfigService): Promise<void
       ? chalk.green('(installed)')
       : chalk.yellow('(will be installed on first use)');
 
-    console.log(chalk.green('\n✓ Target platform saved'));
-    console.log(chalk.dim(`  Default: ${defaultTarget} ${installStatus}`));
+    log.success('Target platform saved');
+    log.info(`Default: ${defaultTarget} ${installStatus}`);
   }
 }
 
@@ -398,33 +384,27 @@ async function configureGeneral(configService: GlobalConfigService): Promise<voi
 
   const settings = await configService.loadSettings();
 
-  console.log(chalk.dim('Flow Home Directory:'), configService.getFlowHomeDir());
-  console.log(chalk.dim('Version:'), settings.version);
-  console.log(chalk.dim('Last Updated:'), new Date(settings.lastUpdated).toLocaleString());
+  log.info(`Flow Home Directory: ${configService.getFlowHomeDir()}`);
+  log.info(`Version: ${settings.version}`);
+  log.info(`Last Updated: ${new Date(settings.lastUpdated).toLocaleString()}`);
 
-  const { action } = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'action',
-      message: 'What would you like to do?',
-      choices: [
-        { name: 'Reset to defaults', value: 'reset' },
-        { name: 'Show current configuration', value: 'show' },
-        new inquirer.Separator(),
-        { name: '← Back', value: 'back' },
-      ],
-    },
-  ]);
+  const actionOptions: SelectOption<string>[] = [
+    { label: 'Reset to defaults', value: 'reset' },
+    { label: 'Show current configuration', value: 'show' },
+    createSeparator(),
+    { label: '← Back', value: 'back' },
+  ];
+
+  const action = await promptSelect({
+    message: 'What would you like to do?',
+    options: actionOptions,
+  });
 
   if (action === 'reset') {
-    const { confirm } = await inquirer.prompt([
-      {
-        type: 'confirm',
-        name: 'confirm',
-        message: 'Are you sure you want to reset all settings to defaults?',
-        default: false,
-      },
-    ]);
+    const confirm = await promptConfirm({
+      message: 'Are you sure you want to reset all settings to defaults?',
+      initialValue: false,
+    });
 
     if (confirm) {
       await configService.saveSettings({
@@ -446,7 +426,7 @@ async function configureGeneral(configService: GlobalConfigService): Promise<voi
         servers: {},
       });
 
-      console.log(chalk.green('\n✓ Settings reset to defaults'));
+      log.success('Settings reset to defaults');
     }
   } else if (action === 'show') {
     const providerConfig = await configService.loadProviderConfig();

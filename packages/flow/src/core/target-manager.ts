@@ -1,4 +1,3 @@
-import inquirer from 'inquirer';
 import {
   getAllTargetIDs,
   getAllTargets,
@@ -11,6 +10,7 @@ import {
 } from '../config/targets.js';
 import { getOrElse, isSome } from '../core/functional/option.js';
 import { projectSettings } from '../utils/config/settings.js';
+import { promptSelect } from '../utils/prompts/index.js';
 
 /**
  * Target Manager interface
@@ -81,24 +81,18 @@ export function createTargetManager(): TargetManager {
       // Silently ignore errors reading project settings
     }
 
-    const answer = await inquirer.prompt([
-      {
-        type: 'list',
-        name: 'target',
-        message: 'Select target platform:',
-        choices: availableTargets.map((id) => {
-          const targetOption = getTarget(id);
-          const target = getOrElse({ id, name: id } as any)(targetOption);
-          return {
-            name: target.name || id,
-            value: id,
-          };
-        }),
-        default: defaultTarget,
-      },
-    ]);
-
-    return answer.target;
+    return promptSelect({
+      message: 'Select target platform:',
+      options: availableTargets.map((id) => {
+        const targetOption = getTarget(id);
+        const target = getOrElse({ id, name: id } as any)(targetOption);
+        return {
+          label: target.name || id,
+          value: id,
+        };
+      }),
+      initialValue: defaultTarget,
+    });
   };
 
   /**

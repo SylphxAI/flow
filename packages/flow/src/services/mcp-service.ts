@@ -1,10 +1,15 @@
 import chalk from 'chalk';
-import inquirer from 'inquirer';
-import ora from 'ora';
 import { MCP_SERVER_REGISTRY, type MCPServerID } from '../config/servers.js';
 import type { TargetConfigurationData } from '../types/target-config.types.js';
 import type { Target } from '../types.js';
 import { isCLICommandConfig, type Resolvable } from '../types.js';
+import {
+  createSpinner,
+  log,
+  promptPassword,
+  promptSelect,
+  promptText,
+} from '../utils/prompts/index.js';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -193,7 +198,8 @@ export const createMCPService = (deps: MCPServiceDeps): MCPService => {
       if (existingValue && existingValue.trim() !== '') {
         value = existingValue;
       } else if (config.fetchChoices) {
-        const spinner = ora('Fetching options...').start();
+        const spinner = createSpinner();
+        spinner.start('Fetching options...');
 
         for (const [envKey, envValue] of Object.entries(collectedEnv)) {
           if (envValue) {
@@ -203,46 +209,44 @@ export const createMCPService = (deps: MCPServiceDeps): MCPService => {
 
         try {
           const choices = await config.fetchChoices();
-          spinner.stop();
+          spinner.stop('Options loaded');
 
-          const answer = await inquirer.prompt({
-            type: 'list',
-            name: 'value',
+          value = await promptSelect({
             message: `${key}${config.required ? ' *' : ''}`,
-            choices,
-            default: config.default || choices[0],
+            options: choices.map((c) => ({ label: c, value: c })),
+            initialValue: config.default || choices[0],
           });
-          value = answer.value;
         } catch (error) {
           const errorMsg = error instanceof Error ? error.message : String(error);
-          spinner.fail(chalk.red(`Failed to fetch options: ${errorMsg}`));
+          spinner.stop(chalk.red(`Failed to fetch options: ${errorMsg}`));
 
-          const answer = await inquirer.prompt({
-            type: 'input',
-            name: 'value',
+          value = await promptText({
             message: `${key}${config.required ? ' *' : ''}`,
-            default: config.default,
+            defaultValue: config.default,
           });
-          value = answer.value;
         }
       } else if (key === 'GEMINI_MODEL') {
-        const answer = await inquirer.prompt({
-          type: 'list',
-          name: 'model',
+        const modelChoices = [
+          'gemini-2.5-flash',
+          'gemini-2.5-pro',
+          'gemini-1.5-flash',
+          'gemini-1.5-pro',
+        ];
+        value = await promptSelect({
           message: `${key}${config.required ? ' *' : ''}`,
-          choices: ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-1.5-flash', 'gemini-1.5-pro'],
-          default: config.default || 'gemini-2.5-flash',
+          options: modelChoices.map((m) => ({ label: m, value: m })),
+          initialValue: config.default || 'gemini-2.5-flash',
         });
-        value = answer.model;
+      } else if (config.secret) {
+        value = await promptPassword({
+          message: `${key}${config.required ? ' *' : ''}`,
+          mask: '•',
+        });
       } else {
-        const answer = await inquirer.prompt({
-          type: config.secret ? 'password' : 'input',
-          name: 'value',
+        value = await promptText({
           message: `${key}${config.required ? ' *' : ''}`,
-          default: config.default,
-          mask: config.secret ? '•' : undefined,
+          defaultValue: config.default,
         });
-        value = answer.value;
       }
 
       if (value) {
@@ -251,7 +255,7 @@ export const createMCPService = (deps: MCPServiceDeps): MCPService => {
       }
     }
 
-    console.log(chalk.green('✓ Configured'));
+    log.success('Configured');
     console.log('');
 
     return values;

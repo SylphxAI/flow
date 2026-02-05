@@ -6,10 +6,8 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 import chalk from 'chalk';
-import inquirer from 'inquirer';
-import ora from 'ora';
-import { UserCancelledError } from '../utils/errors.js';
 import { detectPackageManager, type PackageManager } from '../utils/package-manager-detector.js';
+import { createSpinner, log, promptConfirm, promptSelect } from '../utils/prompts/index.js';
 
 const execAsync = promisify(exec);
 
@@ -111,29 +109,14 @@ export class TargetInstaller {
    * @throws {UserCancelledError} If user cancels the prompt
    */
   async promptForTargetSelection(): Promise<string> {
-    try {
-      const { targetId } = await inquirer.prompt([
-        {
-          type: 'list',
-          name: 'targetId',
-          message: 'No AI CLI detected. Which would you like to use?',
-          choices: TARGET_INSTALLATIONS.map((t) => ({
-            name: t.name,
-            value: t.id,
-          })),
-          default: 'claude-code',
-        },
-      ]);
-
-      return targetId;
-    } catch (error: unknown) {
-      // Handle user cancellation (Ctrl+C)
-      const err = error as Error & { name?: string };
-      if (err.name === 'ExitPromptError' || err.message?.includes('force closed')) {
-        throw new UserCancelledError('Target selection cancelled');
-      }
-      throw error;
-    }
+    return promptSelect({
+      message: 'No AI CLI detected. Which would you like to use?',
+      options: TARGET_INSTALLATIONS.map((t) => ({
+        label: t.name,
+        value: t.id,
+      })),
+      initialValue: 'claude-code',
+    });
   }
 
   /**
@@ -146,50 +129,38 @@ export class TargetInstaller {
   async install(targetId: string, autoConfirm: boolean = false): Promise<boolean> {
     const installation = TARGET_INSTALLATIONS.find((t) => t.id === targetId);
     if (!installation) {
-      console.log(chalk.red(`✗ Unknown target: ${targetId}`));
+      log.error(`Unknown target: ${targetId}`);
       return false;
     }
 
     // Confirm installation unless auto-confirm is enabled
     if (!autoConfirm) {
-      try {
-        const { confirmInstall } = await inquirer.prompt([
-          {
-            type: 'confirm',
-            name: 'confirmInstall',
-            message: `Install ${installation.name}?`,
-            default: true,
-          },
-        ]);
+      const confirmInstall = await promptConfirm({
+        message: `Install ${installation.name}?`,
+        initialValue: true,
+      });
 
-        if (!confirmInstall) {
-          console.log(chalk.yellow('\n⚠️  Installation cancelled\n'));
-          return false;
-        }
-      } catch (error: unknown) {
-        // Handle user cancellation (Ctrl+C)
-        const err = error as Error & { name?: string };
-        if (err.name === 'ExitPromptError' || err.message?.includes('force closed')) {
-          throw new UserCancelledError('Installation cancelled');
-        }
-        throw error;
+      if (!confirmInstall) {
+        log.warn('Installation cancelled');
+        return false;
       }
     }
 
-    const spinner = ora(`Installing ${installation.name}...`).start();
+    const spinner = createSpinner();
+    spinner.start(`Installing ${installation.name}...`);
 
     try {
       const installCmd = installation.installCommand(this.packageManager);
       await execAsync(installCmd);
 
-      spinner.succeed(chalk.green(`✓ ${installation.name} installed successfully`));
+      spinner.stop(chalk.green(`✓ ${installation.name} installed successfully`));
       return true;
     } catch (_error) {
-      spinner.fail(chalk.red(`✗ Failed to install ${installation.name}`));
-
       const installCmd = installation.installCommand(this.packageManager);
-      console.log(chalk.yellow('\n⚠️  Auto-install failed. Please run manually:'));
-      console.log(chalk.cyan(`   ${installCmd}\n`));
+      spinner.stop(chalk.red(`✗ Failed to install ${installation.name}`));
+
+      log.warn('Auto-install failed. Please run manually:');
+      log.info(`  ${chalk.cyan(installCmd)}`);
 
       return false;
     }
@@ -201,7 +172,7 @@ export class TargetInstaller {
    * @throws {UserCancelledError} If user cancels selection or installation
    */
   async autoDetectAndInstall(): Promise<string | null> {
-    console.log(chalk.cyan('🔍 Detecting installed AI CLIs...\n'));
+    log.info('Detecting installed AI CLIs...');
 
     const installedTargets = await this.detectInstalledTargets();
 
@@ -209,12 +180,12 @@ export class TargetInstaller {
     if (installedTargets.length > 0) {
       const targetId = installedTargets[0];
       const installation = TARGET_INSTALLATIONS.find((t) => t.id === targetId);
-      console.log(chalk.green(`✓ Found ${installation?.name}\n`));
+      log.success(`Found ${installation?.name}`);
       return targetId;
     }
 
     // No targets found - prompt user to select one
-    console.log(chalk.yellow('⚠️  No AI CLI detected\n'));
+    log.warn('No AI CLI detected');
     const selectedTargetId = await this.promptForTargetSelection();
 
     // Try to install the selected target

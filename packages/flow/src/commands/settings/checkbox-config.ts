@@ -4,7 +4,7 @@
  */
 
 import chalk from 'chalk';
-import inquirer from 'inquirer';
+import { log, type MultiselectOption, promptMultiselect } from '../../utils/prompts/index.js';
 
 // ============================================================================
 // Types
@@ -47,16 +47,16 @@ export const getEnabledKeys = (config: ConfigMap): string[] =>
   Object.keys(config).filter((key) => config[key]?.enabled);
 
 /**
- * Build checkbox choices from available items
+ * Build multiselect options from available items
  */
-export const buildChoices = <T extends string>(
+export const buildOptions = <T extends string>(
   available: Record<T, string>,
   enabledKeys: string[]
-): Array<{ name: string; value: T; checked: boolean }> =>
+): MultiselectOption<T>[] =>
   Object.entries(available).map(([key, name]) => ({
-    name: name as string,
+    label: name as string,
     value: key as T,
-    checked: enabledKeys.includes(key),
+    hint: enabledKeys.includes(key) ? 'enabled' : undefined,
   }));
 
 /**
@@ -82,11 +82,11 @@ export const printHeader = (icon: string, title: string): void => {
 };
 
 /**
- * Print confirmation message
+ * Print confirmation message using Clack log
  */
 export const printConfirmation = (itemType: string, count: number): void => {
-  console.log(chalk.green(`\n✓ ${itemType} configuration saved`));
-  console.log(chalk.dim(`  Enabled ${itemType.toLowerCase()}: ${count}`));
+  log.success(`${itemType} configuration saved`);
+  log.info(`Enabled ${itemType.toLowerCase()}: ${count}`);
 };
 
 // ============================================================================
@@ -108,15 +108,15 @@ export const handleCheckboxConfig = async <T extends string>(
   // Get current enabled items
   const enabledKeys = getEnabledKeys(current);
 
-  // Show checkbox prompt
-  const { selected } = await inquirer.prompt([
-    {
-      type: 'checkbox',
-      name: 'selected',
-      message,
-      choices: buildChoices(available, enabledKeys),
-    },
-  ]);
+  // Build options for multiselect
+  const multiselectOptions = buildOptions(available, enabledKeys);
+
+  // Show multiselect prompt
+  const selected = await promptMultiselect<T>({
+    message,
+    options: multiselectOptions,
+    initialValues: enabledKeys as T[],
+  });
 
   // Update config
   const updated = updateConfig(available, selected);

@@ -4,9 +4,8 @@
  */
 
 import chalk from 'chalk';
-import inquirer from 'inquirer';
 import type { TargetInstaller } from '../services/target-installer.js';
-import { handlePromptError } from './prompt-helpers.js';
+import { createSeparator, log, promptSelect, type SelectOption } from './prompts/index.js';
 
 /**
  * Represents a target CLI choice with installation status
@@ -60,6 +59,19 @@ export function formatTargetChoice(
 }
 
 /**
+ * Build select options from target choices
+ */
+function buildTargetSelectOptions(
+  targets: TargetChoice[],
+  context: 'execution' | 'settings'
+): SelectOption<string>[] {
+  return targets.map((target) => ({
+    label: formatTargetChoice(target, context),
+    value: target.value,
+  }));
+}
+
+/**
  * Prompt user to select a target
  * @param installedTargets - List of currently installed target IDs
  * @param message - Prompt message to display
@@ -73,24 +85,13 @@ export async function promptForTargetSelection(
   context: 'execution' | 'settings'
 ): Promise<string> {
   const availableTargets = buildAvailableTargets(installedTargets);
+  const options = buildTargetSelectOptions(availableTargets, context);
 
-  try {
-    const { targetId } = await inquirer.prompt([
-      {
-        type: 'list',
-        name: 'targetId',
-        message,
-        choices: availableTargets.map((target) => ({
-          name: formatTargetChoice(target, context),
-          value: target.value,
-        })),
-      },
-    ]);
-
-    return targetId;
-  } catch (error) {
-    handlePromptError(error, 'Target selection cancelled');
-  }
+  return promptSelect({
+    message,
+    options,
+    initialValue: availableTargets[0]?.value,
+  });
 }
 
 /**
@@ -105,32 +106,23 @@ export async function promptForDefaultTarget(
   currentDefault?: string
 ): Promise<string> {
   const availableTargets = buildAvailableTargets(installedTargets);
+  const targetOptions = buildTargetSelectOptions(availableTargets, 'settings');
 
-  try {
-    const { defaultTarget } = await inquirer.prompt([
-      {
-        type: 'list',
-        name: 'defaultTarget',
-        message: 'Select default target platform:',
-        choices: [
-          ...availableTargets.map((target) => ({
-            name: formatTargetChoice(target, 'settings'),
-            value: target.value,
-          })),
-          new inquirer.Separator(),
-          {
-            name: 'Ask me every time',
-            value: 'ask-every-time',
-          },
-        ],
-        default: currentDefault || 'ask-every-time',
-      },
-    ]);
+  // Create options with separator
+  const options: SelectOption<string>[] = [
+    ...targetOptions,
+    createSeparator(),
+    {
+      label: 'Ask me every time',
+      value: 'ask-every-time',
+    },
+  ];
 
-    return defaultTarget;
-  } catch (error) {
-    handlePromptError(error, 'Target selection cancelled');
-  }
+  return promptSelect({
+    message: 'Select default target platform:',
+    options,
+    initialValue: currentDefault || 'ask-every-time',
+  });
 }
 
 /**
@@ -157,8 +149,8 @@ export async function ensureTargetInstalled(
   const installed = await targetInstaller.install(targetId, true);
 
   if (!installed) {
-    console.log(chalk.red(`\n✗ Failed to install ${installation?.name}`));
-    console.log(chalk.yellow('   Please install manually and try again.\n'));
+    log.error(`Failed to install ${installation?.name}`);
+    log.warn('Please install manually and try again.');
     return false;
   }
 

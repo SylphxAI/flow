@@ -4,11 +4,14 @@
  */
 
 import chalk from 'chalk';
-import inquirer from 'inquirer';
-import ora from 'ora';
 import { MCP_SERVER_REGISTRY, type MCPServerID } from '../../config/servers.js';
 import { createMCPService } from '../../services/mcp-service.js';
 import type { Target } from '../../types.js';
+import {
+  createSpinner,
+  type MultiselectOption,
+  promptMultiselect,
+} from '../../utils/prompts/index.js';
 
 export interface MCPInstallResult {
   selectedServers: MCPServerID[];
@@ -52,32 +55,36 @@ export function createMCPInstaller(target: Target): MCPInstaller {
       console.log(chalk.cyan.bold('━━━ Configure MCP Tools ━━━\n'));
     }
 
-    // Show server selection
-    const serverSelectionAnswer = await inquirer.prompt([
-      {
-        type: 'checkbox',
-        name: 'selectedServers',
-        message: 'Select MCP tools to install:',
-        choices: allServers.map((id) => {
-          const server = MCP_SERVER_REGISTRY[id];
-          const isInstalled = installedServers.includes(id);
-          return {
-            name: `${server.name} - ${server.description}`,
-            value: id,
-            checked: server.required || isInstalled || server.defaultInInit || false,
-            disabled: server.required ? '(required)' : false,
-          };
-        }),
-      },
-    ]);
+    // Build multiselect options
+    const multiselectOptions: MultiselectOption<MCPServerID>[] = allServers.map((id) => {
+      const server = MCP_SERVER_REGISTRY[id];
+      const isInstalled = installedServers.includes(id);
+      const isRequired = server.required;
+      const isDefault = server.defaultInInit;
 
-    let selectedServers = serverSelectionAnswer.selectedServers as MCPServerID[];
+      return {
+        label: `${server.name} - ${server.description}${isRequired ? chalk.dim(' (required)') : ''}`,
+        value: id,
+        hint: isInstalled ? 'installed' : isDefault ? 'recommended' : undefined,
+      };
+    });
+
+    // Determine initial values (required, installed, or default)
+    const initialValues = allServers.filter((id) => {
+      const server = MCP_SERVER_REGISTRY[id];
+      const isInstalled = installedServers.includes(id);
+      return server.required || isInstalled || server.defaultInInit;
+    });
+
+    const selectedServers = await promptMultiselect<MCPServerID>({
+      message: 'Select MCP tools to install:',
+      options: multiselectOptions,
+      initialValues,
+    });
 
     // Ensure all required servers are included
     const requiredServers = allServers.filter((id) => MCP_SERVER_REGISTRY[id].required);
-    selectedServers = [...new Set([...requiredServers, ...selectedServers])];
-
-    return selectedServers;
+    return [...new Set([...requiredServers, ...selectedServers])];
   };
 
   /**
@@ -122,25 +129,26 @@ export function createMCPInstaller(target: Target): MCPInstaller {
     }
 
     // Only show spinner if not in quiet mode
-    const spinner = options.quiet
-      ? null
-      : ora({
-          text: `Installing ${selectedServers.length} MCP server${selectedServers.length > 1 ? 's' : ''}`,
-          color: 'cyan',
-        }).start();
+    const spinner = options.quiet ? null : createSpinner();
+
+    if (spinner) {
+      spinner.start(
+        `Installing ${selectedServers.length} MCP server${selectedServers.length > 1 ? 's' : ''}`
+      );
+    }
 
     try {
       await mcpService.installServers(selectedServers, serverConfigsMap);
       if (spinner) {
-        spinner.succeed(
+        spinner.stop(
           chalk.green(
-            `Installed ${chalk.cyan(selectedServers.length)} MCP server${selectedServers.length > 1 ? 's' : ''}`
+            `✓ Installed ${chalk.cyan(selectedServers.length)} MCP server${selectedServers.length > 1 ? 's' : ''}`
           )
         );
       }
     } catch (error) {
       if (spinner) {
-        spinner.fail(chalk.red('Failed to install MCP servers'));
+        spinner.stop(chalk.red('✗ Failed to install MCP servers'));
       }
       throw error;
     }

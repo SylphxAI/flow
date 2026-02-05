@@ -1,9 +1,9 @@
 import chalk from 'chalk';
 
-import inquirer from 'inquirer';
 import type { EnvVarConfig, MCPServerDefinition, MCPServerID } from '../../config/servers.js';
 import { getAllServerIDs, MCP_SERVER_REGISTRY } from '../../config/servers.js';
 import { targetManager } from '../../core/target-manager.js';
+import { log, promptPassword, promptSelect, promptText } from '../prompts/index.js';
 import { getNestedProperty, setNestedProperty } from './target-config.js';
 
 interface MCPConfigOptions {
@@ -66,7 +66,7 @@ export class MCPConfigurator {
       const values = await this.configureServer(server);
       return { values, serverId: this.serverId };
     }
-    console.log(chalk.gray('\n✓ No configuration required for this server'));
+    log.info('No configuration required for this server');
     return { values: {}, serverId: this.serverId };
   }
 
@@ -74,23 +74,15 @@ export class MCPConfigurator {
     const availableServers = getAllServerIDs().map((id) => {
       const server = MCP_SERVER_REGISTRY[id];
       return {
-        name: `${server?.name || id} - ${server?.description || 'Unknown server'}`,
+        label: `${server?.name || id} - ${server?.description || 'Unknown server'}`,
         value: id,
-        short: server?.name || id,
       };
     });
 
-    const { serverId } = await inquirer.prompt([
-      {
-        type: 'list',
-        name: 'serverId',
-        message: 'Select MCP server to configure:',
-        choices: availableServers,
-        pageSize: 15,
-      },
-    ]);
-
-    return serverId as MCPServerID;
+    return promptSelect({
+      message: 'Select MCP server to configure:',
+      options: availableServers,
+    });
   }
 
   private async configureServer(server: MCPServerDefinition): Promise<Record<string, string>> {
@@ -139,63 +131,46 @@ export class MCPConfigurator {
 
   private async configureField(field: ConfigField): Promise<string> {
     const currentValue = field.currentValue || field.defaultValue || '';
-    const _isRequired = field.required && !currentValue;
 
     if (field.options) {
       // Use select input for options
-      const { value } = await inquirer.prompt([
-        {
-          type: 'list',
-          name: 'value',
-          message: `${field.name}${field.required ? chalk.red('*') : ''}:`,
-          choices: field.options,
-          default: currentValue || field.options[0],
-          when: () => true,
-        },
-      ]);
+      const value = await promptSelect({
+        message: `${field.name}${field.required ? chalk.red('*') : ''}:`,
+        options: field.options.map((opt) => ({ label: opt, value: opt })),
+        initialValue: currentValue || field.options[0],
+      });
 
-      console.log(chalk.gray(`   ${field.description}`));
+      log.info(`  ${field.description}`);
       return value;
     }
+
     if (field.secret) {
       // Use password input for secrets
-      const { value } = await inquirer.prompt([
-        {
-          type: 'password',
-          name: 'value',
-          message: `${field.name}${field.required ? chalk.red('*') : ''}:`,
-          default: currentValue,
-          when: () => true,
-          validate: (input) => {
-            if (field.required && !input.trim()) {
-              return `${field.name} is required`;
-            }
-            return true;
-          },
-        },
-      ]);
-
-      console.log(chalk.gray(`   ${field.description}`));
-      return value;
-    }
-    // Use regular input for regular fields
-    const { value } = await inquirer.prompt([
-      {
-        type: 'input',
-        name: 'value',
+      const value = await promptPassword({
         message: `${field.name}${field.required ? chalk.red('*') : ''}:`,
-        default: currentValue,
-        when: () => true,
         validate: (input) => {
           if (field.required && !input.trim()) {
             return `${field.name} is required`;
           }
-          return true;
         },
-      },
-    ]);
+      });
 
-    console.log(chalk.gray(`   ${field.description}`));
+      log.info(`  ${field.description}`);
+      return value;
+    }
+
+    // Use regular text input
+    const value = await promptText({
+      message: `${field.name}${field.required ? chalk.red('*') : ''}:`,
+      defaultValue: currentValue,
+      validate: (input) => {
+        if (field.required && !input.trim()) {
+          return `${field.name} is required`;
+        }
+      },
+    });
+
+    log.info(`  ${field.description}`);
     return value;
   }
 }

@@ -7,7 +7,6 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
-import inquirer from 'inquirer';
 import { FlowExecutor } from '../../core/flow-executor.js';
 import { targetManager } from '../../core/target-manager.js';
 import { AutoUpgrade } from '../../services/auto-upgrade.js';
@@ -18,6 +17,7 @@ import { extractAgentInstructions, loadAgentContent } from '../../utils/agent-en
 import { showAttachSummary, showHeader } from '../../utils/display/banner.js';
 import { CLIError } from '../../utils/error-handler.js';
 import { UserCancelledError } from '../../utils/errors.js';
+import { log, promptConfirm, promptSelect } from '../../utils/prompts/index.js';
 import { ensureTargetInstalled, promptForTargetSelection } from '../../utils/target-selection.js';
 import { resolvePrompt } from './prompt.js';
 import type { FlowOptions } from './types.js';
@@ -62,66 +62,52 @@ function configureProviderEnv(provider: 'kimi' | 'zai', apiKey: string): void {
  * Select and configure provider for Claude Code (silent unless prompting)
  */
 async function selectProvider(configService: GlobalConfigService): Promise<void> {
-  try {
-    const providerConfig = await configService.loadProviderConfig();
-    const defaultProvider = providerConfig.claudeCode.defaultProvider;
+  const providerConfig = await configService.loadProviderConfig();
+  const defaultProvider = providerConfig.claudeCode.defaultProvider;
 
-    // If not "ask-every-time", use the default provider silently
-    if (defaultProvider !== 'ask-every-time') {
-      if (defaultProvider === 'kimi' || defaultProvider === 'zai') {
-        const provider = providerConfig.claudeCode.providers[defaultProvider];
-        if (provider?.apiKey) {
-          configureProviderEnv(defaultProvider, provider.apiKey);
-        }
+  // If not "ask-every-time", use the default provider silently
+  if (defaultProvider !== 'ask-every-time') {
+    if (defaultProvider === 'kimi' || defaultProvider === 'zai') {
+      const provider = providerConfig.claudeCode.providers[defaultProvider];
+      if (provider?.apiKey) {
+        configureProviderEnv(defaultProvider, provider.apiKey);
       }
+    }
+    return;
+  }
+
+  // Ask user which provider to use for this session
+  const selectedProvider = await promptSelect({
+    message: 'Select provider:',
+    options: [
+      { label: 'Default (Claude Code built-in)', value: 'default' },
+      { label: 'Kimi', value: 'kimi' },
+      { label: 'Z.ai', value: 'zai' },
+    ],
+    initialValue: 'default',
+  });
+
+  const rememberChoice = await promptConfirm({
+    message: 'Remember this choice?',
+    initialValue: true,
+  });
+
+  // Save choice if user wants to remember
+  if (rememberChoice) {
+    providerConfig.claudeCode.defaultProvider = selectedProvider;
+    await configService.saveProviderConfig(providerConfig);
+  }
+
+  // Configure environment variables based on selection
+  if (selectedProvider === 'kimi' || selectedProvider === 'zai') {
+    const provider = providerConfig.claudeCode.providers[selectedProvider];
+
+    if (!provider?.apiKey) {
+      log.warn('API key not configured. Use: sylphx-flow settings');
       return;
     }
 
-    // Ask user which provider to use for this session
-    const { selectedProvider, rememberChoice } = await inquirer.prompt([
-      {
-        type: 'list',
-        name: 'selectedProvider',
-        message: 'Select provider:',
-        choices: [
-          { name: 'Default (Claude Code built-in)', value: 'default' },
-          { name: 'Kimi', value: 'kimi' },
-          { name: 'Z.ai', value: 'zai' },
-        ],
-        default: 'default',
-      },
-      {
-        type: 'confirm',
-        name: 'rememberChoice',
-        message: 'Remember this choice?',
-        default: true,
-      },
-    ]);
-
-    // Save choice if user wants to remember
-    if (rememberChoice) {
-      providerConfig.claudeCode.defaultProvider = selectedProvider;
-      await configService.saveProviderConfig(providerConfig);
-    }
-
-    // Configure environment variables based on selection
-    if (selectedProvider === 'kimi' || selectedProvider === 'zai') {
-      const provider = providerConfig.claudeCode.providers[selectedProvider];
-
-      if (!provider?.apiKey) {
-        console.log(chalk.yellow('  API key not configured. Use: sylphx-flow settings'));
-        return;
-      }
-
-      configureProviderEnv(selectedProvider, provider.apiKey);
-    }
-  } catch (error: unknown) {
-    // Handle user cancellation (Ctrl+C)
-    const err = error as Error & { name?: string };
-    if (err.name === 'ExitPromptError' || err.message?.includes('force closed')) {
-      throw new UserCancelledError('Provider selection cancelled');
-    }
-    throw error;
+    configureProviderEnv(selectedProvider, provider.apiKey);
   }
 }
 
@@ -221,11 +207,11 @@ export async function executeFlowV2(
 
     if (!installedTargets.includes(selectedTargetId)) {
       const installation = targetInstaller.getInstallationInfo(selectedTargetId);
-      console.log(chalk.yellow(`\n  ${installation?.name} not installed`));
+      log.warn(`${installation?.name} not installed`);
       const installed = await targetInstaller.install(selectedTargetId, true);
 
       if (!installed) {
-        console.log(chalk.red(`  Cannot proceed: installation failed\n`));
+        log.error('Cannot proceed: installation failed');
         process.exit(1);
       }
     }
@@ -313,7 +299,7 @@ export async function executeFlowV2(
   } catch (error) {
     // Handle user cancellation gracefully
     if (error instanceof UserCancelledError) {
-      console.log(chalk.yellow('\n  Cancelled'));
+      log.warn('Cancelled');
       try {
         await executor.cleanup(projectPath);
       } catch {
