@@ -181,7 +181,7 @@ export async function executeFlowV2(
       process.exit(1);
     }
   } else if (hasNoSetting) {
-    // No setting - use auto-detection
+    // No setting - use auto-detection or prompt
     if (installedTargets.length === 1) {
       selectedTargetId = installedTargets[0];
     } else {
@@ -200,6 +200,17 @@ export async function executeFlowV2(
       if (!installed) {
         process.exit(1);
       }
+    }
+
+    // Ask to remember choice (mirror provider selection pattern)
+    const rememberChoice = await promptConfirm({
+      message: 'Remember this choice?',
+      initialValue: true,
+    });
+
+    if (rememberChoice) {
+      settings.defaultTarget = selectedTargetId as 'claude-code' | 'opencode';
+      await configService.saveSettings(settings);
     }
   } else if (hasSpecificTarget) {
     // User has a specific target preference
