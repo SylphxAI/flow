@@ -1,5 +1,17 @@
 # @sylphx/flow
 
+## 3.17.2 (2026-02-05)
+
+Fix target selection persistence and optimize startup flow
+
+### 🐛 Bug Fixes
+
+- **flow:** persist target selection on first run ([923f48d](https://github.com/SylphxAI/flow/commit/923f48d6a8472ffe4197705ba078c246b76fea5b))
+
+### ⚡️ Performance
+
+- **flow:** optimize startup flow ([cc012bd](https://github.com/SylphxAI/flow/commit/cc012bd003c577f121b134241a0cd05a1324bf35))
+
 ## 3.17.1 (2026-02-05)
 
 Add Hono RPC patterns and declarative engineering principles
