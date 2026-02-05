@@ -1,5 +1,14 @@
 # @sylphx/flow
 
+## 3.17.1 (2026-02-05)
+
+Add Hono RPC patterns and declarative engineering principles
+
+### 📚 Documentation
+
+- **builder:** prioritize declarative style in engineering principles ([f2e5bc4](https://github.com/SylphxAI/flow/commit/f2e5bc482ce554097e2bc90943c22f3d497f0925))
+- **builder:** add Hono RPC patterns for split clients ([c848796](https://github.com/SylphxAI/flow/commit/c8487965a8341aac1f9644d5de75c1dd36b1c661))
+
 ## 3.17.0 (2026-02-05)
 
 ### ♻️ Refactoring
