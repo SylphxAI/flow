@@ -151,10 +151,11 @@ export async function executeFlowV2(
   const configService = new GlobalConfigService();
   const targetInstaller = new TargetInstaller(projectPath);
 
-  const [, installedTargets, settings] = await Promise.all([
+  const [, installedTargets, settings, version] = await Promise.all([
     configService.initialize(),
     targetInstaller.detectInstalledTargets(),
     configService.loadSettings(),
+    getFlowVersion(),
   ]);
 
   let selectedTargetId: string | null = null;
@@ -183,8 +184,12 @@ export async function executeFlowV2(
   } else if (hasNoSetting) {
     // No setting - use auto-detection or prompt
     if (installedTargets.length === 1) {
+      // Single target: auto-select and save silently
       selectedTargetId = installedTargets[0];
+      settings.defaultTarget = selectedTargetId as 'claude-code' | 'opencode';
+      await configService.saveSettings(settings);
     } else {
+      // Multiple targets: prompt and ask to remember
       selectedTargetId = await promptForTargetSelection(
         installedTargets,
         'Select AI CLI:',
@@ -200,17 +205,16 @@ export async function executeFlowV2(
       if (!installed) {
         process.exit(1);
       }
-    }
 
-    // Ask to remember choice (mirror provider selection pattern)
-    const rememberChoice = await promptConfirm({
-      message: 'Remember this choice?',
-      initialValue: true,
-    });
+      const rememberChoice = await promptConfirm({
+        message: 'Remember this choice?',
+        initialValue: true,
+      });
 
-    if (rememberChoice) {
-      settings.defaultTarget = selectedTargetId as 'claude-code' | 'opencode';
-      await configService.saveSettings(settings);
+      if (rememberChoice) {
+        settings.defaultTarget = selectedTargetId as 'claude-code' | 'opencode';
+        await configService.saveSettings(settings);
+      }
     }
   } else if (hasSpecificTarget) {
     // User has a specific target preference
@@ -228,8 +232,7 @@ export async function executeFlowV2(
     }
   }
 
-  // Get version and target name for header
-  const version = await getFlowVersion();
+  // Get target name for header
   const targetInstallation = targetInstaller.getInstallationInfo(selectedTargetId);
   const targetName = targetInstallation?.name || selectedTargetId;
 
