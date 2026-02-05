@@ -59,29 +59,6 @@ export function withCancellation<T>(result: T | symbol, message = 'Operation can
 }
 
 // ============================================================================
-// Separator Simulation
-// ============================================================================
-
-/**
- * Create a visual separator for select/multiselect options
- * Clack doesn't have native separators, so we simulate with a disabled option
- */
-export function createSeparator<T>(label = '─'.repeat(30)): SelectOption<T> {
-  return {
-    label: chalk.dim(label),
-    value: Symbol('separator') as unknown as T,
-    hint: 'separator',
-  };
-}
-
-/**
- * Check if an option is a separator
- */
-export function isSeparator<T>(option: SelectOption<T>): boolean {
-  return option.hint === 'separator' || typeof option.value === 'symbol';
-}
-
-// ============================================================================
 // Prompt Wrappers with Cancellation Handling
 // ============================================================================
 

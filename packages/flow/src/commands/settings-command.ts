@@ -15,7 +15,6 @@ import { GlobalConfigService } from '../services/global-config.js';
 import { TargetInstaller } from '../services/target-installer.js';
 import { UserCancelledError } from '../utils/errors.js';
 import {
-  createSeparator,
   log,
   promptConfirm,
   promptMultiselect,
@@ -60,15 +59,16 @@ export const settingsCommand = new Command('settings')
 async function showMainMenu(configService: GlobalConfigService): Promise<void> {
   while (true) {
     const menuOptions: SelectOption<string>[] = [
-      { label: '🤖 Agents & Default Agent', value: 'agents' },
-      { label: '📋 Rules', value: 'rules' },
-      { label: '🎨 Output Styles', value: 'outputStyles' },
-      createSeparator(),
-      { label: '📡 MCP Servers', value: 'mcp' },
-      { label: '🔑 Provider & API Keys (Claude Code)', value: 'provider' },
-      { label: '🎯 Target Platform', value: 'target' },
-      { label: '⚙️  General Settings', value: 'general' },
-      createSeparator(),
+      // Content Configuration
+      { label: '🤖 Agents & Default Agent', value: 'agents', hint: 'content' },
+      { label: '📋 Rules', value: 'rules', hint: 'content' },
+      { label: '🎨 Output Styles', value: 'outputStyles', hint: 'content' },
+      // Infrastructure Configuration
+      { label: '📡 MCP Servers', value: 'mcp', hint: 'infra' },
+      { label: '🔑 Provider & API Keys (Claude Code)', value: 'provider', hint: 'infra' },
+      { label: '🎯 Target Platform', value: 'target', hint: 'infra' },
+      { label: '⚙️  General Settings', value: 'general', hint: 'infra' },
+      // Exit
       { label: '← Back / Exit', value: 'exit' },
     ];
 
@@ -297,8 +297,7 @@ async function configureProvider(configService: GlobalConfigService): Promise<vo
     { label: 'Default (Claude Code built-in)', value: 'default' },
     { label: 'Kimi', value: 'kimi' },
     { label: 'Z.ai', value: 'zai' },
-    createSeparator(),
-    { label: 'Ask me every time', value: 'ask-every-time' },
+    { label: 'Ask me every time', value: 'ask-every-time', hint: 'dynamic' },
   ];
 
   const defaultProvider = await promptSelect({
@@ -391,7 +390,6 @@ async function configureGeneral(configService: GlobalConfigService): Promise<voi
   const actionOptions: SelectOption<string>[] = [
     { label: 'Reset to defaults', value: 'reset' },
     { label: 'Show current configuration', value: 'show' },
-    createSeparator(),
     { label: '← Back', value: 'back' },
   ];
 

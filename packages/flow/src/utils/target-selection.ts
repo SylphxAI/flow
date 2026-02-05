@@ -5,7 +5,7 @@
 
 import chalk from 'chalk';
 import type { TargetInstaller } from '../services/target-installer.js';
-import { createSeparator, log, promptSelect, type SelectOption } from './prompts/index.js';
+import { log, promptSelect, type SelectOption } from './prompts/index.js';
 
 /**
  * Represents a target CLI choice with installation status
@@ -108,13 +108,13 @@ export async function promptForDefaultTarget(
   const availableTargets = buildAvailableTargets(installedTargets);
   const targetOptions = buildTargetSelectOptions(availableTargets, 'settings');
 
-  // Create options with separator
+  // Create options with "Ask me every time" at the end
   const options: SelectOption<string>[] = [
     ...targetOptions,
-    createSeparator(),
     {
       label: 'Ask me every time',
       value: 'ask-every-time',
+      hint: 'dynamic',
     },
   ];
 
