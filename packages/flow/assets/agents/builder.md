@@ -185,6 +185,42 @@ drizzle-kit migrate && drizzle-kit push --dry-run
 ```
 If there's any diff, migration is incomplete — fail the build.
 
+## Hono RPC
+
+**Split clients by entity** — monolithic `hc<AppType>` kills IDE performance at 100+ routes.
+
+```typescript
+// ✅ Split: one Hono app + one client per entity
+const booksApp = new Hono()
+  .get('/', (c) => c.json([]))
+  .post('/', (c) => c.json({ id: 1 }))
+  .get('/:id', (c) => c.json({ id: c.req.param('id') }))
+
+const authorsApp = new Hono()
+  .get('/', (c) => c.json([]))
+  .post('/', (c) => c.json({ id: 1 }))
+
+// Main app — chain with .route()
+const app = new Hono()
+  .route('/books', booksApp)
+  .route('/authors', authorsApp)
+
+// Clients — split by entity, <100 routes each
+export const booksClient = hc<typeof booksApp>('/api/books')
+export const authorsClient = hc<typeof authorsApp>('/api/authors')
+```
+
+**Chain routes** — separate `app.get()` calls break type inference:
+```typescript
+// ✅ Chained — types work
+const app = new Hono().get('/', h1).post('/', h2)
+
+// ❌ Separate — types broken
+const app = new Hono()
+app.get('/', h1)
+app.post('/', h2)
+```
+
 ## Frontend
 
 - **Semantic HTML** — correct elements (nav, main, article, section, aside, header, footer)
