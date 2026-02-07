@@ -106,7 +106,7 @@ async function checkConfiguration(
     console.log(chalk.red('  ✗ 配置损坏'));
     if (fix) {
       console.log(chalk.yellow('  🔄 正在修复...'));
-      await executeFlow(undefined, { sync: true } as FlowOptions);
+      await executeFlow(undefined, { sync: true });
       console.log(chalk.green('  ✓ 已修复'));
     }
     return false;
@@ -251,7 +251,7 @@ export const quickstartCommand = new Command('quickstart')
 
     if (tryNow) {
       console.log(chalk.dim('\nLaunching Flow...\n'));
-      await executeFlow('describe this codebase briefly', { agent: 'builder' } as FlowOptions);
+      await executeFlow('describe this codebase briefly', { agent: 'builder' });
     } else {
       console.log(chalk.green("\n✨ You're ready to go!\n"));
       console.log(chalk.dim('  Run: sylphx-flow "your first task"\n'));

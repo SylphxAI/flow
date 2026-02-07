@@ -8,7 +8,7 @@ import {
   getTargetsWithMCPSupport,
   isTargetImplemented,
 } from '../config/targets.js';
-import { getOrElse, isSome } from '../core/functional/option.js';
+import { isSome, match } from '../core/functional/option.js';
 import { projectSettings } from '../utils/config/settings.js';
 import { promptSelect } from '../utils/prompts/index.js';
 
@@ -85,9 +85,12 @@ export function createTargetManager(): TargetManager {
       message: 'Select target platform:',
       options: availableTargets.map((id) => {
         const targetOption = getTarget(id);
-        const target = getOrElse({ id, name: id } as any)(targetOption);
+        const label = match(
+          (t: ReturnType<typeof getAllTargets>[number]) => t.name || id,
+          () => id
+        )(targetOption);
         return {
-          label: target.name || id,
+          label,
           value: id,
         };
       }),

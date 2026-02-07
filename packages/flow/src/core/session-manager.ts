@@ -8,6 +8,7 @@ import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { Target } from '../types/target.types.js';
+import { readJsonFileSafe } from '../utils/files/file-operations.js';
 import type { ProjectManager } from './project-manager.js';
 
 export interface Session {
@@ -143,14 +144,9 @@ export class SessionManager {
   /**
    * Get active session for a project
    */
-  async getActiveSession(projectHash: string): Promise<Session | null> {
-    try {
-      const paths = this.projectManager.getProjectPaths(projectHash);
-      const data = await fs.readFile(paths.sessionFile, 'utf-8');
-      return JSON.parse(data);
-    } catch {
-      return null;
-    }
+  getActiveSession(projectHash: string): Promise<Session | null> {
+    const paths = this.projectManager.getProjectPaths(projectHash);
+    return readJsonFileSafe<Session | null>(paths.sessionFile, null);
   }
 
   /**

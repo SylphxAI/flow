@@ -37,6 +37,11 @@ interface ProcessExitError extends Error {
   code: number | null;
 }
 
+/** Type guard for Node.js errors with errno/code properties */
+function isNodeError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && 'code' in error;
+}
+
 /**
  * Claude Code target - composition approach with all original functionality
  */
@@ -296,14 +301,16 @@ Please begin your response with a comprehensive summary of all the instructions 
         });
       });
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        const errWithCode = error as Error & { code?: string | number };
-        if (errWithCode.code === 'ENOENT') {
+      if (isNodeError(error)) {
+        if (error.code === 'ENOENT') {
           throw new CLIError('Claude Code not found. Please install it first.', 'CLAUDE_NOT_FOUND');
         }
-        if (errWithCode.code !== undefined) {
-          throw new CLIError(`Claude Code exited with code ${errWithCode.code}`, 'CLAUDE_ERROR');
+        if (error.code !== undefined) {
+          throw new CLIError(`Claude Code exited with code ${error.code}`, 'CLAUDE_ERROR');
         }
+        throw new CLIError(`Failed to execute Claude Code: ${error.message}`, 'CLAUDE_ERROR');
+      }
+      if (error instanceof Error) {
         throw new CLIError(`Failed to execute Claude Code: ${error.message}`, 'CLAUDE_ERROR');
       }
       throw new CLIError(`Failed to execute Claude Code: ${String(error)}`, 'CLAUDE_ERROR');
@@ -331,8 +338,7 @@ Please begin your response with a comprehensive summary of all the instructions 
         const content = await fsPromises.readFile(settingsPath, 'utf8');
         settings = JSON.parse(content);
       } catch (error: unknown) {
-        const err = error as NodeJS.ErrnoException;
-        if (err.code !== 'ENOENT') {
+        if (!isNodeError(error) || error.code !== 'ENOENT') {
           throw error;
         }
         // File doesn't exist, will create new

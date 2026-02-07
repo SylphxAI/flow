@@ -10,6 +10,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { MCP_SERVER_REGISTRY, type MCPServerID } from '../config/servers.js';
 import { GlobalConfigService } from '../services/global-config.js';
+import type { MCPServerConfigUnion } from '../types/mcp.types.js';
 import type { Target } from '../types/target.types.js';
 import { attachItemsToDir, attachRulesFile } from './attach/index.js';
 import type { BackupManifest } from './backup-manager.js';
@@ -320,7 +321,10 @@ export class AttachManager {
     // Add Flow MCP servers
     for (const server of mcpServers) {
       // Transform the server config for this target
-      const transformedConfig = target.transformMCPConfig(server.config as any, server.name);
+      const transformedConfig = target.transformMCPConfig(
+        server.config as MCPServerConfigUnion,
+        server.name
+      );
 
       if (mcpContainer[server.name]) {
         // Conflict: user has same MCP server

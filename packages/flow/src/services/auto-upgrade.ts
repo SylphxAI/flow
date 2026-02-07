@@ -10,6 +10,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { readJsonFileSafe } from '../utils/files/file-operations.js';
 import { getUpgradeCommand } from '../utils/package-manager-detector.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -91,13 +92,8 @@ export class AutoUpgrade {
   /**
    * Read version info from disk
    */
-  private async readVersionInfo(): Promise<VersionInfo | null> {
-    try {
-      const data = await fs.readFile(VERSION_FILE, 'utf-8');
-      return JSON.parse(data);
-    } catch {
-      return null;
-    }
+  private readVersionInfo(): Promise<VersionInfo | null> {
+    return readJsonFileSafe<VersionInfo | null>(VERSION_FILE, null);
   }
 
   /**
@@ -127,13 +123,9 @@ export class AutoUpgrade {
    * Get current Flow version from package.json
    */
   private async getCurrentVersion(): Promise<string> {
-    try {
-      const packageJsonPath = path.join(__dirname, '..', '..', 'package.json');
-      const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'));
-      return packageJson.version;
-    } catch {
-      return 'unknown';
-    }
+    const packageJsonPath = path.join(__dirname, '..', '..', 'package.json');
+    const pkg = await readJsonFileSafe<{ version?: string }>(packageJsonPath, {});
+    return pkg.version ?? 'unknown';
   }
 
   /**

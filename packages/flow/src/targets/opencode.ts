@@ -2,7 +2,12 @@ import chalk from 'chalk';
 import { MCP_SERVER_REGISTRY } from '../config/servers.js';
 import type { AgentMetadata } from '../types/target-config.types.js';
 import type { MCPServerConfigUnion, Target } from '../types.js';
-import { fileUtils, generateHelpText, yamlUtils } from '../utils/config/target-utils.js';
+import {
+  type ConfigData,
+  fileUtils,
+  generateHelpText,
+  yamlUtils,
+} from '../utils/config/target-utils.js';
 import { CLIError } from '../utils/errors.js';
 import { secretUtils } from '../utils/security/secret-utils.js';
 import {
@@ -10,6 +15,11 @@ import {
   stripFrontMatter,
   transformMCPConfig as transformMCP,
 } from './shared/index.js';
+
+/** OpenCode configuration data with MCP config */
+interface OpenCodeConfigData extends ConfigData {
+  mcp?: Record<string, unknown>;
+}
 
 /**
  * Convert secret environment variables in a single MCP server config to file references
@@ -130,11 +140,14 @@ export const opencodeTarget: Target = {
   /**
    * Read OpenCode configuration with structure normalization
    */
-  async readConfig(cwd: string): Promise<any> {
+  async readConfig(cwd: string): Promise<OpenCodeConfigData> {
     const config = await fileUtils.readConfig(opencodeTarget.config, cwd);
 
     // Resolve any file references in the configuration
-    const resolvedConfig = await secretUtils.resolveFileReferences(cwd, config);
+    const resolvedConfig = (await secretUtils.resolveFileReferences(
+      cwd,
+      config
+    )) as OpenCodeConfigData;
 
     // Ensure the config has the expected structure
     if (!resolvedConfig.mcp) {

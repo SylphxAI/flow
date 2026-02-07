@@ -12,6 +12,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import type { Target } from '../types/target.types.js';
+import { readJsonFileSafe } from '../utils/files/file-operations.js';
 import { targetManager } from './target-manager.js';
 
 const execAsync = promisify(exec);
@@ -109,16 +110,11 @@ export class ProjectManager {
     projectHash: string
   ): Promise<'claude-code' | 'opencode' | undefined> {
     const prefsPath = path.join(this.flowHomeDir, 'project-preferences.json');
-    if (!existsSync(prefsPath)) {
-      return undefined;
-    }
-
-    try {
-      const prefs = JSON.parse(await fs.readFile(prefsPath, 'utf-8'));
-      return prefs.projects?.[projectHash]?.target;
-    } catch {
-      return undefined;
-    }
+    const prefs = await readJsonFileSafe<{ projects?: Record<string, { target?: string }> }>(
+      prefsPath,
+      {}
+    );
+    return prefs.projects?.[projectHash]?.target as 'claude-code' | 'opencode' | undefined;
   }
 
   /**
@@ -126,15 +122,10 @@ export class ProjectManager {
    */
   async saveProjectTargetPreference(projectHash: string, target: string): Promise<void> {
     const prefsPath = path.join(this.flowHomeDir, 'project-preferences.json');
-    let prefs: { projects: Record<string, { target?: string }> } = { projects: {} };
-
-    if (existsSync(prefsPath)) {
-      try {
-        prefs = JSON.parse(await fs.readFile(prefsPath, 'utf-8'));
-      } catch {
-        // Use default
-      }
-    }
+    const prefs = await readJsonFileSafe<{ projects: Record<string, { target?: string }> }>(
+      prefsPath,
+      { projects: {} }
+    );
 
     if (!prefs.projects) {
       prefs.projects = {};
@@ -187,16 +178,10 @@ export class ProjectManager {
     // If both are installed, use global default
     if (installed.claudeCode && installed.opencode) {
       const globalSettingsPath = path.join(this.flowHomeDir, 'settings.json');
-      if (existsSync(globalSettingsPath)) {
-        try {
-          const settings = JSON.parse(await fs.readFile(globalSettingsPath, 'utf-8'));
-          if (settings.defaultTarget) {
-            await this.saveProjectTargetPreference(projectHash, settings.defaultTarget);
-            return settings.defaultTarget;
-          }
-        } catch {
-          // Fall through
-        }
+      const settings = await readJsonFileSafe<{ defaultTarget?: string }>(globalSettingsPath, {});
+      if (settings.defaultTarget) {
+        await this.saveProjectTargetPreference(projectHash, settings.defaultTarget);
+        return settings.defaultTarget;
       }
 
       // Both installed, no global default, use claude-code

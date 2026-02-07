@@ -8,6 +8,7 @@ import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { Target } from '../types/target.types.js';
+import { readJsonFileSafe } from '../utils/files/file-operations.js';
 import type { ProjectManager } from './project-manager.js';
 import { resolveTargetOrId } from './target-resolver.js';
 
@@ -60,20 +61,26 @@ export class SecretsManager {
       const mcpServers = config[mcpPath] as Record<string, unknown> | undefined;
       if (mcpServers) {
         for (const [serverName, serverConfig] of Object.entries(mcpServers)) {
-          const server = serverConfig as any;
+          if (typeof serverConfig !== 'object' || serverConfig === null) {
+            continue;
+          }
+          const server = serverConfig as Record<string, unknown>;
 
           // Extract env vars (sensitive) - handle both 'env' and 'environment' keys
-          const envVars = server.env || server.environment;
-          if (envVars && Object.keys(envVars).length > 0) {
+          const envVars = (server.env || server.environment) as Record<string, string> | undefined;
+          if (envVars && typeof envVars === 'object' && Object.keys(envVars).length > 0) {
             secrets.servers[serverName] = {
               env: envVars,
             };
           }
 
           // Extract args (may contain secrets) - handle both 'args' and 'command' array
-          const args =
-            server.args || (Array.isArray(server.command) ? server.command.slice(1) : undefined);
-          if (args && Array.isArray(args) && args.length > 0) {
+          const args = Array.isArray(server.args)
+            ? server.args
+            : Array.isArray(server.command)
+              ? (server.command as string[]).slice(1)
+              : undefined;
+          if (args && args.length > 0) {
             if (!secrets.servers[serverName]) {
               secrets.servers[serverName] = {};
             }
@@ -105,20 +112,10 @@ export class SecretsManager {
   /**
    * Load secrets from storage
    */
-  async loadSecrets(projectHash: string): Promise<MCPSecrets | null> {
+  loadSecrets(projectHash: string): Promise<MCPSecrets | null> {
     const paths = this.projectManager.getProjectPaths(projectHash);
     const secretsPath = path.join(paths.secretsDir, 'mcp-env.json');
-
-    if (!existsSync(secretsPath)) {
-      return null;
-    }
-
-    try {
-      const data = await fs.readFile(secretsPath, 'utf-8');
-      return JSON.parse(data);
-    } catch {
-      return null;
-    }
+    return readJsonFileSafe<MCPSecrets | null>(secretsPath, null);
   }
 
   /**

@@ -11,6 +11,7 @@ import {
   getProjectSettingsFile,
   USER_SETTINGS_FILE,
 } from '../config/constants.js';
+import { readJsonFileSafe } from '../utils/files/file-operations.js';
 
 /**
  * User configuration (sensitive data, saved to home directory)
@@ -102,13 +103,8 @@ export class ConfigService {
   /**
    * Load user global settings (mainly for API keys)
    */
-  static async loadHomeSettings(): Promise<UserSettings> {
-    try {
-      const content = await fs.readFile(USER_SETTINGS_FILE, 'utf-8');
-      return JSON.parse(content);
-    } catch {
-      return {};
-    }
+  static loadHomeSettings(): Promise<UserSettings> {
+    return readJsonFileSafe<UserSettings>(USER_SETTINGS_FILE, {});
   }
 
   /**
@@ -154,14 +150,8 @@ export class ConfigService {
   /**
    * Load project-level settings
    */
-  static async loadProjectSettings(cwd: string = process.cwd()): Promise<ProjectSettings> {
-    try {
-      const configPath = getProjectSettingsFile(cwd);
-      const content = await fs.readFile(configPath, 'utf-8');
-      return JSON.parse(content);
-    } catch {
-      return {};
-    }
+  static loadProjectSettings(cwd: string = process.cwd()): Promise<ProjectSettings> {
+    return readJsonFileSafe<ProjectSettings>(getProjectSettingsFile(cwd), {});
   }
 
   /**
@@ -186,14 +176,8 @@ export class ConfigService {
   /**
    * Load project-local settings (overrides everything)
    */
-  static async loadLocalSettings(cwd: string = process.cwd()): Promise<RuntimeChoices> {
-    try {
-      const configPath = getProjectLocalSettingsFile(cwd);
-      const content = await fs.readFile(configPath, 'utf-8');
-      return JSON.parse(content);
-    } catch {
-      return {};
-    }
+  static loadLocalSettings(cwd: string = process.cwd()): Promise<RuntimeChoices> {
+    return readJsonFileSafe<RuntimeChoices>(getProjectLocalSettingsFile(cwd), {});
   }
 
   /**

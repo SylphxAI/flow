@@ -35,6 +35,22 @@ export interface FileInfo {
 }
 
 /**
+ * Read and parse a JSON file, returning a fallback value on any error
+ * (file not found, invalid JSON, permission denied, etc.)
+ *
+ * Consolidates the repeated pattern:
+ *   try { return JSON.parse(await fs.readFile(path, 'utf-8')); } catch { return fallback; }
+ */
+export async function readJsonFileSafe<T>(filePath: string, fallback: T): Promise<T> {
+  try {
+    const content = await fs.readFile(filePath, 'utf-8');
+    return JSON.parse(content) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+/**
  * Safely read a file with encoding and fallback options
  */
 export async function readFileSafe(

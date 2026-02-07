@@ -3,14 +3,15 @@
  * Minimal, modern CLI output design
  */
 
-import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
 import createDebug from 'debug';
 import { FlowExecutor } from '../../core/flow-executor.js';
+import { readJsonFileSafe } from '../../utils/files/file-operations.js';
 
 const debug = createDebug('flow:execute');
+
 import { targetManager } from '../../core/target-manager.js';
 import { AutoUpgrade } from '../../services/auto-upgrade.js';
 import { GlobalConfigService } from '../../services/global-config.js';
@@ -31,13 +32,9 @@ const __dirname = path.dirname(__filename);
  * Get Flow version from package.json
  */
 async function getFlowVersion(): Promise<string> {
-  try {
-    const packageJsonPath = path.join(__dirname, '..', '..', '..', 'package.json');
-    const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'));
-    return packageJson.version;
-  } catch {
-    return 'unknown';
-  }
+  const packageJsonPath = path.join(__dirname, '..', '..', '..', 'package.json');
+  const pkg = await readJsonFileSafe<{ version?: string }>(packageJsonPath, {});
+  return pkg.version ?? 'unknown';
 }
 
 /**

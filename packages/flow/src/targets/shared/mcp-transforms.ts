@@ -3,7 +3,13 @@
  * Bidirectional conversion between Claude Code and OpenCode formats
  */
 
-import type { MCPServerConfigUnion } from '../../types.js';
+import type {
+  MCPServerConfig,
+  MCPServerConfigHTTP,
+  MCPServerConfigLocal,
+  MCPServerConfigRemote,
+  MCPServerConfigUnion,
+} from '../../types.js';
 
 // ============================================================================
 // Platform Detection
@@ -21,31 +27,6 @@ const WINDOWS_WRAPPED_COMMANDS = ['npx', 'npm', 'pnpm', 'yarn', 'bun', 'node'];
 // ============================================================================
 
 export type MCPFormat = 'claude-code' | 'opencode';
-
-export interface StdioConfig {
-  type: 'stdio';
-  command: string;
-  args?: string[];
-  env?: Record<string, string>;
-}
-
-export interface HttpConfig {
-  type: 'http';
-  url: string;
-  headers?: Record<string, string>;
-}
-
-export interface LocalConfig {
-  type: 'local';
-  command: string[];
-  environment?: Record<string, string>;
-}
-
-export interface RemoteConfig {
-  type: 'remote';
-  url: string;
-  headers?: Record<string, string>;
-}
 
 // ============================================================================
 // Windows Command Wrapper
@@ -86,7 +67,7 @@ const wrapCommandForWindows = (
 /**
  * Convert stdio format to local format (Claude Code → OpenCode)
  */
-export const stdioToLocal = (config: StdioConfig): LocalConfig => ({
+export const stdioToLocal = (config: MCPServerConfig): MCPServerConfigLocal => ({
   type: 'local',
   command: config.args ? [config.command, ...config.args] : [config.command],
   ...(config.env && { environment: config.env }),
@@ -96,7 +77,7 @@ export const stdioToLocal = (config: StdioConfig): LocalConfig => ({
  * Convert local format to stdio format (OpenCode → Claude Code)
  * On Windows, wraps npx/npm/etc. with cmd /c
  */
-export const localToStdio = (config: LocalConfig): StdioConfig => {
+export const localToStdio = (config: MCPServerConfigLocal): MCPServerConfig => {
   const [command, ...args] = config.command;
   const wrapped = wrapCommandForWindows(command, args);
 
@@ -111,7 +92,7 @@ export const localToStdio = (config: LocalConfig): StdioConfig => {
 /**
  * Convert http format to remote format (Claude Code → OpenCode)
  */
-export const httpToRemote = (config: HttpConfig): RemoteConfig => ({
+export const httpToRemote = (config: MCPServerConfigHTTP): MCPServerConfigRemote => ({
   type: 'remote',
   url: config.url,
   ...(config.headers && { headers: config.headers }),
@@ -120,7 +101,7 @@ export const httpToRemote = (config: HttpConfig): RemoteConfig => ({
 /**
  * Convert remote format to http format (OpenCode → Claude Code)
  */
-export const remoteToHttp = (config: RemoteConfig): HttpConfig => ({
+export const remoteToHttp = (config: MCPServerConfigRemote): MCPServerConfigHTTP => ({
   type: 'http',
   url: config.url,
   ...(config.headers && { headers: config.headers }),
@@ -130,7 +111,7 @@ export const remoteToHttp = (config: RemoteConfig): HttpConfig => ({
  * Normalize stdio config (ensure consistent structure)
  * On Windows, wraps npx/npm/etc. with cmd /c
  */
-export const normalizeStdio = (config: StdioConfig): StdioConfig => {
+export const normalizeStdio = (config: MCPServerConfig): MCPServerConfig => {
   const wrapped = wrapCommandForWindows(config.command, config.args);
 
   return {
@@ -144,7 +125,7 @@ export const normalizeStdio = (config: StdioConfig): StdioConfig => {
 /**
  * Normalize http config (ensure consistent structure)
  */
-export const normalizeHttp = (config: HttpConfig): HttpConfig => ({
+export const normalizeHttp = (config: MCPServerConfigHTTP): MCPServerConfigHTTP => ({
   type: 'http',
   url: config.url,
   ...(config.headers && { headers: config.headers }),
@@ -156,7 +137,7 @@ export const normalizeHttp = (config: HttpConfig): HttpConfig => ({
 
 /**
  * Transform MCP config to target format
- * Pure function - no side effects
+ * Pure function - no side effects, uses discriminated union narrowing
  */
 export const transformMCPConfig = (
   config: MCPServerConfigUnion,
@@ -166,15 +147,13 @@ export const transformMCPConfig = (
   if (targetFormat === 'claude-code') {
     switch (config.type) {
       case 'local':
-        return localToStdio(config as LocalConfig);
+        return localToStdio(config);
       case 'remote':
-        return remoteToHttp(config as RemoteConfig);
+        return remoteToHttp(config);
       case 'stdio':
-        return normalizeStdio(config as StdioConfig);
+        return normalizeStdio(config);
       case 'http':
-        return normalizeHttp(config as HttpConfig);
-      default:
-        return config;
+        return normalizeHttp(config);
     }
   }
 
@@ -182,13 +161,11 @@ export const transformMCPConfig = (
   if (targetFormat === 'opencode') {
     switch (config.type) {
       case 'stdio':
-        return stdioToLocal(config as StdioConfig);
+        return stdioToLocal(config);
       case 'http':
-        return httpToRemote(config as HttpConfig);
+        return httpToRemote(config);
       case 'local':
       case 'remote':
-        return config;
-      default:
         return config;
     }
   }

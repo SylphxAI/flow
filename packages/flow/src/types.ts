@@ -25,12 +25,16 @@ export type {
 export type {
   MCPServerConfig,
   MCPServerConfigHTTP,
+  MCPServerConfigLocal,
+  MCPServerConfigRemote,
   MCPServerConfigUnion,
   OpenCodeConfig,
 } from './types/mcp.types.js';
 export {
   isCLICommandConfig,
   isHttpConfig,
+  isLocalConfig,
+  isRemoteConfig,
   isStdioConfig,
 } from './types/mcp.types.js';
 export type {
