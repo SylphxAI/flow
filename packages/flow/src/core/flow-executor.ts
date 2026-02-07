@@ -8,7 +8,10 @@ import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import chalk from 'chalk';
+import createDebug from 'debug';
 import type { Target } from '../types/target.types.js';
+
+const debug = createDebug('flow:executor');
 import { AttachManager } from './attach-manager.js';
 import { BackupManager } from './backup-manager.js';
 import { CleanupHandler } from './cleanup-handler.js';
@@ -152,8 +155,8 @@ export class FlowExecutor {
     if (targetObj.applySettings) {
       try {
         await targetObj.applySettings(projectPath, {});
-      } catch {
-        // Settings are optional
+      } catch (error) {
+        debug('applySettings failed:', error);
       }
     }
 
@@ -282,8 +285,8 @@ export class FlowExecutor {
           if (content.includes('Sylphx Flow') || content.includes('Silent Execution Style')) {
             await fs.unlink(filePath);
           }
-        } catch {
-          // Ignore errors - file might not be readable
+        } catch (error) {
+          debug('failed to clean legacy file %s: %O', fileName, error);
         }
       }
     }

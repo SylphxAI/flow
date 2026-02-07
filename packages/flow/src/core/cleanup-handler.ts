@@ -16,11 +16,14 @@
 import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import createDebug from 'debug';
 import type { BackupManager } from './backup-manager.js';
 import type { GitStashManager } from './git-stash-manager.js';
 import type { ProjectManager } from './project-manager.js';
 import type { SecretsManager } from './secrets-manager.js';
 import type { SessionManager } from './session-manager.js';
+
+const debug = createDebug('flow:cleanup');
 
 export class CleanupHandler {
   private projectManager: ProjectManager;
@@ -132,8 +135,8 @@ export class CleanupHandler {
         await this.gitStashManager.popSettingsChanges(session.projectPath);
         await this.secretsManager.clearSecrets(this.currentProjectHash);
       }
-    } catch (_error) {
-      // Silent fail - recovery will happen on next startup
+    } catch (error) {
+      debug('signal cleanup failed:', error);
     }
   }
 
@@ -156,8 +159,8 @@ export class CleanupHandler {
         await this.gitStashManager.popSettingsChanges(session.projectPath);
         await this.secretsManager.clearSecrets(projectHash);
         await this.backupManager.cleanupOldBackups(projectHash, 3);
-      } catch (_error) {
-        // Silent fail - don't interrupt startup
+      } catch (error) {
+        debug('startup recovery failed for session:', error);
       }
     }
 
@@ -168,8 +171,8 @@ export class CleanupHandler {
           this.sessionManager.cleanupSessionHistory(50),
           this.cleanupOrphanedProjects(),
         ]);
-      } catch {
-        // Non-fatal
+      } catch (error) {
+        debug('periodic cleanup failed:', error);
       }
       await this.updateCleanupTimestamp();
     }
@@ -185,7 +188,6 @@ export class CleanupHandler {
       const hoursSinceLastCleanup = (Date.now() - stat.mtimeMs) / (1000 * 60 * 60);
       return hoursSinceLastCleanup >= 24;
     } catch {
-      // Marker doesn't exist — first run or deleted
       return true;
     }
   }
@@ -197,8 +199,8 @@ export class CleanupHandler {
     const markerPath = path.join(this.projectManager.getFlowHomeDir(), '.last-cleanup');
     try {
       await fs.writeFile(markerPath, new Date().toISOString());
-    } catch {
-      // Non-fatal
+    } catch (error) {
+      debug('failed to update cleanup timestamp:', error);
     }
   }
 
@@ -259,7 +261,8 @@ export class CleanupHandler {
       try {
         const entries = await fs.readdir(dir, { withFileTypes: true });
         return entries.filter((e) => e.isDirectory()).map((e) => e.name);
-      } catch {
+      } catch (error) {
+        debug('failed to scan directory %s: %O', dir, error);
         return [];
       }
     };
@@ -292,7 +295,8 @@ export class CleanupHandler {
       const manifestPath = path.join(paths.backupsDir, sessions[0].name, 'manifest.json');
       const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf-8'));
       return manifest.projectPath || null;
-    } catch {
+    } catch (error) {
+      debug('failed to read backup manifest for %s: %O', projectHash, error);
       return null;
     }
   }
@@ -306,22 +310,22 @@ export class CleanupHandler {
     // Remove backups directory
     try {
       await fs.rm(paths.backupsDir, { recursive: true, force: true });
-    } catch {
-      // Ignore errors
+    } catch (error) {
+      debug('failed to remove backups for %s: %O', projectHash, error);
     }
 
     // Remove secrets directory
     try {
       await fs.rm(paths.secretsDir, { recursive: true, force: true });
-    } catch {
-      // Ignore errors
+    } catch (error) {
+      debug('failed to remove secrets for %s: %O', projectHash, error);
     }
 
     // Remove session file if exists
     try {
       await fs.unlink(paths.sessionFile);
     } catch {
-      // File might not exist
+      // Expected: file may not exist
     }
   }
 }

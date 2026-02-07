@@ -7,7 +7,10 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
+import createDebug from 'debug';
 import { FlowExecutor } from '../../core/flow-executor.js';
+
+const debug = createDebug('flow:execute');
 import { targetManager } from '../../core/target-manager.js';
 import { AutoUpgrade } from '../../services/auto-upgrade.js';
 import { GlobalConfigService } from '../../services/global-config.js';
@@ -315,8 +318,8 @@ export async function executeFlowV2(
       log.warn('Cancelled');
       try {
         await executor.cleanup(projectPath);
-      } catch {
-        // Silent cleanup failure
+      } catch (cleanupError) {
+        debug('cleanup after cancel failed:', cleanupError);
       }
       process.exit(0);
     }
@@ -325,8 +328,8 @@ export async function executeFlowV2(
 
     try {
       await executor.cleanup(projectPath);
-    } catch {
-      // Silent cleanup failure
+    } catch (cleanupError) {
+      debug('cleanup after error failed:', cleanupError);
     }
 
     throw error;
