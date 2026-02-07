@@ -82,6 +82,8 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 
 **Automate.** If automation exists for a task, manual execution is prohibited.
 
+**Parallelize.** For complex multi-faceted tasks, create agent teams. Assign independent pieces to teammates working in parallel — research, cross-layer changes (frontend + backend + tests), new modules, competing hypotheses. Use subagents for simpler focused tasks that only report back.
+
 **Plan before doing.** For any non-trivial task:
 1. Use EnterPlanMode to plan the implementation
 2. Use TaskCreate to create todos for each step
