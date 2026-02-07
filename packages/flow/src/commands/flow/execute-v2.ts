@@ -139,6 +139,106 @@ function executeTargetCommand(
 }
 
 /**
+ * Select target based on user settings, installed targets, and prompts
+ */
+async function selectTarget(
+  installedTargets: string[],
+  settings: import('../../services/global-config.js').GlobalSettings,
+  configService: GlobalConfigService,
+  targetInstaller: TargetInstaller
+): Promise<string | null> {
+  if (settings.defaultTarget === 'ask-every-time') {
+    const targetId = await promptForTargetSelection(
+      installedTargets,
+      'Select AI CLI:',
+      'execution'
+    );
+    const installed = await ensureTargetInstalled(targetId, targetInstaller, installedTargets);
+    if (!installed) {
+      process.exit(1);
+    }
+    return targetId;
+  }
+
+  if (!settings.defaultTarget) {
+    if (installedTargets.length === 1) {
+      const targetId = installedTargets[0];
+      settings.defaultTarget = targetId as 'claude-code' | 'opencode';
+      await configService.saveSettings(settings);
+      return targetId;
+    }
+
+    const targetId = await promptForTargetSelection(
+      installedTargets,
+      'Select AI CLI:',
+      'execution'
+    );
+    const installed = await ensureTargetInstalled(targetId, targetInstaller, installedTargets);
+    if (!installed) {
+      process.exit(1);
+    }
+
+    const rememberChoice = await promptConfirm({
+      message: 'Remember this choice?',
+      initialValue: true,
+    });
+    if (rememberChoice) {
+      settings.defaultTarget = targetId as 'claude-code' | 'opencode';
+      await configService.saveSettings(settings);
+    }
+    return targetId;
+  }
+
+  // User has a specific target preference
+  const targetId = settings.defaultTarget;
+  if (!installedTargets.includes(targetId)) {
+    const installation = targetInstaller.getInstallationInfo(targetId);
+    log.warn(`${installation?.name} not installed`);
+    const installed = await targetInstaller.install(targetId, true);
+    if (!installed) {
+      log.error('Cannot proceed: installation failed');
+      process.exit(1);
+    }
+  }
+  return targetId;
+}
+
+/**
+ * Load agent and build system prompt
+ */
+async function loadAgent(
+  options: FlowOptions,
+  settings: import('../../services/global-config.js').GlobalSettings,
+  configService: GlobalConfigService
+): Promise<{ agent: string; systemPrompt: string }> {
+  const flowConfig = await configService.loadFlowConfig();
+  let agent = options.agent || settings.defaultAgent || 'builder';
+
+  if (!flowConfig.agents[agent]?.enabled) {
+    const enabledAgents = await configService.getEnabledAgents();
+    agent = enabledAgents.length > 0 ? enabledAgents[0] : 'builder';
+  }
+
+  const [enabledRules, enabledOutputStyles] = await Promise.all([
+    configService.getEnabledRules(),
+    configService.getEnabledOutputStyles(),
+  ]);
+
+  const agentContent = await loadAgentContent(
+    agent,
+    options.agentFile,
+    enabledRules,
+    enabledOutputStyles
+  );
+  const agentInstructions = extractAgentInstructions(agentContent);
+
+  return {
+    agent,
+    systemPrompt: `AGENT INSTRUCTIONS:\n${agentInstructions}`,
+  };
+}
+
+/**
  * Main flow execution with attach mode (V2) - Minimal output design
  */
 export async function executeFlowV2(
@@ -158,79 +258,12 @@ export async function executeFlowV2(
     getFlowVersion(),
   ]);
 
-  let selectedTargetId: string | null = null;
-
-  const isAskEveryTime = settings.defaultTarget === 'ask-every-time';
-  const hasNoSetting = !settings.defaultTarget;
-  const hasSpecificTarget = settings.defaultTarget && settings.defaultTarget !== 'ask-every-time';
-
-  if (isAskEveryTime) {
-    // User explicitly wants to be asked every time
-    selectedTargetId = await promptForTargetSelection(
-      installedTargets,
-      'Select AI CLI:',
-      'execution'
-    );
-
-    const installed = await ensureTargetInstalled(
-      selectedTargetId,
-      targetInstaller,
-      installedTargets
-    );
-
-    if (!installed) {
-      process.exit(1);
-    }
-  } else if (hasNoSetting) {
-    // No setting - use auto-detection or prompt
-    if (installedTargets.length === 1) {
-      // Single target: auto-select and save silently
-      selectedTargetId = installedTargets[0];
-      settings.defaultTarget = selectedTargetId as 'claude-code' | 'opencode';
-      await configService.saveSettings(settings);
-    } else {
-      // Multiple targets: prompt and ask to remember
-      selectedTargetId = await promptForTargetSelection(
-        installedTargets,
-        'Select AI CLI:',
-        'execution'
-      );
-
-      const installed = await ensureTargetInstalled(
-        selectedTargetId,
-        targetInstaller,
-        installedTargets
-      );
-
-      if (!installed) {
-        process.exit(1);
-      }
-
-      const rememberChoice = await promptConfirm({
-        message: 'Remember this choice?',
-        initialValue: true,
-      });
-
-      if (rememberChoice) {
-        settings.defaultTarget = selectedTargetId as 'claude-code' | 'opencode';
-        await configService.saveSettings(settings);
-      }
-    }
-  } else if (hasSpecificTarget) {
-    // User has a specific target preference
-    selectedTargetId = settings.defaultTarget;
-
-    if (!installedTargets.includes(selectedTargetId)) {
-      const installation = targetInstaller.getInstallationInfo(selectedTargetId);
-      log.warn(`${installation?.name} not installed`);
-      const installed = await targetInstaller.install(selectedTargetId, true);
-
-      if (!installed) {
-        log.error('Cannot proceed: installation failed');
-        process.exit(1);
-      }
-    }
-  }
+  const selectedTargetId = await selectTarget(
+    installedTargets,
+    settings,
+    configService,
+    targetInstaller
+  );
 
   // Get target name for header
   const targetInstallation = targetInstaller.getInstallationInfo(selectedTargetId);
@@ -239,63 +272,34 @@ export async function executeFlowV2(
   // Show minimal header
   showHeader(version, targetName);
 
-  // Step 2: Start background auto-upgrade (non-blocking)
+  // Start background auto-upgrade (non-blocking)
   new AutoUpgrade().start();
 
-  // Create executor
   const executor = new FlowExecutor();
 
-  // Step 3: Execute attach mode lifecycle
   try {
     // Attach Flow environment (backup → attach → register cleanup)
     const attachResult = await executor.execute(projectPath, {
       verbose: options.verbose,
       skipBackup: false,
       skipSecrets: false,
-      skipProjectDocs: true, // Use /init command for project docs
+      skipProjectDocs: true,
       merge: options.merge || false,
     });
 
-    // Show attach summary
     showAttachSummary(attachResult);
 
-    const targetId = selectedTargetId;
-
     // Provider selection (Claude Code only, silent unless prompting)
-    if (targetId === 'claude-code') {
+    if (selectedTargetId === 'claude-code') {
       await selectProvider(configService);
     }
 
-    // Determine which agent to use
-    const flowConfig = await configService.loadFlowConfig();
-    let agent = options.agent || settings.defaultAgent || 'builder';
-
-    // Check if agent is enabled (silent fallback)
-    if (!flowConfig.agents[agent]?.enabled) {
-      const enabledAgents = await configService.getEnabledAgents();
-      agent = enabledAgents.length > 0 ? enabledAgents[0] : 'builder';
-    }
-
-    // Load agent content (parallel fetch rules and styles)
-    const [enabledRules, enabledOutputStyles] = await Promise.all([
-      configService.getEnabledRules(),
-      configService.getEnabledOutputStyles(),
-    ]);
-
-    const agentContent = await loadAgentContent(
-      agent,
-      options.agentFile,
-      enabledRules,
-      enabledOutputStyles
-    );
-    const agentInstructions = extractAgentInstructions(agentContent);
-
-    const systemPrompt = `AGENT INSTRUCTIONS:\n${agentInstructions}`;
+    // Load agent and build prompts
+    const { agent, systemPrompt } = await loadAgent(options, settings, configService);
     const userPrompt = prompt?.trim() || '';
 
-    // Prepare run options
     const runOptions: RunCommandOptions = {
-      target: targetId,
+      target: selectedTargetId,
       verbose: options.verbose || false,
       dryRun: options.dryRun || false,
       agent,
@@ -305,13 +309,9 @@ export async function executeFlowV2(
       continue: options.continue,
     };
 
-    // Step 4: Execute command
-    await executeTargetCommand(targetId, systemPrompt, userPrompt, runOptions);
-
-    // Step 5: Cleanup (silent)
+    await executeTargetCommand(selectedTargetId, systemPrompt, userPrompt, runOptions);
     await executor.cleanup(projectPath);
   } catch (error) {
-    // Handle user cancellation gracefully
     if (error instanceof UserCancelledError) {
       log.warn('Cancelled');
       try {
@@ -324,7 +324,6 @@ export async function executeFlowV2(
 
     console.error(chalk.red('\n  Error:'), error);
 
-    // Ensure cleanup even on error
     try {
       await executor.cleanup(projectPath);
     } catch {
