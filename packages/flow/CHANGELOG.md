@@ -1,5 +1,46 @@
 # @sylphx/flow
 
+## 3.19.0 (2026-02-07)
+
+Performance, stability, and test coverage overhaul
+
+**Performance:**
+- Replace blocking `execSync('which')` with async `exec()` + `Promise.all()`
+- Batch git operations (N shell spawns → 1 per operation)
+- Parallelize I/O across startup path (`Promise.all` for mkdir, unlink, fs.cp)
+- Skip heavy cleanup scans on startup when not needed (24h marker)
+
+**Bug fixes:**
+- Fix signal handler conflict causing storage accumulation (root cause: `process.exit(0)` preempted async cleanup)
+- Fix skip-worktree flag leak on crash (read from git index instead of in-memory state)
+- Fix secrets never cleared on session end
+- Fix constructor ordering bug (`gitStashManager` used before initialized)
+- Centralize all cleanup into CleanupHandler (signal, manual, crash recovery paths)
+
+**Storage lifecycle:**
+- Add orphaned project detection and cleanup
+- Add session history pruning (keep last 50)
+- Add periodic cleanup gating (at most once per 24h)
+
+**Tests:**
+- 30 → 81 tests (170% increase)
+- New test suites: cleanup-handler, git-stash-manager, session-cleanup, secrets-manager
+
+**Cleanup:**
+- Remove 432 lines of dead code across 26 files
+
+### ✨ Features
+
+- **flow:** performance, stability, and test coverage overhaul ([16c461f](https://github.com/SylphxAI/flow/commit/16c461f509d800d7456d933d3153078ded6d5669))
+
+### 🐛 Bug Fixes
+
+- **flow:** inject env vars into spawned process instead of writing files ([51f037e](https://github.com/SylphxAI/flow/commit/51f037e0a5fed8b24271528efa9cc16f0409bb2a))
+
+### 💅 Styles
+
+- **flow:** format package.json with biome (tabs → spaces) ([3206303](https://github.com/SylphxAI/flow/commit/320630301d8b85813f96b36e737b5d0b01b23793))
+
 ## 3.18.0 (2026-02-07)
 
 Enable agent teams by default for Claude Code
