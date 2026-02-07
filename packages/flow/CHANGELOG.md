@@ -1,5 +1,17 @@
 # @sylphx/flow
 
+## 3.18.0 (2026-02-07)
+
+Enable agent teams by default for Claude Code
+
+### ✨ Features
+
+- **flow:** enable agent teams by default for Claude Code ([a65c0f6](https://github.com/SylphxAI/flow/commit/a65c0f6af5e81077c5243fc8a66f8ca0c2734375))
+
+### 📚 Documentation
+
+- **builder:** add agent teams guidance to execution principles ([cd8b6aa](https://github.com/SylphxAI/flow/commit/cd8b6aa166613dc8f4e4779b8edb042ff290e517))
+
 ## 3.17.2 (2026-02-05)
 
 Fix target selection persistence and optimize startup flow
