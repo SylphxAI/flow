@@ -10,4 +10,4 @@ export {
   installServers,
   listAvailableServers,
   validateServerConfiguration,
-} from './mcp-service';
+} from './mcp-service.js';

@@ -3,4 +3,4 @@
  * Centralized access to core system components
  */
 
-export { targetManager } from './target-manager';
+export { targetManager } from './target-manager.js';
