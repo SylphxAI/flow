@@ -81,6 +81,53 @@ export const statusCommand = new Command('status')
     }
   });
 
+async function checkClaudeCodeInstalled(): Promise<boolean> {
+  console.log('检查 Claude Code 安装...');
+  try {
+    const { exec } = await import('node:child_process');
+    const { promisify } = await import('node:util');
+    const execAsync = promisify(exec);
+    await execAsync('which claude');
+    console.log(chalk.green('  ✓ Claude Code 已安装'));
+    return true;
+  } catch {
+    console.log(chalk.red('  ✗ Claude Code 未安装'));
+    console.log(chalk.dim('    运行: npm install -g @anthropic-ai/claude-code'));
+    return false;
+  }
+}
+
+async function checkConfiguration(
+  state: Awaited<ReturnType<StateDetector['detect']>>,
+  fix: boolean
+): Promise<boolean> {
+  console.log('\n检查配置...');
+  if (state.corrupted) {
+    console.log(chalk.red('  ✗ 配置损坏'));
+    if (fix) {
+      console.log(chalk.yellow('  🔄 正在修复...'));
+      await executeFlow(undefined, { sync: true } as FlowOptions);
+      console.log(chalk.green('  ✓ 已修复'));
+    }
+    return false;
+  }
+  if (state.initialized) {
+    console.log(chalk.green('  ✓ 配置正常'));
+    return true;
+  }
+  console.log(chalk.yellow('  ⚠ 项目未初始化'));
+  return false;
+}
+
+function checkComponents(state: Awaited<ReturnType<StateDetector['detect']>>): void {
+  console.log('\n检查组件...');
+  for (const [name, component] of Object.entries(state.components)) {
+    const status = component.installed ? chalk.green('✓') : chalk.red('✗');
+    const count = 'count' in component && component.count ? ` (${component.count})` : '';
+    console.log(`  ${status} ${name}${count}`);
+  }
+}
+
 /**
  * Doctor command - diagnose and fix issues
  */
@@ -94,49 +141,12 @@ export const doctorCommand = new Command('doctor')
     const detector = new StateDetector();
     const state = await detector.detect();
 
-    let issuesFound = false;
+    const installOk = await checkClaudeCodeInstalled();
+    const configOk = await checkConfiguration(state, options.fix);
+    checkComponents(state);
 
-    // Check 1: Claude Code installation
-    console.log('检查 Claude Code 安装...');
-    try {
-      const { exec } = await import('node:child_process');
-      const { promisify } = await import('node:util');
-      const execAsync = promisify(exec);
-      await execAsync('which claude');
-      console.log(chalk.green('  ✓ Claude Code 已安装'));
-    } catch {
-      console.log(chalk.red('  ✗ Claude Code 未安装'));
-      console.log(chalk.dim('    运行: npm install -g @anthropic-ai/claude-code'));
-      issuesFound = true;
-    }
+    const issuesFound = !installOk || !configOk;
 
-    // Check 2: Configuration
-    console.log('\n检查配置...');
-    if (state.corrupted) {
-      console.log(chalk.red('  ✗ 配置损坏'));
-      issuesFound = true;
-
-      if (options.fix) {
-        console.log(chalk.yellow('  🔄 正在修复...'));
-        await executeFlow(undefined, { sync: true } as FlowOptions);
-        console.log(chalk.green('  ✓ 已修复'));
-      }
-    } else if (state.initialized) {
-      console.log(chalk.green('  ✓ 配置正常'));
-    } else {
-      console.log(chalk.yellow('  ⚠ 项目未初始化'));
-      issuesFound = true;
-    }
-
-    // Check 3: Components
-    console.log('\n检查组件...');
-    Object.entries(state.components).forEach(([name, component]) => {
-      const status = component.installed ? chalk.green('✓') : chalk.red('✗');
-      const count = 'count' in component && component.count ? ` (${component.count})` : '';
-      console.log(`  ${status} ${name}${count}`);
-    });
-
-    // Summary
     console.log(`\n${chalk.bold('结果:')}`);
     if (!issuesFound) {
       console.log(chalk.green('✓ 所有检查通过'));
