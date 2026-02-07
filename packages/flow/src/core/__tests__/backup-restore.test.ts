@@ -47,7 +47,7 @@ describe('Backup → Attach → Restore Lifecycle', () => {
     (projectManager as any).flowDataDir = flowDataDir;
 
     backupManager = new BackupManager(projectManager);
-    attachManager = new AttachManager(projectManager);
+    attachManager = new AttachManager();
 
     // Get project hash
     projectHash = projectManager.getProjectHash(projectPath);

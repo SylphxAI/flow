@@ -1,19 +1,12 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import chalk from 'chalk';
-import { getRulesPath, ruleFileExists } from '../config/rules.js';
 import { MCP_SERVER_REGISTRY } from '../config/servers.js';
-import { installFile, installToDirectory } from '../core/installers/file-installer.js';
-import { createMCPInstaller } from '../core/installers/mcp-installer.js';
 import type { AgentMetadata } from '../types/target-config.types.js';
-import type { CommonOptions, MCPServerConfigUnion, SetupResult, Target } from '../types.js';
-import { getAgentsDir, getOutputStylesDir } from '../utils/config/paths.js';
+import type { MCPServerConfigUnion, Target } from '../types.js';
 import { fileUtils, generateHelpText, yamlUtils } from '../utils/config/target-utils.js';
 import { CLIError } from '../utils/error-handler.js';
 import { secretUtils } from '../utils/security/secret-utils.js';
 import {
   detectTargetConfig,
-  setupSlashCommandsTo,
   stripFrontMatter,
   transformMCPConfig as transformMCP,
 } from './shared/index.js';
@@ -47,6 +40,7 @@ export const opencodeTarget: Target = {
       createConfigFile: true,
       useSecretFiles: true,
     },
+    supportsMCP: true,
   },
 
   /**
@@ -197,156 +191,6 @@ export const opencodeTarget: Target = {
    * OpenCode doesn't need front matter in rules files (AGENTS.md)
    */
   transformRulesContent: stripFrontMatter,
-
-  /**
-   * Setup agents for OpenCode
-   * Install agents to .opencode/agent/ directory
-   */
-  async setupAgents(cwd: string, options: CommonOptions): Promise<SetupResult> {
-    const agentsDir = path.join(cwd, this.config.agentDir);
-
-    const results = await installToDirectory(
-      getAgentsDir(),
-      agentsDir,
-      async (content, sourcePath) => {
-        return await this.transformAgentContent(content, undefined, sourcePath);
-      },
-      {
-        ...options,
-        showProgress: false, // UI handled by init-command
-      }
-    );
-
-    return { count: results.length };
-  },
-
-  /**
-   * Setup output styles for OpenCode
-   * Append output styles to AGENTS.md (OpenCode doesn't support separate output style files)
-   */
-  async setupOutputStyles(cwd: string, _options: CommonOptions): Promise<SetupResult> {
-    if (!this.config.rulesFile) {
-      return { count: 0 };
-    }
-
-    const rulesFilePath = path.join(cwd, this.config.rulesFile);
-
-    // Read existing rules file content if it exists
-    let existingContent = '';
-    if (fs.existsSync(rulesFilePath)) {
-      existingContent = fs.readFileSync(rulesFilePath, 'utf8');
-    }
-
-    // Build output styles section
-    const outputStylesSourceDir = getOutputStylesDir();
-    if (!fs.existsSync(outputStylesSourceDir)) {
-      return { count: 0 }; // No output styles available
-    }
-
-    let outputStylesContent = '\n\n---\n\n# Output Styles\n\n';
-
-    // Collect output style files
-    const files = fs
-      .readdirSync(outputStylesSourceDir, { withFileTypes: true })
-      .filter((dirent) => dirent.isFile() && dirent.name.endsWith('.md'))
-      .map((dirent) => dirent.name);
-
-    if (files.length === 0) {
-      return { count: 0 };
-    }
-
-    for (const styleFile of files) {
-      const sourcePath = path.join(outputStylesSourceDir, styleFile);
-      let content = fs.readFileSync(sourcePath, 'utf8');
-
-      // Strip YAML front matter for system prompt
-      if (this.transformRulesContent) {
-        content = await this.transformRulesContent(content);
-      }
-
-      outputStylesContent += `${content}\n\n`;
-    }
-
-    // Check if output styles section already exists
-    const outputStylesMarker = '# Output Styles';
-    if (existingContent.includes(outputStylesMarker)) {
-      // Replace existing output styles section
-      const startIndex = existingContent.indexOf('---\n\n# Output Styles');
-      if (startIndex !== -1) {
-        existingContent = existingContent.substring(0, startIndex);
-      }
-    }
-
-    // Append output styles section
-    fs.writeFileSync(rulesFilePath, existingContent + outputStylesContent, 'utf8');
-
-    return { count: files.length };
-  },
-
-  /**
-   * Setup rules for OpenCode
-   * Install rules to AGENTS.md in project root
-   */
-  async setupRules(cwd: string, options: CommonOptions): Promise<SetupResult> {
-    if (!this.config.rulesFile) {
-      return { count: 0 };
-    }
-
-    // Check if core rules file exists
-    if (!ruleFileExists('core')) {
-      throw new Error('Core rules file not found');
-    }
-
-    const rulesDestPath = path.join(cwd, this.config.rulesFile);
-    const rulePath = getRulesPath('core');
-
-    await installFile(
-      rulePath,
-      rulesDestPath,
-      async (content) => {
-        // Transform rules content if transformation is available
-        if (this.transformRulesContent) {
-          return await this.transformRulesContent(content);
-        }
-        return content;
-      },
-      {
-        ...options,
-        showProgress: false, // UI handled by init-command
-      }
-    );
-
-    return { count: 1 };
-  },
-
-  /**
-   * Setup MCP servers for OpenCode
-   * Select, configure, install, and setup secrets directory
-   */
-  async setupMCP(cwd: string, options: CommonOptions): Promise<SetupResult> {
-    // Setup secrets directory first (OpenCode-specific)
-    if (!options.dryRun) {
-      await secretUtils.ensureSecretsDir(cwd);
-      await secretUtils.addToGitignore(cwd);
-    }
-
-    // Install MCP servers
-    const installer = createMCPInstaller(this);
-    const result = await installer.setupMCP({ ...options, quiet: true });
-
-    return { count: result.selectedServers.length };
-  },
-
-  /**
-   * Setup slash commands for OpenCode
-   * Install slash command templates to .opencode/command/ directory
-   */
-  async setupSlashCommands(cwd: string, options: CommonOptions): Promise<SetupResult> {
-    if (!this.config.slashCommandsDir) {
-      return { count: 0 };
-    }
-    return setupSlashCommandsTo(path.join(cwd, this.config.slashCommandsDir), undefined, options);
-  },
 
   /**
    * Execute OpenCode CLI

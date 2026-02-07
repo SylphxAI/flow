@@ -5,20 +5,8 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { installToDirectory } from '../../core/installers/file-installer.js';
-import type { CommonOptions, SetupResult, TargetConfig } from '../../types.js';
-import { getAgentsDir, getSlashCommandsDir } from '../../utils/config/paths.js';
+import type { TargetConfig } from '../../types.js';
 import { yamlUtils } from '../../utils/config/target-utils.js';
-
-// ============================================================================
-// Types
-// ============================================================================
-
-export type ContentTransformer = (content: string, sourcePath?: string) => Promise<string>;
-
-export interface SetupOptions extends CommonOptions {
-  showProgress?: boolean;
-}
 
 // ============================================================================
 // Pure Functions - Environment Detection
@@ -45,47 +33,6 @@ export const detectTargetConfig = (cwd: string, configFile: string): boolean => 
  */
 export const stripFrontMatter = (content: string): Promise<string> =>
   Promise.resolve(yamlUtils.stripFrontMatter(content));
-
-/**
- * Identity transformer - returns content unchanged
- */
-export const identityTransform: ContentTransformer = (content: string) => Promise.resolve(content);
-
-// ============================================================================
-// Pure Functions - Setup Operations
-// ============================================================================
-
-/**
- * Setup agents to target directory
- * Generic function used by both targets
- */
-export const setupAgentsTo = async (
-  targetDir: string,
-  transformer: ContentTransformer,
-  options: SetupOptions = {}
-): Promise<SetupResult> => {
-  const results = await installToDirectory(getAgentsDir(), targetDir, transformer, {
-    ...options,
-    showProgress: false,
-  });
-  return { count: results.length };
-};
-
-/**
- * Setup slash commands to target directory
- * Generic function used by both targets
- */
-export const setupSlashCommandsTo = async (
-  targetDir: string,
-  transformer: ContentTransformer = identityTransform,
-  options: SetupOptions = {}
-): Promise<SetupResult> => {
-  const results = await installToDirectory(getSlashCommandsDir(), targetDir, transformer, {
-    ...options,
-    showProgress: false,
-  });
-  return { count: results.length };
-};
 
 // ============================================================================
 // Pure Functions - Config Operations

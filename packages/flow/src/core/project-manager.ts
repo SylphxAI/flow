@@ -4,13 +4,17 @@
  * All projects store data in ~/.sylphx-flow/ isolated by project hash
  */
 
+import { exec } from 'node:child_process';
 import crypto from 'node:crypto';
 import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { promisify } from 'node:util';
 import type { Target } from '../types/target.types.js';
 import { targetManager } from './target-manager.js';
+
+const execAsync = promisify(exec);
 
 export interface ProjectPaths {
   sessionFile: string;
@@ -63,26 +67,20 @@ export class ProjectManager {
    * Initialize Flow directories
    */
   async initialize(): Promise<void> {
-    const dirs = [
-      this.flowHomeDir,
-      path.join(this.flowHomeDir, 'sessions'),
-      path.join(this.flowHomeDir, 'backups'),
-      path.join(this.flowHomeDir, 'secrets'),
-      path.join(this.flowHomeDir, 'templates'),
-    ];
-
-    for (const dir of dirs) {
-      await fs.mkdir(dir, { recursive: true });
-    }
+    await Promise.all([
+      fs.mkdir(path.join(this.flowHomeDir, 'sessions'), { recursive: true }),
+      fs.mkdir(path.join(this.flowHomeDir, 'backups'), { recursive: true }),
+      fs.mkdir(path.join(this.flowHomeDir, 'secrets'), { recursive: true }),
+      fs.mkdir(path.join(this.flowHomeDir, 'templates'), { recursive: true }),
+    ]);
   }
 
   /**
-   * Check if a command is available on the system
+   * Check if a command is available on the system (non-blocking)
    */
   private async isCommandAvailable(command: string): Promise<boolean> {
     try {
-      const { execSync } = await import('node:child_process');
-      execSync(`which ${command}`, { stdio: 'ignore' });
+      await execAsync(`which ${command}`, { timeout: 5000 });
       return true;
     } catch {
       return false;

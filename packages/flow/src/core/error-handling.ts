@@ -267,36 +267,6 @@ export class ErrorHandlerChain {
 export const globalErrorHandler = new ErrorHandlerChain([new LoggerErrorHandler('error')]);
 
 /**
- * Set up global error handlers
- */
-export function setupGlobalErrorHandlers(): void {
-  // Handle uncaught exceptions
-  process.on('uncaughtException', (error: Error) => {
-    logger.error('Uncaught Exception:', { error: error.message, stack: error.stack });
-    globalErrorHandler.handle(error);
-    process.exit(1);
-  });
-
-  // Handle unhandled promise rejections
-  process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
-    const error = reason instanceof Error ? reason : new Error(String(reason));
-    logger.error('Unhandled Rejection:', { error: error.message, reason, promise });
-    globalErrorHandler.handle(error);
-  });
-
-  // Handle process termination
-  process.on('SIGINT', () => {
-    logger.info('Process terminated by user');
-    process.exit(0);
-  });
-
-  process.on('SIGTERM', () => {
-    logger.info('Process terminated');
-    process.exit(0);
-  });
-}
-
-/**
  * Safe function wrapper with error handling
  */
 export async function withErrorHandling<T>(

@@ -3,18 +3,31 @@
  * Manages graceful cleanup on exit and crash recovery
  * Handles process signals and ensures backup restoration
  *
+ * Centralized cleanup for all exit paths:
+ * - Signal (SIGINT/SIGTERM) → onSignal() → restore + cleanup
+ * - Manual (FlowExecutor.cleanup) → cleanup() → restore + cleanup
+ * - Crash recovery (next startup) → recoverOnStartup() → restore + prune
+ *
  * IMPORTANT: Node.js 'exit' event handlers MUST be synchronous.
  * We use SIGINT/SIGTERM handlers to perform async cleanup before exiting.
  * The 'exit' handler is only a last-resort sync cleanup.
  */
 
+import { existsSync } from 'node:fs';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import type { BackupManager } from './backup-manager.js';
+import type { GitStashManager } from './git-stash-manager.js';
 import type { ProjectManager } from './project-manager.js';
+import type { SecretsManager } from './secrets-manager.js';
 import type { SessionManager } from './session-manager.js';
 
 export class CleanupHandler {
+  private projectManager: ProjectManager;
   private sessionManager: SessionManager;
   private backupManager: BackupManager;
+  private gitStashManager: GitStashManager;
+  private secretsManager: SecretsManager;
   private registered = false;
   private currentProjectHash: string | null = null;
   private cleanupInProgress = false;
@@ -23,11 +36,15 @@ export class CleanupHandler {
   constructor(
     projectManager: ProjectManager,
     sessionManager: SessionManager,
-    backupManager: BackupManager
+    backupManager: BackupManager,
+    gitStashManager: GitStashManager,
+    secretsManager: SecretsManager
   ) {
     this.projectManager = projectManager;
     this.sessionManager = sessionManager;
     this.backupManager = backupManager;
+    this.gitStashManager = gitStashManager;
+    this.secretsManager = secretsManager;
   }
 
   /**
@@ -112,6 +129,8 @@ export class CleanupHandler {
       if (shouldRestore && session) {
         await this.backupManager.restoreBackup(this.currentProjectHash, session.sessionId);
         await this.backupManager.cleanupOldBackups(this.currentProjectHash, 3);
+        await this.gitStashManager.popSettingsChanges(session.projectPath);
+        await this.secretsManager.clearSecrets(this.currentProjectHash);
       }
     } catch (_error) {
       // Silent fail - recovery will happen on next startup
@@ -120,23 +139,66 @@ export class CleanupHandler {
 
   /**
    * Recover on startup (for all projects)
-   * Checks for orphaned sessions from crashes
+   * Comprehensive cleanup: crashed sessions, stale data, history pruning
    * Silent operation - no console output
+   *
+   * Performance: Heavy cleanup scans (history pruning, orphaned project detection)
+   * run at most once per day to avoid slowing down every startup.
    */
   async recoverOnStartup(): Promise<void> {
+    // 1. Always recover orphaned sessions (from crashes) — fast when none exist
     const orphanedSessions = await this.sessionManager.detectOrphanedSessions();
-
-    if (orphanedSessions.size === 0) {
-      return;
-    }
 
     for (const [projectHash, session] of orphanedSessions) {
       try {
         await this.backupManager.restoreBackup(projectHash, session.sessionId);
         await this.sessionManager.recoverSession(projectHash, session);
+        await this.gitStashManager.popSettingsChanges(session.projectPath);
+        await this.secretsManager.clearSecrets(projectHash);
+        await this.backupManager.cleanupOldBackups(projectHash, 3);
       } catch (_error) {
         // Silent fail - don't interrupt startup
       }
+    }
+
+    // 2. Heavy cleanup scans — only once per day
+    if (await this.shouldRunPeriodicCleanup()) {
+      try {
+        await Promise.all([
+          this.sessionManager.cleanupSessionHistory(50),
+          this.cleanupOrphanedProjects(),
+        ]);
+      } catch {
+        // Non-fatal
+      }
+      await this.updateCleanupTimestamp();
+    }
+  }
+
+  /**
+   * Check if periodic cleanup should run (at most once per 24 hours)
+   */
+  private async shouldRunPeriodicCleanup(): Promise<boolean> {
+    const markerPath = path.join(this.projectManager.getFlowHomeDir(), '.last-cleanup');
+    try {
+      const stat = await fs.stat(markerPath);
+      const hoursSinceLastCleanup = (Date.now() - stat.mtimeMs) / (1000 * 60 * 60);
+      return hoursSinceLastCleanup >= 24;
+    } catch {
+      // Marker doesn't exist — first run or deleted
+      return true;
+    }
+  }
+
+  /**
+   * Update the cleanup timestamp marker
+   */
+  private async updateCleanupTimestamp(): Promise<void> {
+    const markerPath = path.join(this.projectManager.getFlowHomeDir(), '.last-cleanup');
+    try {
+      await fs.writeFile(markerPath, new Date().toISOString());
+    } catch {
+      // Non-fatal
     }
   }
 
@@ -147,9 +209,119 @@ export class CleanupHandler {
     const { shouldRestore, session } = await this.sessionManager.endSession(projectHash);
 
     if (shouldRestore && session) {
-      // Last session - restore environment
+      // Last session - full restore and cleanup
       await this.backupManager.restoreBackup(projectHash, session.sessionId);
       await this.backupManager.cleanupOldBackups(projectHash, 3);
+      await this.gitStashManager.popSettingsChanges(session.projectPath);
+      await this.secretsManager.clearSecrets(projectHash);
+    }
+  }
+
+  /**
+   * Clean up data for projects whose paths no longer exist
+   * Detects orphaned project hashes by checking if the original project path is accessible
+   */
+  private async cleanupOrphanedProjects(): Promise<void> {
+    const allHashes = await this.getAllProjectHashes();
+
+    for (const hash of allHashes) {
+      // Skip projects with active sessions
+      const activeSession = await this.sessionManager.getActiveSession(hash);
+      if (activeSession) {
+        continue;
+      }
+
+      // Try to find the project path from backup manifests
+      const projectPath = await this.getProjectPathFromBackup(hash);
+      if (!projectPath) {
+        // No manifest — orphaned data with no way to trace origin
+        await this.cleanupProjectData(hash);
+        continue;
+      }
+
+      // If project path no longer exists, clean up
+      if (!existsSync(projectPath)) {
+        await this.cleanupProjectData(hash);
+      }
+    }
+  }
+
+  /**
+   * Get all known project hashes from backups and secrets directories
+   */
+  private async getAllProjectHashes(): Promise<string[]> {
+    const flowHome = this.projectManager.getFlowHomeDir();
+
+    const scanDir = async (dir: string): Promise<string[]> => {
+      if (!existsSync(dir)) {
+        return [];
+      }
+      try {
+        const entries = await fs.readdir(dir, { withFileTypes: true });
+        return entries.filter((e) => e.isDirectory()).map((e) => e.name);
+      } catch {
+        return [];
+      }
+    };
+
+    // Scan both directories in parallel
+    const [backupHashes, secretHashes] = await Promise.all([
+      scanDir(path.join(flowHome, 'backups')),
+      scanDir(path.join(flowHome, 'secrets')),
+    ]);
+
+    return [...new Set([...backupHashes, ...secretHashes])];
+  }
+
+  /**
+   * Extract project path from the most recent backup manifest
+   */
+  private async getProjectPathFromBackup(projectHash: string): Promise<string | null> {
+    const paths = this.projectManager.getProjectPaths(projectHash);
+
+    try {
+      const entries = await fs.readdir(paths.backupsDir, { withFileTypes: true });
+      const sessions = entries
+        .filter((e) => e.isDirectory() && e.name.startsWith('session-'))
+        .sort((a, b) => b.name.localeCompare(a.name)); // newest first
+
+      if (sessions.length === 0) {
+        return null;
+      }
+
+      const manifestPath = path.join(paths.backupsDir, sessions[0].name, 'manifest.json');
+      const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf-8'));
+      return manifest.projectPath || null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Remove all stored data for a project hash (backups, secrets, session file)
+   */
+  private async cleanupProjectData(projectHash: string): Promise<void> {
+    const paths = this.projectManager.getProjectPaths(projectHash);
+
+    // Remove backups directory
+    try {
+      await fs.rm(paths.backupsDir, { recursive: true, force: true });
+    } catch {
+      // Ignore errors
+    }
+
+    // Remove secrets directory
+    try {
+      await fs.rm(paths.secretsDir, { recursive: true, force: true });
+    } catch {
+      // Ignore errors
+    }
+
+    // Remove session file if exists
+    try {
+      await fs.unlink(paths.sessionFile);
+    } catch {
+      // File might not exist
     }
   }
 }

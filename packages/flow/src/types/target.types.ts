@@ -46,6 +46,8 @@ export interface TargetConfig {
     /** Whether to use secret file references for sensitive environment variables */
     useSecretFiles?: boolean;
   };
+  /** Whether this target supports MCP servers */
+  supportsMCP?: boolean;
 }
 
 /**
@@ -118,28 +120,6 @@ export interface Target {
   /** Transform rules content for the target (optional - defaults to no transformation) */
   transformRulesContent?(content: string): Promise<string>;
 
-  /** Setup target-specific configuration (optional - for targets that need additional setup) */
-  setup?(cwd: string, options?: Record<string, unknown>): Promise<void>;
-
-  // Setup methods for different components
-  /** Setup agents for this target (optional - implement if target needs agents) */
-  setupAgents?(cwd: string, options: CommonOptions): Promise<SetupResult>;
-
-  /** Setup rules for this target (optional - implement if target needs rules) */
-  setupRules?(cwd: string, options: CommonOptions): Promise<SetupResult>;
-
-  /** Setup output styles for this target (optional - implement if target supports output styles) */
-  setupOutputStyles?(cwd: string, options: CommonOptions): Promise<SetupResult>;
-
-  /** Setup MCP servers for this target (optional - implement if target supports MCP) */
-  setupMCP?(cwd: string, options: CommonOptions): Promise<SetupResult>;
-
-  /** Setup hooks for this target (optional - implement if target needs hooks like Claude Code) */
-  setupHooks?(cwd: string, options: CommonOptions): Promise<SetupResult>;
-
-  /** Setup slash commands for this target (optional - implement if target supports slash commands) */
-  setupSlashCommands?(cwd: string, options: CommonOptions): Promise<SetupResult>;
-
-  /** Setup skills for this target (optional - implement if target supports skills) */
-  setupSkills?(cwd: string, options: CommonOptions): Promise<SetupResult>;
+  /** Apply target-specific settings to config (attribution, hooks, env, thinking mode) */
+  applySettings?(cwd: string, options: CommonOptions): Promise<SetupResult>;
 }

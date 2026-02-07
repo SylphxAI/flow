@@ -1,27 +1,32 @@
 /**
- * Target Resolver
- * Shared utility for resolving target IDs to Target objects
- * Eliminates duplication across BackupManager and SecretsManager
+ * Target Resolver — Single Source of Truth for target ID → Target resolution
  */
 
 import type { Target } from '../types/target.types.js';
 import { targetManager } from './target-manager.js';
 
 /**
- * Resolve a target from ID string to Target object
- * @throws Error if target ID is not found
+ * Resolve target ID to Target object, returns null if not found
  */
-export function resolveTarget(targetId: string): Target {
+export function tryResolveTarget(targetId: string): Target | null {
   const targetOption = targetManager.getTarget(targetId);
-  if (targetOption._tag === 'None') {
-    throw new Error(`Unknown target: ${targetId}`);
-  }
-  return targetOption.value;
+  return targetOption._tag === 'Some' ? targetOption.value : null;
 }
 
 /**
- * Resolve target, accepting either string ID or Target object
- * Returns the Target object in both cases
+ * Resolve target ID to Target object
+ * @throws Error if target ID is not found
+ */
+export function resolveTarget(targetId: string): Target {
+  const target = tryResolveTarget(targetId);
+  if (!target) {
+    throw new Error(`Unknown target: ${targetId}`);
+  }
+  return target;
+}
+
+/**
+ * Resolve target from either string ID or Target object
  */
 export function resolveTargetOrId(targetOrId: Target | string): Target {
   return typeof targetOrId === 'string' ? resolveTarget(targetOrId) : targetOrId;

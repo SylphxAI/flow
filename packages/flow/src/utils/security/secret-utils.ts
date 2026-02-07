@@ -74,7 +74,7 @@ export const secretUtils = {
   /**
    * Resolve file references in an object recursively
    */
-  async resolveFileReferences(cwd: string, obj: any): Promise<any> {
+  async resolveFileReferences(cwd: string, obj: unknown): Promise<unknown> {
     if (typeof obj === 'string' && secretUtils.isFileReference(obj)) {
       const filePath = secretUtils.extractFilePath(obj);
       return await secretUtils.readSecret(cwd, filePath);
@@ -85,7 +85,7 @@ export const secretUtils = {
     }
 
     if (obj && typeof obj === 'object') {
-      const resolved: any = {};
+      const resolved: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(obj)) {
         resolved[key] = await secretUtils.resolveFileReferences(cwd, value);
       }

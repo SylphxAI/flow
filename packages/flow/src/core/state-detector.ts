@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ConfigService } from '../services/config-service.js';
 import type { Target } from '../types/target.types.js';
-import { targetManager } from './target-manager.js';
+import { tryResolveTarget } from './target-resolver.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -41,17 +41,6 @@ export class StateDetector {
 
   constructor(projectPath: string = process.cwd()) {
     this.projectPath = projectPath;
-  }
-
-  /**
-   * Resolve target from ID string to Target object
-   */
-  private resolveTarget(targetId: string): Target | null {
-    const targetOption = targetManager.getTarget(targetId);
-    if (targetOption._tag === 'None') {
-      return null;
-    }
-    return targetOption.value;
   }
 
   async detect(): Promise<ProjectState> {
@@ -95,7 +84,7 @@ export class StateDetector {
       }
 
       // Resolve target to get config
-      const target = state.target ? this.resolveTarget(state.target) : null;
+      const target = state.target ? tryResolveTarget(state.target) : null;
 
       // Check components based on target config
       if (target) {
@@ -376,7 +365,7 @@ export class StateDetector {
     targetId: string
   ): Promise<{ version: string | null; latestVersion: string | null }> {
     try {
-      const target = this.resolveTarget(targetId);
+      const target = tryResolveTarget(targetId);
       if (!target) {
         return { version: null, latestVersion: null };
       }
@@ -428,7 +417,7 @@ export class StateDetector {
 
     // Check required components based on target
     if (state.initialized && state.target) {
-      const target = this.resolveTarget(state.target);
+      const target = tryResolveTarget(state.target);
       // CLI-based targets (category: 'cli') require agents to be installed
       if (target && target.category === 'cli' && !state.components.agents.installed) {
         return true; // CLI target initialized but no agents

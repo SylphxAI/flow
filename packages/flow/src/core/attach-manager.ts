@@ -13,8 +13,7 @@ import { GlobalConfigService } from '../services/global-config.js';
 import type { Target } from '../types/target.types.js';
 import { attachItemsToDir, attachRulesFile } from './attach/index.js';
 import type { BackupManifest } from './backup-manager.js';
-import type { ProjectManager } from './project-manager.js';
-import { targetManager } from './target-manager.js';
+import { resolveTargetOrId } from './target-resolver.js';
 
 export interface AttachResult {
   agentsAdded: string[];
@@ -27,13 +26,11 @@ export interface AttachResult {
   mcpServersAdded: string[];
   mcpServersOverridden: string[];
   singleFilesMerged: string[];
-  hooksAdded: string[];
-  hooksOverridden: string[];
   conflicts: ConflictInfo[];
 }
 
 export interface ConflictInfo {
-  type: 'agent' | 'command' | 'skill' | 'mcp' | 'hook';
+  type: 'agent' | 'command' | 'skill' | 'mcp';
   name: string;
   action: 'overridden' | 'merged';
   message: string;
@@ -45,15 +42,13 @@ export interface FlowTemplates {
   skills: Array<{ name: string; content: string }>;
   rules?: string;
   mcpServers: Array<{ name: string; config: Record<string, unknown> }>;
-  hooks: Array<{ name: string; content: string }>;
   singleFiles: Array<{ path: string; content: string }>;
 }
 
 export class AttachManager {
   private configService: GlobalConfigService;
 
-  constructor(projectManager: ProjectManager) {
-    this.projectManager = projectManager;
+  constructor() {
     this.configService = new GlobalConfigService();
   }
 
@@ -67,17 +62,6 @@ export class AttachManager {
     } catch {
       return '';
     }
-  }
-
-  /**
-   * Resolve target from ID string to Target object
-   */
-  private resolveTarget(targetId: string): Target {
-    const targetOption = targetManager.getTarget(targetId);
-    if (targetOption._tag === 'None') {
-      throw new Error(`Unknown target: ${targetId}`);
-    }
-    return targetOption.value;
   }
 
   /**
@@ -125,21 +109,14 @@ export class AttachManager {
   /**
    * Attach Flow templates to project
    * Strategy: Override with warning, backup handles restoration
-   * @param projectPath - Project root path
-   * @param _projectHash - Project hash (unused but kept for API compatibility)
-   * @param targetOrId - Target object or target ID string
-   * @param templates - Flow templates to attach
-   * @param manifest - Backup manifest to track changes
    */
   async attach(
     projectPath: string,
-    _projectHash: string,
     targetOrId: Target | string,
     templates: FlowTemplates,
     manifest: BackupManifest
   ): Promise<AttachResult> {
-    // Resolve target from ID if needed
-    const target = typeof targetOrId === 'string' ? this.resolveTarget(targetOrId) : targetOrId;
+    const target = resolveTargetOrId(targetOrId);
 
     const result: AttachResult = {
       agentsAdded: [],
@@ -152,8 +129,6 @@ export class AttachManager {
       mcpServersAdded: [],
       mcpServersOverridden: [],
       singleFilesMerged: [],
-      hooksAdded: [],
-      hooksOverridden: [],
       conflicts: [],
     };
 
@@ -183,14 +158,9 @@ export class AttachManager {
       await this.attachMCPServers(projectPath, target, allMCPServers, result, manifest);
     }
 
-    // 6. Attach hooks
-    if (templates.hooks.length > 0) {
-      await this.attachHooks(projectPath, target, templates.hooks, result, manifest);
-    }
-
-    // 7. Attach single files
+    // 6. Attach single files
     if (templates.singleFiles.length > 0) {
-      await this.attachSingleFiles(projectPath, templates.singleFiles, result, manifest);
+      await this.attachSingleFiles(projectPath, target, templates.singleFiles, result, manifest);
     }
 
     return result;
@@ -387,57 +357,17 @@ export class AttachManager {
   }
 
   /**
-   * Attach hooks (override strategy)
-   */
-  private async attachHooks(
-    projectPath: string,
-    target: Target,
-    hooks: Array<{ name: string; content: string }>,
-    result: AttachResult,
-    _manifest: BackupManifest
-  ): Promise<void> {
-    // Hooks are in configDir/hooks
-    const hooksDir = path.join(projectPath, target.config.configDir, 'hooks');
-    await fs.mkdir(hooksDir, { recursive: true });
-
-    for (const hook of hooks) {
-      const hookPath = path.join(hooksDir, hook.name);
-      const existed = existsSync(hookPath);
-
-      if (existed) {
-        result.hooksOverridden.push(hook.name);
-        result.conflicts.push({
-          type: 'hook',
-          name: hook.name,
-          action: 'overridden',
-          message: `Hook '${hook.name}' overridden (will be restored on exit)`,
-        });
-      } else {
-        result.hooksAdded.push(hook.name);
-      }
-
-      await fs.writeFile(hookPath, hook.content);
-    }
-  }
-
-  /**
    * Attach single files (currently unused, output styles merged into core.md)
    * NOTE: These files are placed in the target config directory (.claude/ or .opencode/),
    * NOT in the project root directory.
    */
   private async attachSingleFiles(
     projectPath: string,
+    target: Target,
     singleFiles: Array<{ path: string; content: string }>,
     result: AttachResult,
     manifest: BackupManifest
   ): Promise<void> {
-    // Get target from manifest to determine config directory
-    const targetOption = targetManager.getTarget(manifest.target);
-    if (targetOption._tag === 'None') {
-      return; // Unknown target, skip
-    }
-    const target = targetOption.value;
-
     for (const file of singleFiles) {
       // Write to target config directory (e.g., .claude/ or .opencode/)
       const filePath = path.join(projectPath, target.config.configDir, file.path);

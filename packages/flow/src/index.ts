@@ -98,48 +98,19 @@ export async function runCLI(): Promise<void> {
  * Set up global error handlers for uncaught exceptions and unhandled rejections
  */
 function setupGlobalErrorHandling(): void {
-  // Handle uncaught exceptions
-  process.on('uncaughtException', (error) => {
-    console.error('✗ Uncaught Exception:');
-    console.error(`  ${error.message}`);
-    if (process.env.NODE_ENV === 'development') {
-      console.error('  Stack trace:', error.stack);
-    }
-    process.exit(1);
-  });
-
-  // Handle unhandled promise rejections
-  process.on('unhandledRejection', (reason, promise) => {
-    // Ignore AbortError - this is expected when user cancels operations
+  // Handle unhandled promise rejections (non-fatal, log only)
+  process.on('unhandledRejection', (reason) => {
+    // Ignore AbortError — expected when user cancels operations
     if (reason instanceof Error && reason.name === 'AbortError') {
       return;
     }
-
-    // Only log unhandled rejections in development mode
-    // Don't exit the process - let the application handle errors gracefully
     if (process.env.NODE_ENV === 'development' || process.env.DEBUG) {
-      console.error('✗ Unhandled Promise Rejection:');
-      console.error(`  Reason: ${reason}`);
-      console.error('  Promise:', promise);
+      console.error('✗ Unhandled Promise Rejection:', reason);
     }
   });
 
-  // Handle process termination gracefully
-  process.on('SIGINT', () => {
-    console.log('\nSylphx Flow CLI terminated by user');
-    process.exit(0);
-  });
-
-  process.on('SIGTERM', () => {
-    console.log('\nSylphx Flow CLI terminated');
-    process.exit(0);
-  });
-
-  // Ensure clean exit by allowing the event loop to drain
-  process.on('beforeExit', () => {
-    // Node.js will exit automatically after this handler completes
-    // No explicit process.exit() needed
-  });
+  // SIGINT/SIGTERM are handled by CleanupHandler which does async backup restoration.
+  // DO NOT register handlers here — process.exit() would preempt cleanup.
 }
 
 /**

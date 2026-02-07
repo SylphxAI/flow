@@ -30,15 +30,13 @@ export class TemplateLoader {
     const commandsDir = path.join(this.assetsDir, 'slash-commands');
     const skillsDir = path.join(this.assetsDir, 'skills');
     const mcpConfigPath = path.join(this.assetsDir, 'mcp-servers.json');
-    const outputStylesDir = path.join(this.assetsDir, 'output-styles');
 
     // Load all directories in parallel
-    const [agents, commands, skills, mcpServers, singleFiles, rules] = await Promise.all([
+    const [agents, commands, skills, mcpServers, rules] = await Promise.all([
       existsSync(agentsDir) ? this.loadAgents(agentsDir) : [],
       existsSync(commandsDir) ? this.loadCommands(commandsDir) : [],
       existsSync(skillsDir) ? this.loadSkills(skillsDir) : [],
       existsSync(mcpConfigPath) ? this.loadMCPServers(mcpConfigPath) : [],
-      existsSync(outputStylesDir) ? this.loadSingleFiles(outputStylesDir) : [],
       this.loadRules(),
     ]);
 
@@ -48,8 +46,7 @@ export class TemplateLoader {
       skills,
       rules,
       mcpServers,
-      hooks: [],
-      singleFiles,
+      singleFiles: [],
     };
   }
 
@@ -134,41 +131,18 @@ export class TemplateLoader {
   /**
    * Load MCP servers configuration
    */
-  private async loadMCPServers(configPath: string): Promise<Array<{ name: string; config: any }>> {
+  private async loadMCPServers(
+    configPath: string
+  ): Promise<Array<{ name: string; config: Record<string, unknown> }>> {
     const data = await fs.readFile(configPath, 'utf-8');
-    const config = JSON.parse(data);
+    const config = JSON.parse(data) as Record<string, Record<string, unknown>>;
 
-    const servers = [];
+    const servers: Array<{ name: string; config: Record<string, unknown> }> = [];
     for (const [name, serverConfig] of Object.entries(config)) {
       servers.push({ name, config: serverConfig });
     }
 
     return servers;
-  }
-
-  /**
-   * Load single files (parallel loading)
-   */
-  private async loadSingleFiles(
-    singleFilesDir: string
-  ): Promise<Array<{ path: string; content: string }>> {
-    const entries = await fs.readdir(singleFilesDir);
-
-    const results = await Promise.all(
-      entries.map(async (entry) => {
-        const filePath = path.join(singleFilesDir, entry);
-        const stat = await fs.stat(filePath);
-
-        if (!stat.isFile()) {
-          return null;
-        }
-
-        const content = await fs.readFile(filePath, 'utf-8');
-        return { path: entry, content };
-      })
-    );
-
-    return results.filter((r): r is { path: string; content: string } => r !== null);
   }
 
   /**

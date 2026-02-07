@@ -209,6 +209,34 @@ export class SessionManager {
   }
 
   /**
+   * Prune old session history files to prevent unbounded accumulation
+   * Keeps the most recent N history entries (sorted by session timestamp in filename)
+   */
+  async cleanupSessionHistory(keepLast: number = 50): Promise<void> {
+    const flowHome = this.projectManager.getFlowHomeDir();
+    const historyDir = path.join(flowHome, 'sessions', 'history');
+
+    if (!existsSync(historyDir)) {
+      return;
+    }
+
+    const files = await fs.readdir(historyDir);
+    const sessionFiles = files
+      .filter((f) => f.endsWith('.json'))
+      .sort() // session-{timestamp}.json sorts chronologically
+      .reverse(); // newest first
+
+    // Delete files beyond keepLast
+    for (const file of sessionFiles.slice(keepLast)) {
+      try {
+        await fs.unlink(path.join(historyDir, file));
+      } catch {
+        // Ignore errors — file might already be deleted
+      }
+    }
+  }
+
+  /**
    * Recover from crashed session
    */
   async recoverSession(projectHash: string, session: Session): Promise<void> {
@@ -228,39 +256,6 @@ export class SessionManager {
       await fs.unlink(paths.sessionFile);
     } catch {
       // File might not exist
-    }
-  }
-
-  /**
-   * Clean up old session history
-   */
-  async cleanupOldSessions(keepLast: number = 10): Promise<void> {
-    const flowHome = this.projectManager.getFlowHomeDir();
-    const historyDir = path.join(flowHome, 'sessions', 'history');
-
-    if (!existsSync(historyDir)) {
-      return;
-    }
-
-    const files = await fs.readdir(historyDir);
-    const sessions = await Promise.all(
-      files.map(async (file) => {
-        const filePath = path.join(historyDir, file);
-        const data = await fs.readFile(filePath, 'utf-8');
-        const session = JSON.parse(data) as Session;
-        return { file, session };
-      })
-    );
-
-    // Sort by start time (newest first)
-    sessions.sort(
-      (a, b) => new Date(b.session.startTime).getTime() - new Date(a.session.startTime).getTime()
-    );
-
-    // Remove old sessions
-    const toRemove = sessions.slice(keepLast);
-    for (const { file } of toRemove) {
-      await fs.unlink(path.join(historyDir, file));
     }
   }
 }

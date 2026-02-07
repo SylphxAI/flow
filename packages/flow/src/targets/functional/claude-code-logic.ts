@@ -114,8 +114,7 @@ export const processSettings = (
     hooks: hookConfiguration,
   });
 
-  const serialize = (settings: ClaudeCodeSettings): string =>
-    JSON.stringify(settings, null, 2);
+  const serialize = (settings: ClaudeCodeSettings): string => JSON.stringify(settings, null, 2);
 
   if (existingContent === null || existingContent.trim() === '') {
     return success(serialize(createNewSettings()));

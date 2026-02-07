@@ -93,7 +93,7 @@ export const getDefaultTargetUnsafe = (): Target => {
  * Get targets that support MCP servers
  */
 export const getTargetsWithMCPSupport = (): readonly Target[] =>
-  getImplementedTargets().filter((target) => !!target.setupMCP);
+  getImplementedTargets().filter((target) => !!target.config.supportsMCP);
 
 /**
  * Get targets that support command execution (agent running)

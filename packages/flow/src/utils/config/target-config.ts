@@ -32,7 +32,7 @@ export async function addMCPServersToTarget(
 
   const target = targetOption.value;
 
-  if (!target.setupMCP) {
+  if (!target.config.supportsMCP) {
     throw new Error(`Target ${targetId} does not support MCP servers`);
   }
 
@@ -57,8 +57,6 @@ export async function addMCPServersToTarget(
     if (mcpSection[server.name]) {
       console.log(`ℹ️  MCP server already exists: ${server.name}`);
     } else {
-      const _transformedConfig = target.transformMCPConfig(server.config, server.id);
-
       // Apply dynamic command and args generation (only for CLI servers)
       let resolvedCommand: unknown;
       let resolvedArgs: unknown;
@@ -180,10 +178,11 @@ export async function listMCPServersForTarget(cwd: string, targetId: string): Pr
   for (const [name, serverConfig] of Object.entries(mcpSection)) {
     let configInfo = '';
     if (serverConfig && typeof serverConfig === 'object' && 'type' in serverConfig) {
-      if (serverConfig.type === 'local') {
-        configInfo = (serverConfig as any).command?.join(' ') || 'Unknown command';
-      } else if (serverConfig.type === 'remote') {
-        configInfo = `HTTP: ${(serverConfig as any).url}`;
+      const typed = serverConfig as Record<string, unknown>;
+      if (typed.type === 'local' && Array.isArray(typed.command)) {
+        configInfo = (typed.command as string[]).join(' ') || 'Unknown command';
+      } else if (typed.type === 'remote' && typeof typed.url === 'string') {
+        configInfo = `HTTP: ${typed.url}`;
       }
     }
 
@@ -275,11 +274,6 @@ export async function configureMCPServerForTarget(
 
   // Merge existing keys: env vars take precedence over config keys
   const existingKeys = { ...existingConfigKeys, ...envApiKeys };
-
-  // If we have all required keys from environment, use them
-  const _hasAllRequiredEnvKeys = requiredEnvVars.every(
-    (envVar) => envApiKeys[envVar] && envApiKeys[envVar].trim() !== ''
-  );
 
   // mcp config is always for configuring - show UI with existing values
   console.log(
@@ -373,7 +367,7 @@ export async function configureMCPServerForTarget(
 
   if (
     targetConfigOption._tag === 'Some' &&
-    targetConfigOption.value.setupMCP &&
+    targetConfigOption.value.config.supportsMCP &&
     targetConfigOption.value.config.installation.useSecretFiles !== false &&
     Object.keys(secretApiKeys).length > 0
   ) {
@@ -471,7 +465,7 @@ export function targetSupportsMCPServers(targetId: string): boolean {
   if (targetOption._tag === 'None') {
     return false;
   }
-  return !!targetOption.value.setupMCP;
+  return !!targetOption.value.config.supportsMCP;
 }
 
 /**

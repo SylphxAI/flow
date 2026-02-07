@@ -166,8 +166,8 @@ export async function buildSyncManifest(cwd: string, target: Target): Promise<Sy
     }
   }
 
-  // Hooks - detect orphaned hooks (only for targets that support hooks)
-  if (target.setupHooks) {
+  // Hooks - detect orphaned hooks (only for targets that support settings)
+  if (target.applySettings) {
     const settingsPath = path.join(cwd, '.claude', 'settings.json');
     if (fs.existsSync(settingsPath)) {
       try {
@@ -215,9 +215,9 @@ export function showSyncPreview(manifest: SyncManifest, cwd: string, target?: Ta
     manifest.rules.inFlow.length > 0 ||
     manifest.mcpServers.inRegistry.length > 0;
 
-  const hasHooksSupport = target?.setupHooks !== undefined;
+  const hasSettingsSupport = target?.applySettings !== undefined;
 
-  if (hasFlowFiles || hasHooksSupport) {
+  if (hasFlowFiles || hasSettingsSupport) {
     console.log(chalk.green('Will sync (delete + reinstall):\n'));
 
     if (manifest.agents.inFlow.length > 0) {
@@ -253,7 +253,7 @@ export function showSyncPreview(manifest: SyncManifest, cwd: string, target?: Ta
     }
 
     // Show hooks if target supports them
-    if (hasHooksSupport) {
+    if (hasSettingsSupport) {
       console.log(chalk.dim('  Settings:'));
 
       if (manifest.hooks.inConfig.length > 0) {

@@ -2,11 +2,8 @@ import { spawn } from 'node:child_process';
 import fsPromises from 'node:fs/promises';
 import path from 'node:path';
 import chalk from 'chalk';
-import { installToDirectory } from '../core/installers/file-installer.js';
-import { createMCPInstaller } from '../core/installers/mcp-installer.js';
 import type { AgentMetadata, FrontMatterMetadata } from '../types/target-config.types.js';
 import type { CommonOptions, MCPServerConfigUnion, SetupResult, Target } from '../types.js';
-import { getAgentsDir } from '../utils/config/paths.js';
 import {
   type ConfigData,
   fileUtils,
@@ -19,7 +16,6 @@ import { sanitize } from '../utils/security/security.js';
 import { DEFAULT_CLAUDE_CODE_ENV } from './functional/claude-code-logic.js';
 import {
   detectTargetConfig,
-  setupSlashCommandsTo,
   stripFrontMatter,
   transformMCPConfig as transformMCP,
 } from './shared/index.js';
@@ -71,6 +67,7 @@ export const claudeCodeTarget: Target = {
       createConfigFile: true,
       useSecretFiles: false,
     },
+    supportsMCP: true,
   },
 
   /**
@@ -307,15 +304,9 @@ Please begin your response with a comprehensive summary of all the instructions 
         if (errWithCode.code !== undefined) {
           throw new CLIError(`Claude Code exited with code ${errWithCode.code}`, 'CLAUDE_ERROR');
         }
-        throw new CLIError(
-          `Failed to execute Claude Code: ${error.message}`,
-          'CLAUDE_ERROR'
-        );
+        throw new CLIError(`Failed to execute Claude Code: ${error.message}`, 'CLAUDE_ERROR');
       }
-      throw new CLIError(
-        `Failed to execute Claude Code: ${String(error)}`,
-        'CLAUDE_ERROR'
-      );
+      throw new CLIError(`Failed to execute Claude Code: ${String(error)}`, 'CLAUDE_ERROR');
     }
   },
 
@@ -377,10 +368,10 @@ Please begin your response with a comprehensive summary of all the instructions 
   transformRulesContent: stripFrontMatter,
 
   /**
-   * Setup hooks for Claude Code
-   * Configure session and prompt hooks for system information display
+   * Apply Claude Code settings (attribution, hooks, env, thinking mode)
+   * Merges Flow defaults into .claude/settings.json, preserving user settings
    */
-  async setupHooks(cwd: string, _options: CommonOptions): Promise<SetupResult> {
+  async applySettings(cwd: string, _options: CommonOptions): Promise<SetupResult> {
     const { processSettings, generateHookCommands } = await import(
       './functional/claude-code-logic.js'
     );
@@ -431,95 +422,6 @@ Please begin your response with a comprehensive summary of all the instructions 
       count: 1,
       message: 'Configured notification hook',
     };
-  },
-
-  /**
-   * Setup agents for Claude Code
-   * Install agents to .claude/agents/ directory with rules appended
-   * Output styles are applied dynamically at runtime based on user settings
-   */
-  async setupAgents(cwd: string, options: CommonOptions): Promise<SetupResult> {
-    const { enhanceAgentContent } = await import('../utils/agent-enhancer.js');
-    const agentsDir = path.join(cwd, this.config.agentDir);
-
-    const results = await installToDirectory(
-      getAgentsDir(),
-      agentsDir,
-      async (content, sourcePath) => {
-        // Extract rules from ORIGINAL content before transformation
-        const { metadata } = await yamlUtils.extractFrontMatter(content);
-        const rules = metadata.rules as string[] | undefined;
-
-        // Transform agent content (converts to Claude Code format, strips unsupported fields)
-        const transformed = await this.transformAgentContent(content, undefined, sourcePath);
-
-        // Enhance with rules only (output styles are applied dynamically at runtime)
-        const enhanced = await enhanceAgentContent(transformed, rules, []);
-
-        return enhanced;
-      },
-      {
-        ...options,
-        showProgress: false, // UI handled by init-command
-      }
-    );
-
-    return { count: results.length };
-  },
-
-  /**
-   * Setup output styles for Claude Code
-   * Output styles are appended to each agent file
-   */
-  async setupOutputStyles(_cwd: string, _options: CommonOptions): Promise<SetupResult> {
-    // Output styles are appended to each agent file during setupAgents
-    // No separate installation needed
-    return {
-      count: 0,
-      message: 'Output styles included in agent files',
-    };
-  },
-
-  /**
-   * Setup rules for Claude Code
-   * Rules are appended to each agent file
-   */
-  async setupRules(_cwd: string, _options: CommonOptions): Promise<SetupResult> {
-    // Rules are appended to each agent file during setupAgents
-    // No separate CLAUDE.md file needed
-    return {
-      count: 0,
-      message: 'Rules included in agent files',
-    };
-  },
-
-  /**
-   * Setup MCP servers for Claude Code
-   * Select, configure, install, and approve MCP servers
-   */
-  async setupMCP(cwd: string, options: CommonOptions): Promise<SetupResult> {
-    const installer = createMCPInstaller(this);
-    const result = await installer.setupMCP({ ...options, quiet: true });
-
-    // Approve servers in Claude Code settings
-    if (result.selectedServers.length > 0 && !options.dryRun) {
-      if (this.approveMCPServers) {
-        await this.approveMCPServers(cwd, result.selectedServers);
-      }
-    }
-
-    return { count: result.selectedServers.length };
-  },
-
-  /**
-   * Setup slash commands for Claude Code
-   * Install slash command templates to .claude/commands/ directory
-   */
-  async setupSlashCommands(cwd: string, options: CommonOptions): Promise<SetupResult> {
-    if (!this.config.slashCommandsDir) {
-      return { count: 0 };
-    }
-    return setupSlashCommandsTo(path.join(cwd, this.config.slashCommandsDir), undefined, options);
   },
 };
 

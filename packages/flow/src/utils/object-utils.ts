@@ -20,7 +20,11 @@ export function setNestedProperty(
   value: unknown
 ): void {
   const keys = path.split('.');
-  const lastKey = keys.pop()!;
+  const lastKey = keys.pop();
+
+  if (!lastKey) {
+    return;
+  }
 
   const target = keys.reduce((current, key) => {
     if (current[key] === undefined || typeof current[key] !== 'object') {
@@ -37,7 +41,11 @@ export function setNestedProperty(
  */
 export function deleteNestedProperty(obj: Record<string, unknown>, path: string): void {
   const keys = path.split('.');
-  const lastKey = keys.pop()!;
+  const lastKey = keys.pop();
+
+  if (!lastKey) {
+    return;
+  }
 
   const target = keys.reduce((current, key) => {
     if (current[key] === undefined || typeof current[key] !== 'object') {

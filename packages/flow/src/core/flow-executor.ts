@@ -16,7 +16,7 @@ import { GitStashManager } from './git-stash-manager.js';
 import { ProjectManager } from './project-manager.js';
 import { SecretsManager } from './secrets-manager.js';
 import { SessionManager } from './session-manager.js';
-import { targetManager } from './target-manager.js';
+import { resolveTargetOrId } from './target-resolver.js';
 import { TemplateLoader } from './template-loader.js';
 
 export interface FlowExecutorOptions {
@@ -41,15 +41,17 @@ export class FlowExecutor {
     this.projectManager = new ProjectManager();
     this.sessionManager = new SessionManager(this.projectManager);
     this.backupManager = new BackupManager(this.projectManager);
-    this.attachManager = new AttachManager(this.projectManager);
+    this.attachManager = new AttachManager();
     this.secretsManager = new SecretsManager(this.projectManager);
+    this.templateLoader = new TemplateLoader();
+    this.gitStashManager = new GitStashManager();
     this.cleanupHandler = new CleanupHandler(
       this.projectManager,
       this.sessionManager,
-      this.backupManager
+      this.backupManager,
+      this.gitStashManager,
+      this.secretsManager
     );
-    this.templateLoader = new TemplateLoader();
-    this.gitStashManager = new GitStashManager();
   }
 
   /**
@@ -87,7 +89,7 @@ export class FlowExecutor {
 
     if (existingSession) {
       // Verify attached files still exist before joining
-      const targetObj = typeof target === 'string' ? this.resolveTarget(target) : target;
+      const targetObj = resolveTargetOrId(target);
       const agentsDir = path.join(projectPath, targetObj.config.agentDir);
       const filesExist = existsSync(agentsDir) && (await fs.readdir(agentsDir)).length > 0;
 
@@ -110,20 +112,25 @@ export class FlowExecutor {
       await this.sessionManager.endSession(projectHash);
     }
 
-    // First session - optionally create project docs, stash, backup, attach (all silent)
-    if (!options.skipProjectDocs) {
-      await this.ensureProjectDocs(projectPath);
-    }
-    await this.gitStashManager.stashSettingsChanges(projectPath);
-    const backup = await this.backupManager.createBackup(projectPath, projectHash, target);
+    // First session — run independent setup steps in parallel
+    await Promise.all([
+      options.skipProjectDocs ? Promise.resolve() : this.ensureProjectDocs(projectPath),
+      this.gitStashManager.stashSettingsChanges(projectPath),
+    ]);
 
-    // Extract and save secrets (silent)
-    if (!options.skipSecrets) {
-      const secrets = await this.secretsManager.extractMCPSecrets(projectPath, projectHash, target);
-      if (Object.keys(secrets.servers).length > 0) {
-        await this.secretsManager.saveSecrets(projectHash, secrets);
-      }
-    }
+    // Backup and extract secrets in parallel (both read project config, neither writes)
+    const [backup] = await Promise.all([
+      this.backupManager.createBackup(projectPath, projectHash, target),
+      options.skipSecrets
+        ? Promise.resolve()
+        : this.secretsManager
+            .extractMCPSecrets(projectPath, projectHash, target)
+            .then((secrets) => {
+              if (Object.keys(secrets.servers).length > 0) {
+                return this.secretsManager.saveSecrets(projectHash, secrets);
+              }
+            }),
+    ]);
 
     // Start session
     const { session } = await this.sessionManager.startSession(
@@ -148,13 +155,18 @@ export class FlowExecutor {
       throw new Error('Backup manifest not found');
     }
 
-    const attachResult = await this.attachManager.attach(
-      projectPath,
-      projectHash,
-      target,
-      templates,
-      manifest
-    );
+    const attachResult = await this.attachManager.attach(projectPath, target, templates, manifest);
+
+    // Apply target-specific settings (attribution, hooks, env, thinking mode)
+    // Non-fatal: CLI can still run without these settings
+    const targetObj = resolveTargetOrId(target);
+    if (targetObj.applySettings) {
+      try {
+        await targetObj.applySettings(projectPath, {});
+      } catch {
+        // Settings are optional — agents/commands/MCP already attached
+      }
+    }
 
     await this.backupManager.updateManifest(projectHash, session.sessionId, manifest);
 
@@ -169,64 +181,45 @@ export class FlowExecutor {
   }
 
   /**
-   * Resolve target from ID string to Target object
-   */
-  private resolveTarget(targetId: string): Target {
-    const targetOption = targetManager.getTarget(targetId);
-    if (targetOption._tag === 'None') {
-      throw new Error(`Unknown target: ${targetId}`);
-    }
-    return targetOption.value;
-  }
-
-  /**
    * Clear user settings in replace mode
    * This ensures a clean slate for Flow's configuration
    */
   private async clearUserSettings(projectPath: string, targetOrId: Target | string): Promise<void> {
-    const target = typeof targetOrId === 'string' ? this.resolveTarget(targetOrId) : targetOrId;
-    const fs = await import('node:fs/promises');
-    const path = await import('node:path');
-    const { existsSync } = await import('node:fs');
+    const target = resolveTargetOrId(targetOrId);
 
     // All paths use target.config.* directly (full paths relative to projectPath)
 
-    // 1. Clear agents directory (including AGENTS.md rules file for Claude Code)
-    const agentsDir = path.join(projectPath, target.config.agentDir);
-    if (existsSync(agentsDir)) {
-      const files = await fs.readdir(agentsDir);
-      for (const file of files) {
-        await fs.unlink(path.join(agentsDir, file));
+    // Clear directories in parallel — each is independent
+    const clearDirFiles = async (dir: string) => {
+      if (!existsSync(dir)) {
+        return;
       }
-    }
+      const files = await fs.readdir(dir);
+      await Promise.all(files.map((file) => fs.unlink(path.join(dir, file))));
+    };
+
+    const clearOps: Promise<void>[] = [];
+
+    // 1. Clear agents directory (including AGENTS.md rules file for Claude Code)
+    clearOps.push(clearDirFiles(path.join(projectPath, target.config.agentDir)));
 
     // 2. Clear commands directory (if target supports slash commands)
     if (target.config.slashCommandsDir) {
-      const commandsDir = path.join(projectPath, target.config.slashCommandsDir);
-      if (existsSync(commandsDir)) {
-        const files = await fs.readdir(commandsDir);
-        for (const file of files) {
-          await fs.unlink(path.join(commandsDir, file));
-        }
-      }
+      clearOps.push(clearDirFiles(path.join(projectPath, target.config.slashCommandsDir)));
     }
 
     // 3. Clear skills directory (if target supports skills)
     if (target.config.skillsDir) {
       const skillsDir = path.join(projectPath, target.config.skillsDir);
       if (existsSync(skillsDir)) {
-        await fs.rm(skillsDir, { recursive: true, force: true });
+        clearOps.push(fs.rm(skillsDir, { recursive: true, force: true }));
       }
     }
 
     // 4. Clear hooks directory (in configDir)
-    const hooksDir = path.join(projectPath, target.config.configDir, 'hooks');
-    if (existsSync(hooksDir)) {
-      const files = await fs.readdir(hooksDir);
-      for (const file of files) {
-        await fs.unlink(path.join(hooksDir, file));
-      }
-    }
+    clearOps.push(clearDirFiles(path.join(projectPath, target.config.configDir, 'hooks')));
+
+    await Promise.all(clearOps);
 
     // 5. Clear MCP configuration using target config
     const configPath = path.join(projectPath, target.config.configFile);
@@ -250,17 +243,7 @@ export class FlowExecutor {
       }
     }
 
-    // 7. Clear single files (output styles) - currently none
-    // These would be in the configDir if we had any
-    const singleFiles: string[] = [];
-    for (const fileName of singleFiles) {
-      const filePath = path.join(projectPath, target.config.configDir, fileName);
-      if (existsSync(filePath)) {
-        await fs.unlink(filePath);
-      }
-    }
-
-    // 8. Clean up any Flow-created files in project root (legacy bug cleanup)
+    // 7. Clean up any Flow-created files in project root (legacy bug cleanup)
     // This handles files that were incorrectly created in project root
     const legacySingleFiles = ['silent.md']; // Keep for cleanup of legacy installations
     for (const fileName of legacySingleFiles) {
@@ -310,7 +293,6 @@ export class FlowExecutor {
   async cleanup(projectPath: string): Promise<void> {
     const projectHash = this.projectManager.getProjectHash(projectPath);
     await this.cleanupHandler.cleanup(projectHash);
-    await this.gitStashManager.popSettingsChanges(projectPath);
   }
 
   /**

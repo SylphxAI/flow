@@ -9,7 +9,7 @@ import { CLIError } from '../utils/error-handler.js';
 import { detectPackageManager, getUpgradeCommand } from '../utils/package-manager-detector.js';
 import { createSpinner, log } from '../utils/prompts/index.js';
 import type { ProjectState } from './state-detector.js';
-import { targetManager } from './target-manager.js';
+import { tryResolveTarget } from './target-resolver.js';
 
 const execAsync = promisify(exec);
 
@@ -152,23 +152,12 @@ export class UpgradeManager {
     }
   }
 
-  /**
-   * Resolve target from ID string to Target object
-   */
-  private resolveTarget(targetId: string): Target | null {
-    const targetOption = targetManager.getTarget(targetId);
-    if (targetOption._tag === 'None') {
-      return null;
-    }
-    return targetOption.value;
-  }
-
   async upgradeTarget(state: ProjectState, autoInstall: boolean = false): Promise<boolean> {
     if (!state.target || !state.targetLatestVersion) {
       return false;
     }
 
-    const target = this.resolveTarget(state.target);
+    const target = tryResolveTarget(state.target);
     if (!target) {
       return false;
     }
@@ -263,7 +252,7 @@ export class UpgradeManager {
       const configPath = path.join(this.projectPath, getProjectSettingsFile());
       const config = JSON.parse(await fs.readFile(configPath, 'utf-8'));
       if (config.target) {
-        return this.resolveTarget(config.target);
+        return tryResolveTarget(config.target);
       }
     } catch {
       // Cannot read config
@@ -355,7 +344,7 @@ export class UpgradeManager {
   }
 
   private async getCurrentTargetVersion(targetId: string): Promise<string | null> {
-    const target = this.resolveTarget(targetId);
+    const target = tryResolveTarget(targetId);
     if (!target) {
       return null;
     }

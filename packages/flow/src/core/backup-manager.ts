@@ -233,32 +233,20 @@ export class BackupManager {
       }))
       .sort((a, b) => b.timestamp - a.timestamp);
 
-    // Remove old backups
+    // Remove old backups in parallel
     const toRemove = sessions.slice(keepLast);
-    for (const session of toRemove) {
-      const sessionPath = path.join(paths.backupsDir, session.name);
-      await fs.rm(sessionPath, { recursive: true, force: true });
-    }
+    await Promise.all(
+      toRemove.map((session) =>
+        fs.rm(path.join(paths.backupsDir, session.name), { recursive: true, force: true })
+      )
+    );
   }
 
   /**
-   * Copy directory recursively
+   * Copy directory recursively using native fs.cp
    */
   private async copyDirectory(src: string, dest: string): Promise<void> {
-    await fs.mkdir(dest, { recursive: true });
-
-    const entries = await fs.readdir(src, { withFileTypes: true });
-
-    for (const entry of entries) {
-      const srcPath = path.join(src, entry.name);
-      const destPath = path.join(dest, entry.name);
-
-      if (entry.isDirectory()) {
-        await this.copyDirectory(srcPath, destPath);
-      } else {
-        await fs.copyFile(srcPath, destPath);
-      }
-    }
+    await fs.cp(src, dest, { recursive: true });
   }
 
   /**

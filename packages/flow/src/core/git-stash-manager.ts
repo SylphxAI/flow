@@ -2,18 +2,16 @@
  * Git Worktree Manager
  * Uses git update-index --skip-worktree to hide Flow's settings changes from git status
  * Prevents LLM from accidentally committing Flow's temporary changes
+ *
+ * Performance: All git operations are batched (single command for multiple files)
  */
 
 import { exec } from 'node:child_process';
-import { existsSync } from 'node:fs';
-import path from 'node:path';
 import { promisify } from 'node:util';
 
 const execAsync = promisify(exec);
 
 export class GitStashManager {
-  private skipWorktreeFiles: string[] = [];
-
   /**
    * Check if project is in a git repository
    */
@@ -27,105 +25,89 @@ export class GitStashManager {
   }
 
   /**
-   * Get all tracked files in settings directories
+   * Get all tracked files in settings directories (single git command)
    */
   async getTrackedSettingsFiles(projectPath: string): Promise<string[]> {
-    const files: string[] = [];
-
-    // Check .claude directory
-    const claudeDir = path.join(projectPath, '.claude');
-    if (existsSync(claudeDir)) {
-      try {
-        const { stdout } = await execAsync('git ls-files .claude', { cwd: projectPath });
-        const claudeFiles = stdout
-          .trim()
-          .split('\n')
-          .filter((f) => f);
-        files.push(...claudeFiles);
-      } catch {
-        // Directory not tracked in git
-      }
+    try {
+      // Single command covers both .claude and .opencode
+      const { stdout } = await execAsync('git ls-files .claude .opencode', {
+        cwd: projectPath,
+      });
+      return stdout
+        .trim()
+        .split('\n')
+        .filter((f) => f);
+    } catch {
+      return [];
     }
-
-    // Check .opencode directory
-    const opencodeDir = path.join(projectPath, '.opencode');
-    if (existsSync(opencodeDir)) {
-      try {
-        const { stdout } = await execAsync('git ls-files .opencode', { cwd: projectPath });
-        const opencodeFiles = stdout
-          .trim()
-          .split('\n')
-          .filter((f) => f);
-        files.push(...opencodeFiles);
-      } catch {
-        // Directory not tracked in git
-      }
-    }
-
-    return files;
   }
 
   /**
    * Mark settings files as skip-worktree before attach
-   * This hides Flow's settings modifications from git status
+   * Uses batched git command (single spawn for all files)
    */
   async stashSettingsChanges(projectPath: string): Promise<void> {
-    // Check if in git repo
     const inGitRepo = await this.isGitRepo(projectPath);
     if (!inGitRepo) {
       return;
     }
 
-    // Get all tracked settings files
     const files = await this.getTrackedSettingsFiles(projectPath);
     if (files.length === 0) {
       return;
     }
 
     try {
-      // Mark each file as skip-worktree
-      for (const file of files) {
-        try {
-          await execAsync(`git update-index --skip-worktree "${file}"`, { cwd: projectPath });
-          this.skipWorktreeFiles.push(file);
-        } catch {
-          // File might not exist or not tracked, skip it
-        }
-      }
-    } catch (_error) {
-      // Silent fail
+      // Batch all files in a single git command
+      const quoted = files.map((f) => `"${f}"`).join(' ');
+      await execAsync(`git update-index --skip-worktree ${quoted}`, { cwd: projectPath });
+    } catch {
+      // Silent fail — files might not exist or not be tracked
     }
   }
 
   /**
    * Unmark settings files as skip-worktree after restore
-   * This restores normal git tracking
+   * Detects flags directly from git index (crash-safe — no in-memory state dependency)
+   * Uses batched git command (single spawn for all files)
    */
   async popSettingsChanges(projectPath: string): Promise<void> {
-    if (this.skipWorktreeFiles.length === 0) {
+    const inGitRepo = await this.isGitRepo(projectPath);
+    if (!inGitRepo) {
+      return;
+    }
+
+    const flaggedFiles = await this.detectSkipWorktreeFiles(projectPath);
+    if (flaggedFiles.length === 0) {
       return;
     }
 
     try {
-      // Unmark each file
-      for (const file of this.skipWorktreeFiles) {
-        try {
-          await execAsync(`git update-index --no-skip-worktree "${file}"`, { cwd: projectPath });
-        } catch {
-          // File might have been deleted, skip it
-        }
-      }
-
-      this.skipWorktreeFiles = [];
-    } catch (_error) {
-      // Silent fail
+      // Batch all files in a single git command
+      const quoted = flaggedFiles.map((f) => `"${f}"`).join(' ');
+      await execAsync(`git update-index --no-skip-worktree ${quoted}`, { cwd: projectPath });
+    } catch {
+      // Silent fail — files might have been deleted
     }
   }
 
   /**
-   * Reset state (for cleanup)
+   * Detect files with skip-worktree flag set in target config directories
+   * Reads directly from git index — works even after crash recovery
    */
-  reset(): void {
-    this.skipWorktreeFiles = [];
+  private async detectSkipWorktreeFiles(projectPath: string): Promise<string[]> {
+    try {
+      // git ls-files -v shows skip-worktree files with 'S' prefix
+      const { stdout } = await execAsync('git ls-files -v .claude .opencode', {
+        cwd: projectPath,
+      });
+      return stdout
+        .trim()
+        .split('\n')
+        .filter((line) => line.startsWith('S '))
+        .map((line) => line.slice(2));
+    } catch {
+      return [];
+    }
   }
 }
