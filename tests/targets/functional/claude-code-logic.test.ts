@@ -1,123 +1,26 @@
 import { describe, expect, it } from 'vitest';
 import {
-  buildHookConfiguration,
-  createSettings,
-  getSuccessMessage,
-  mergeSettings,
-  parseSettings,
+  DEFAULT_CLAUDE_CODE_ENV,
+  generateHookCommands,
   processSettings,
-  serializeSettings,
-  validateHookConfig,
 } from '../../../packages/flow/src/targets/functional/claude-code-logic';
 
 describe('claude-code-logic', () => {
-  describe('parseSettings', () => {
-    it('should parse valid JSON', () => {
-      const content = '{"hooks": {}, "test": "value"}';
-      const result = parseSettings(content);
-
-      expect(result._tag).toBe('Success');
-      if (result._tag === 'Success') {
-        expect(result.value).toEqual({ hooks: {}, test: 'value' });
-      }
+  describe('DEFAULT_CLAUDE_CODE_ENV', () => {
+    it('should include max output tokens', () => {
+      expect(DEFAULT_CLAUDE_CODE_ENV.CLAUDE_CODE_MAX_OUTPUT_TOKENS).toBe('128000');
     });
 
-    it('should fail for invalid JSON', () => {
-      const content = '{invalid json}';
-      const result = parseSettings(content);
-
-      expect(result._tag).toBe('Failure');
+    it('should enable agent teams', () => {
+      expect(DEFAULT_CLAUDE_CODE_ENV.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS).toBe('1');
     });
   });
 
-  describe('buildHookConfiguration', () => {
-    it('should build hooks with default commands', () => {
-      const hooks = buildHookConfiguration();
-
-      expect(hooks.Notification).toBeDefined();
-      expect(hooks.Notification[0].hooks[0].command).toContain('hook --type notification');
-    });
-
-    it('should build hooks with custom commands', () => {
-      const hooks = buildHookConfiguration({
-        notificationCommand: 'custom-notification',
-      });
-
-      expect(hooks.Notification[0].hooks[0].command).toBe('custom-notification');
-    });
-  });
-
-  describe('mergeSettings', () => {
-    it('should merge hooks with existing settings', () => {
-      const existing = {
-        existingKey: 'value',
-        hooks: {
-          ExistingHook: [{ hooks: [{ type: 'command', command: 'existing' }] }],
-        },
-      };
-
-      const merged = mergeSettings(existing);
-
-      expect(merged.existingKey).toBe('value');
-      expect(merged.hooks?.ExistingHook).toBeDefined();
-      expect(merged.hooks?.Notification).toBeDefined();
-    });
-
-    it('should create hooks if none exist', () => {
-      const existing = { test: 'value' };
-      const merged = mergeSettings(existing);
-
-      expect(merged.test).toBe('value');
-      expect(merged.hooks?.Notification).toBeDefined();
-    });
-
-    it('should override Notification hook', () => {
-      const existing = {
-        hooks: {
-          Notification: [{ hooks: [{ type: 'command', command: 'old' }] }],
-        },
-      };
-
-      const merged = mergeSettings(existing);
-
-      expect(merged.hooks?.Notification[0].hooks[0].command).toContain('hook --type notification');
-    });
-  });
-
-  describe('createSettings', () => {
-    it('should create new settings with hooks', () => {
-      const settings = createSettings();
-
-      expect(settings.hooks).toBeDefined();
-      expect(settings.hooks?.Notification).toBeDefined();
-    });
-  });
-
-  describe('serializeSettings', () => {
-    it('should serialize settings to JSON', () => {
-      const settings = { test: 'value', hooks: {} };
-      const serialized = serializeSettings(settings);
-
-      expect(serialized).toContain('"test": "value"');
-      expect(serialized).toContain('"hooks": {}');
-    });
-
-    it('should use pretty formatting', () => {
-      const settings = { test: 'value' };
-      const serialized = serializeSettings(settings);
-
-      // Should be indented
-      expect(serialized).toContain('\n');
-      expect(serialized).toContain('  ');
-    });
-  });
-
-  describe('getSuccessMessage', () => {
-    it('should return success message', () => {
-      const message = getSuccessMessage();
-
-      expect(message).toContain('Claude Code hook configured');
-      expect(message).toContain('Notification');
+  describe('generateHookCommands', () => {
+    it('should generate notification command for target', async () => {
+      const config = await generateHookCommands('claude-code');
+      expect(config.notificationCommand).toContain('hook --type notification');
+      expect(config.notificationCommand).toContain('--target claude-code');
     });
   });
 
@@ -129,6 +32,9 @@ describe('claude-code-logic', () => {
       if (result._tag === 'Success') {
         const parsed = JSON.parse(result.value);
         expect(parsed.hooks.Notification).toBeDefined();
+        expect(parsed.env.CLAUDE_CODE_MAX_OUTPUT_TOKENS).toBe('128000');
+        expect(parsed.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS).toBe('1');
+        expect(parsed.alwaysThinkingEnabled).toBe(true);
       }
     });
 
@@ -151,6 +57,21 @@ describe('claude-code-logic', () => {
         const parsed = JSON.parse(result.value);
         expect(parsed.test).toBe('value');
         expect(parsed.hooks.Notification).toBeDefined();
+        expect(parsed.env.CLAUDE_CODE_MAX_OUTPUT_TOKENS).toBe('128000');
+      }
+    });
+
+    it('should preserve existing env vars while adding defaults', () => {
+      const existing = JSON.stringify({
+        env: { CUSTOM_VAR: 'custom' },
+      });
+      const result = processSettings(existing);
+
+      expect(result._tag).toBe('Success');
+      if (result._tag === 'Success') {
+        const parsed = JSON.parse(result.value);
+        expect(parsed.env.CUSTOM_VAR).toBe('custom');
+        expect(parsed.env.CLAUDE_CODE_MAX_OUTPUT_TOKENS).toBe('128000');
       }
     });
 
@@ -161,8 +82,6 @@ describe('claude-code-logic', () => {
       if (result._tag === 'Success') {
         const parsed = JSON.parse(result.value);
         expect(parsed.hooks.Notification).toBeDefined();
-        // Should not have any invalid content
-        expect(parsed.invalid).toBeUndefined();
       }
     });
 
@@ -177,29 +96,22 @@ describe('claude-code-logic', () => {
         expect(parsed.hooks.Notification[0].hooks[0].command).toBe('custom-notification');
       }
     });
-  });
 
-  describe('validateHookConfig', () => {
-    it('should accept valid config', () => {
-      const result = validateHookConfig({
-        notificationCommand: 'valid-command',
+    it('should override existing Notification hook', () => {
+      const existing = JSON.stringify({
+        hooks: {
+          Notification: [{ hooks: [{ type: 'command', command: 'old' }] }],
+          ExistingHook: [{ hooks: [{ type: 'command', command: 'keep' }] }],
+        },
       });
+      const result = processSettings(existing);
 
       expect(result._tag).toBe('Success');
-    });
-
-    it('should reject empty notification command', () => {
-      const result = validateHookConfig({
-        notificationCommand: '   ',
-      });
-
-      expect(result._tag).toBe('Failure');
-    });
-
-    it('should accept empty config object', () => {
-      const result = validateHookConfig({});
-
-      expect(result._tag).toBe('Success');
+      if (result._tag === 'Success') {
+        const parsed = JSON.parse(result.value);
+        expect(parsed.hooks.Notification[0].hooks[0].command).toContain('hook --type notification');
+        expect(parsed.hooks.ExistingHook).toBeDefined();
+      }
     });
   });
 });

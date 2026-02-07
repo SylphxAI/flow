@@ -12,7 +12,7 @@
 import type { ConfigError } from '../../core/functional/error-types.js';
 import { configError } from '../../core/functional/error-types.js';
 import type { Result } from '../../core/functional/result.js';
-import { failure, success, tryCatch } from '../../core/functional/result.js';
+import { success, tryCatch } from '../../core/functional/result.js';
 
 /**
  * Claude Code settings structure
@@ -45,13 +45,18 @@ export interface ClaudeCodeSettings {
 }
 
 /**
+ * Default environment variables injected into the Claude Code process
+ */
+export const DEFAULT_CLAUDE_CODE_ENV: Record<string, string> = {
+  CLAUDE_CODE_MAX_OUTPUT_TOKENS: '128000',
+  CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: '1',
+};
+
+/**
  * Default Claude Code settings for optimal experience
  */
-export const DEFAULT_CLAUDE_CODE_SETTINGS: Partial<ClaudeCodeSettings> = {
-  env: {
-    CLAUDE_CODE_MAX_OUTPUT_TOKENS: '128000',
-    CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: '1',
-  },
+const DEFAULT_CLAUDE_CODE_SETTINGS: Partial<ClaudeCodeSettings> = {
+  env: DEFAULT_CLAUDE_CODE_ENV,
   attribution: {
     commit: '',
     pr: '',
@@ -77,32 +82,20 @@ export const generateHookCommands = async (targetId: string): Promise<HookConfig
  * Default hook commands (fallback)
  * Simplified to only include notification hook
  */
-export const DEFAULT_HOOKS: HookConfig = {
+const DEFAULT_HOOKS: HookConfig = {
   notificationCommand: 'sylphx-flow hook --type notification --target claude-code',
 };
 
 /**
- * Parse JSON settings (pure)
+ * Process settings: parse existing or create new, merge hooks, serialize (pure)
  */
-export const parseSettings = (content: string): Result<ClaudeCodeSettings, ConfigError> => {
-  return tryCatch(
-    () => JSON.parse(content) as ClaudeCodeSettings,
-    (error) =>
-      configError('Failed to parse Claude Code settings', {
-        cause: error instanceof Error ? error : undefined,
-      })
-  );
-};
+export const processSettings = (
+  existingContent: string | null,
+  hookConfig: HookConfig = DEFAULT_HOOKS
+): Result<string, ConfigError> => {
+  const notificationCommand = hookConfig.notificationCommand || DEFAULT_HOOKS.notificationCommand!;
 
-/**
- * Build hook configuration (pure)
- */
-export const buildHookConfiguration = (
-  config: HookConfig = DEFAULT_HOOKS
-): ClaudeCodeSettings['hooks'] => {
-  const notificationCommand = config.notificationCommand || DEFAULT_HOOKS.notificationCommand!;
-
-  return {
+  const hookConfiguration: ClaudeCodeSettings['hooks'] = {
     Notification: [
       {
         matcher: '',
@@ -115,98 +108,50 @@ export const buildHookConfiguration = (
       },
     ],
   };
-};
 
-/**
- * Merge settings with defaults and new hooks (pure)
- * Preserves existing values while adding missing defaults
- */
-export const mergeSettings = (
-  existingSettings: ClaudeCodeSettings,
-  hookConfig: HookConfig = DEFAULT_HOOKS
-): ClaudeCodeSettings => {
-  const newHooks = buildHookConfiguration(hookConfig);
+  const createNewSettings = (): ClaudeCodeSettings => ({
+    ...DEFAULT_CLAUDE_CODE_SETTINGS,
+    hooks: hookConfiguration,
+  });
 
-  return {
-    // Apply defaults first, then existing settings override
+  const serialize = (settings: ClaudeCodeSettings): string =>
+    JSON.stringify(settings, null, 2);
+
+  if (existingContent === null || existingContent.trim() === '') {
+    return success(serialize(createNewSettings()));
+  }
+
+  // Parse existing settings
+  const parseResult = tryCatch(
+    () => JSON.parse(existingContent) as ClaudeCodeSettings,
+    (error) =>
+      configError('Failed to parse Claude Code settings', {
+        cause: error instanceof Error ? error : undefined,
+      })
+  );
+
+  if (parseResult._tag === 'Failure') {
+    return success(serialize(createNewSettings()));
+  }
+
+  // Merge with existing
+  const existingSettings = parseResult.value;
+  const merged: ClaudeCodeSettings = {
     ...DEFAULT_CLAUDE_CODE_SETTINGS,
     ...existingSettings,
-    // Deep merge env variables
     env: {
       ...DEFAULT_CLAUDE_CODE_SETTINGS.env,
       ...(existingSettings.env || {}),
     },
-    // Deep merge attribution
     attribution: {
       ...DEFAULT_CLAUDE_CODE_SETTINGS.attribution,
       ...(existingSettings.attribution || {}),
     },
-    // Merge hooks
     hooks: {
       ...(existingSettings.hooks || {}),
-      ...newHooks,
+      ...hookConfiguration,
     },
   };
-};
 
-/**
- * Create settings with defaults and hooks (pure)
- * Includes optimal Claude Code settings for extended output, thinking mode, and clean attribution
- */
-export const createSettings = (hookConfig: HookConfig = DEFAULT_HOOKS): ClaudeCodeSettings => {
-  return {
-    ...DEFAULT_CLAUDE_CODE_SETTINGS,
-    hooks: buildHookConfiguration(hookConfig),
-  };
-};
-
-/**
- * Serialize settings to JSON (pure)
- */
-export const serializeSettings = (settings: ClaudeCodeSettings): string => {
-  return JSON.stringify(settings, null, 2);
-};
-
-/**
- * Get success message (pure)
- */
-export const getSuccessMessage = (): string => {
-  return 'Claude Code hook configured: Notification';
-};
-
-/**
- * Process settings: parse existing or create new, merge hooks, serialize (pure)
- */
-export const processSettings = (
-  existingContent: string | null,
-  hookConfig: HookConfig = DEFAULT_HOOKS
-): Result<string, ConfigError> => {
-  if (existingContent === null || existingContent.trim() === '') {
-    // No existing settings, create new
-    const settings = createSettings(hookConfig);
-    return success(serializeSettings(settings));
-  }
-
-  // Parse existing settings
-  const parseResult = parseSettings(existingContent);
-  if (parseResult._tag === 'Failure') {
-    // If parsing fails, create new settings
-    const settings = createSettings(hookConfig);
-    return success(serializeSettings(settings));
-  }
-
-  // Merge with existing
-  const merged = mergeSettings(parseResult.value, hookConfig);
-  return success(serializeSettings(merged));
-};
-
-/**
- * Validate hook configuration (pure)
- */
-export const validateHookConfig = (config: HookConfig): Result<HookConfig, ConfigError> => {
-  if (config.notificationCommand !== undefined && config.notificationCommand.trim() === '') {
-    return failure(configError('Notification command cannot be empty'));
-  }
-
-  return success(config);
+  return success(serialize(merged));
 };

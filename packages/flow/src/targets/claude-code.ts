@@ -16,6 +16,7 @@ import {
 } from '../utils/config/target-utils.js';
 import { CLIError } from '../utils/error-handler.js';
 import { sanitize } from '../utils/security/security.js';
+import { DEFAULT_CLAUDE_CODE_ENV } from './functional/claude-code-logic.js';
 import {
   detectTargetConfig,
   setupSlashCommandsTo,
@@ -271,7 +272,7 @@ Please begin your response with a comprehensive summary of all the instructions 
         const child = spawn('claude', args, {
           stdio: 'inherit',
           shell: false,
-          env: process.env, // Pass environment variables including ANTHROPIC_BASE_URL and ANTHROPIC_API_KEY
+          env: { ...process.env, ...DEFAULT_CLAUDE_CODE_ENV },
         });
 
         child.on('spawn', () => {
@@ -298,15 +299,21 @@ Please begin your response with a comprehensive summary of all the instructions 
         });
       });
     } catch (error: unknown) {
-      const err = error as NodeJS.ErrnoException & { code?: string | number };
-      if (err.code === 'ENOENT') {
-        throw new CLIError('Claude Code not found. Please install it first.', 'CLAUDE_NOT_FOUND');
-      }
-      if (err.code) {
-        throw new CLIError(`Claude Code exited with code ${err.code}`, 'CLAUDE_ERROR');
+      if (error instanceof Error) {
+        const errWithCode = error as Error & { code?: string | number };
+        if (errWithCode.code === 'ENOENT') {
+          throw new CLIError('Claude Code not found. Please install it first.', 'CLAUDE_NOT_FOUND');
+        }
+        if (errWithCode.code !== undefined) {
+          throw new CLIError(`Claude Code exited with code ${errWithCode.code}`, 'CLAUDE_ERROR');
+        }
+        throw new CLIError(
+          `Failed to execute Claude Code: ${error.message}`,
+          'CLAUDE_ERROR'
+        );
       }
       throw new CLIError(
-        `Failed to execute Claude Code: ${(error as Error).message}`,
+        `Failed to execute Claude Code: ${String(error)}`,
         'CLAUDE_ERROR'
       );
     }
