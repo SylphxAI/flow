@@ -56,6 +56,9 @@ packages/*/src/**/*.d.ts.map
 # Exception: Keep certain config files
 !packages/*/src/**/*.config.js
 
+## Legacy src/ directory (migrated to packages/ monorepo)
+src/
+
 ## Unused vector storage implementations
 src/utils/hnsw-vector-storage.ts
 src/utils/simple-vector-storage.ts
