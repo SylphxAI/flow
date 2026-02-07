@@ -8,7 +8,7 @@ import { homedir } from 'node:os';
 import { dirname, join, parse, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
-import type { Agent, AgentMetadata } from '../types/agent.types.js';
+import type { Agent, AgentDefinition } from '../types/agent.types.js';
 
 /**
  * Load a single agent from a markdown file
@@ -28,7 +28,7 @@ export async function loadAgentFromFile(
       return null;
     }
 
-    const metadata: AgentMetadata = {
+    const metadata: AgentDefinition = {
       name: data.name,
       description: data.description || '',
     };
