@@ -1,5 +1,30 @@
 # @sylphx/flow
 
+## 3.19.1 (2026-02-07)
+
+### 🐛 Bug Fixes
+
+- add missing .js extensions to barrel exports ([54c4bb1](https://github.com/SylphxAI/flow/commit/54c4bb1bba79eb5b2e0d8ba06a7bf1486be5302c))
+- replace silent catch blocks with debug logging ([fe5a646](https://github.com/SylphxAI/flow/commit/fe5a646c180e87242034228c2472d1a0a1bd8dda))
+
+### ♻️ Refactoring
+
+- rename AgentMetadata to AgentDefinition in agent.types.ts ([01c16c9](https://github.com/SylphxAI/flow/commit/01c16c984b3e7ec7d318016e018d7db957ea140a))
+- extract readJsonFileSafe for repeated JSON-read-with-fallback pattern ([22088ed](https://github.com/SylphxAI/flow/commit/22088ed4d24cbfda2dc70f77dd2ae3e6f1ac111e))
+- remove unused functional modules and fix config barrel exports ([2f9f5b2](https://github.com/SylphxAI/flow/commit/2f9f5b242b9d9149630f8d933db788f862a8cebb))
+- extract convertServerSecrets from opencode writeConfig ([af7eac7](https://github.com/SylphxAI/flow/commit/af7eac7211d9067580a476683610da7f73c962e0))
+- extract health check functions from doctorCommand ([7debe50](https://github.com/SylphxAI/flow/commit/7debe50559c25c4e2ee2486eb1bfc329c32b178c))
+- extract tryJoinExistingSession and createNewSession from flow-executor ([5e25da8](https://github.com/SylphxAI/flow/commit/5e25da895e9bc216865f1e9810c21effd0878322))
+- extract selectTarget and loadAgent from executeFlowV2 ([9735cf0](https://github.com/SylphxAI/flow/commit/9735cf04c1ef43f6842b5ac5deafc3b0e04aecbb))
+
+### 💅 Styles
+
+- **flow:** format package.json with biome (tabs → spaces) ([7aeac4c](https://github.com/SylphxAI/flow/commit/7aeac4cf1d946ec3af82ae20b6215482d989a38f))
+
+### 🔧 Chores
+
+- remove 35 unused dependencies ([55318b0](https://github.com/SylphxAI/flow/commit/55318b0f3215bf47d1875bd07b9fcdad094620c4))
+
 ## 3.19.0 (2026-02-07)
 
 Performance, stability, and test coverage overhaul
