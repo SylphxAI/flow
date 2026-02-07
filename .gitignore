@@ -68,8 +68,12 @@ hive-mind-prompt-*.txt
 .sylphx-flow/ai-config.json
 .sylphx-flow/settings.local.json
 
-# Hugging Face tokenizer cache
-models/.cache/
+# Hugging Face tokenizer/model files
+models/
+
+# Test artifacts
+test-results.xml
+benchmark-results/
 .sylphx-flow/*.db*
 .sylphx-flow.json
 .vercel

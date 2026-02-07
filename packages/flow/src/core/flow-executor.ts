@@ -55,70 +55,62 @@ export class FlowExecutor {
   }
 
   /**
-   * Execute complete flow with attach mode (with multi-session support)
-   * Returns summary for caller to display
+   * Try to join an existing session. Returns summary if joined, null otherwise.
    */
-  async execute(
+  private async tryJoinExistingSession(
     projectPath: string,
-    options: FlowExecutorOptions = {}
-  ): Promise<{
-    joined: boolean;
-    agents?: number;
-    commands?: number;
-    skills?: number;
-    mcp?: number;
-  }> {
-    // Initialize Flow directories
-    await this.projectManager.initialize();
-
-    // Step 1: Crash recovery on startup
-    await this.cleanupHandler.recoverOnStartup();
-
-    // Step 2: Get project hash and paths
-    const projectHash = this.projectManager.getProjectHash(projectPath);
-    const target = await this.projectManager.detectTarget(projectPath);
-
-    if (options.verbose) {
-      console.log(chalk.dim(`Project: ${projectPath}`));
-      console.log(chalk.dim(`Hash: ${projectHash}`));
-      console.log(chalk.dim(`Target: ${target}\n`));
-    }
-
-    // Check for existing session
+    projectHash: string,
+    target: string,
+    verbose?: boolean
+  ): Promise<{ joined: true } | null> {
     const existingSession = await this.sessionManager.getActiveSession(projectHash);
-
-    if (existingSession) {
-      // Verify attached files still exist before joining
-      const targetObj = resolveTargetOrId(target);
-      const agentsDir = path.join(projectPath, targetObj.config.agentDir);
-      const filesExist = existsSync(agentsDir) && (await fs.readdir(agentsDir)).length > 0;
-
-      if (filesExist) {
-        // Joining existing session - silent
-        await this.sessionManager.startSession(
-          projectPath,
-          projectHash,
-          target,
-          existingSession.backupPath
-        );
-        this.cleanupHandler.registerCleanupHooks(projectHash);
-        return { joined: true };
-      }
-
-      // Files missing - invalidate session and re-attach
-      if (options.verbose) {
-        console.log(chalk.dim('Session files missing, re-attaching...'));
-      }
-      await this.sessionManager.endSession(projectHash);
+    if (!existingSession) {
+      return null;
     }
 
-    // First session — run independent setup steps in parallel
+    const targetObj = resolveTargetOrId(target);
+    const agentsDir = path.join(projectPath, targetObj.config.agentDir);
+    const filesExist = existsSync(agentsDir) && (await fs.readdir(agentsDir)).length > 0;
+
+    if (filesExist) {
+      await this.sessionManager.startSession(
+        projectPath,
+        projectHash,
+        target,
+        existingSession.backupPath
+      );
+      this.cleanupHandler.registerCleanupHooks(projectHash);
+      return { joined: true };
+    }
+
+    if (verbose) {
+      console.log(chalk.dim('Session files missing, re-attaching...'));
+    }
+    await this.sessionManager.endSession(projectHash);
+    return null;
+  }
+
+  /**
+   * Create a new session: backup, extract secrets, attach templates
+   */
+  private async createNewSession(
+    projectPath: string,
+    projectHash: string,
+    target: string,
+    options: FlowExecutorOptions
+  ): Promise<{
+    agents: number;
+    commands: number;
+    skills: number;
+    mcp: number;
+  }> {
+    // Run independent setup steps in parallel
     await Promise.all([
       options.skipProjectDocs ? Promise.resolve() : this.ensureProjectDocs(projectPath),
       this.gitStashManager.stashSettingsChanges(projectPath),
     ]);
 
-    // Backup and extract secrets in parallel (both read project config, neither writes)
+    // Backup and extract secrets in parallel
     const [backup] = await Promise.all([
       this.backupManager.createBackup(projectPath, projectHash, target),
       options.skipSecrets
@@ -132,7 +124,6 @@ export class FlowExecutor {
             }),
     ]);
 
-    // Start session
     const { session } = await this.sessionManager.startSession(
       projectPath,
       projectHash,
@@ -143,7 +134,6 @@ export class FlowExecutor {
 
     this.cleanupHandler.registerCleanupHooks(projectHash);
 
-    // Clear and attach (silent)
     if (!options.merge) {
       await this.clearUserSettings(projectPath, target);
     }
@@ -157,27 +147,64 @@ export class FlowExecutor {
 
     const attachResult = await this.attachManager.attach(projectPath, target, templates, manifest);
 
-    // Apply target-specific settings (attribution, hooks, env, thinking mode)
-    // Non-fatal: CLI can still run without these settings
+    // Apply target-specific settings (non-fatal)
     const targetObj = resolveTargetOrId(target);
     if (targetObj.applySettings) {
       try {
         await targetObj.applySettings(projectPath, {});
       } catch {
-        // Settings are optional — agents/commands/MCP already attached
+        // Settings are optional
       }
     }
 
     await this.backupManager.updateManifest(projectHash, session.sessionId, manifest);
 
-    // Return summary for caller to display
     return {
-      joined: false,
       agents: attachResult.agentsAdded.length,
       commands: attachResult.commandsAdded.length,
       skills: attachResult.skillsAdded.length,
       mcp: attachResult.mcpServersAdded.length,
     };
+  }
+
+  /**
+   * Execute complete flow with attach mode (with multi-session support)
+   * Returns summary for caller to display
+   */
+  async execute(
+    projectPath: string,
+    options: FlowExecutorOptions = {}
+  ): Promise<{
+    joined: boolean;
+    agents?: number;
+    commands?: number;
+    skills?: number;
+    mcp?: number;
+  }> {
+    await this.projectManager.initialize();
+    await this.cleanupHandler.recoverOnStartup();
+
+    const projectHash = this.projectManager.getProjectHash(projectPath);
+    const target = await this.projectManager.detectTarget(projectPath);
+
+    if (options.verbose) {
+      console.log(chalk.dim(`Project: ${projectPath}`));
+      console.log(chalk.dim(`Hash: ${projectHash}`));
+      console.log(chalk.dim(`Target: ${target}\n`));
+    }
+
+    const joinResult = await this.tryJoinExistingSession(
+      projectPath,
+      projectHash,
+      target,
+      options.verbose
+    );
+    if (joinResult) {
+      return joinResult;
+    }
+
+    const result = await this.createNewSession(projectPath, projectHash, target, options);
+    return { joined: false, ...result };
   }
 
   /**
