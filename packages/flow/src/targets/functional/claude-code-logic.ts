@@ -50,6 +50,7 @@ export interface ClaudeCodeSettings {
 export const DEFAULT_CLAUDE_CODE_SETTINGS: Partial<ClaudeCodeSettings> = {
   env: {
     CLAUDE_CODE_MAX_OUTPUT_TOKENS: '128000',
+    CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: '1',
   },
   attribution: {
     commit: '',
