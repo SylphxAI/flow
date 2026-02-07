@@ -3,13 +3,51 @@ import { MCP_SERVER_REGISTRY } from '../config/servers.js';
 import type { AgentMetadata } from '../types/target-config.types.js';
 import type { MCPServerConfigUnion, Target } from '../types.js';
 import { fileUtils, generateHelpText, yamlUtils } from '../utils/config/target-utils.js';
-import { CLIError } from '../utils/error-handler.js';
+import { CLIError } from '../utils/errors.js';
 import { secretUtils } from '../utils/security/secret-utils.js';
 import {
   detectTargetConfig,
   stripFrontMatter,
   transformMCPConfig as transformMCP,
 } from './shared/index.js';
+
+/**
+ * Convert secret environment variables in a single MCP server config to file references
+ */
+async function convertServerSecrets(
+  cwd: string,
+  serverId: string,
+  serverConfig: Record<string, unknown>
+): Promise<void> {
+  if (!serverConfig || typeof serverConfig !== 'object' || !('environment' in serverConfig)) {
+    return;
+  }
+
+  const envVars = serverConfig.environment as Record<string, string>;
+  if (!envVars || typeof envVars !== 'object') {
+    return;
+  }
+
+  const serverDef = Object.values(MCP_SERVER_REGISTRY).find((s) => s.name === serverId);
+  if (!serverDef?.envVars) {
+    return;
+  }
+
+  const secretEnvVars: Record<string, string> = {};
+  const nonSecretEnvVars: Record<string, string> = {};
+
+  for (const [key, value] of Object.entries(envVars)) {
+    const envConfig = serverDef.envVars[key];
+    if (envConfig?.secret && value && !secretUtils.isFileReference(value)) {
+      secretEnvVars[key] = value;
+    } else {
+      nonSecretEnvVars[key] = value;
+    }
+  }
+
+  const convertedSecrets = await secretUtils.convertSecretsToFileReferences(cwd, secretEnvVars);
+  serverConfig.environment = { ...nonSecretEnvVars, ...convertedSecrets };
+}
 
 /**
  * OpenCode target - composition approach with all original functionality
@@ -110,46 +148,17 @@ export const opencodeTarget: Target = {
    * Write OpenCode configuration with structure normalization
    */
   async writeConfig(cwd: string, config: Record<string, unknown>): Promise<void> {
-    // Ensure the config has the expected structure for OpenCode
     if (!config.mcp) {
       config.mcp = {};
     }
 
-    // Convert secrets to file references if secret files are enabled
     if (opencodeTarget.config.installation?.useSecretFiles) {
-      // Process each MCP server's environment variables
-      for (const [serverId, serverConfig] of Object.entries(config.mcp || {})) {
-        if (serverConfig && typeof serverConfig === 'object' && 'environment' in serverConfig) {
-          const envVars = serverConfig.environment as Record<string, string>;
-          if (envVars && typeof envVars === 'object') {
-            // Find the corresponding server definition to get secret env vars
-            const serverDef = Object.values(MCP_SERVER_REGISTRY).find((s) => s.name === serverId);
-            if (serverDef?.envVars) {
-              // Separate secret and non-secret variables
-              const secretEnvVars: Record<string, string> = {};
-              const nonSecretEnvVars: Record<string, string> = {};
-
-              for (const [key, value] of Object.entries(envVars)) {
-                const envConfig = serverDef.envVars[key];
-                if (envConfig?.secret && value && !secretUtils.isFileReference(value)) {
-                  secretEnvVars[key] = value;
-                } else {
-                  nonSecretEnvVars[key] = value;
-                }
-              }
-
-              // Convert only secret variables
-              const convertedSecrets = await secretUtils.convertSecretsToFileReferences(
-                cwd,
-                secretEnvVars
-              );
-
-              // Merge back
-              serverConfig.environment = { ...nonSecretEnvVars, ...convertedSecrets };
-            }
-          }
-        }
-      }
+      const mcpServers = config.mcp as Record<string, Record<string, unknown>>;
+      await Promise.all(
+        Object.entries(mcpServers).map(([serverId, serverConfig]) =>
+          convertServerSecrets(cwd, serverId, serverConfig)
+        )
+      );
     }
 
     await fileUtils.writeConfig(opencodeTarget.config, cwd, config);

@@ -5,7 +5,7 @@ import { promisify } from 'node:util';
 import chalk from 'chalk';
 import { getProjectSettingsFile } from '../config/constants.js';
 import type { Target } from '../types/target.types.js';
-import { CLIError } from '../utils/error-handler.js';
+import { CLIError } from '../utils/errors.js';
 import { detectPackageManager, getUpgradeCommand } from '../utils/package-manager-detector.js';
 import { createSpinner, log } from '../utils/prompts/index.js';
 import type { ProjectState } from './state-detector.js';

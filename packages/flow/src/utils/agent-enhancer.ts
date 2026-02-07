@@ -14,7 +14,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { getAgentsDir, getOutputStylesDir, getRulesDir } from './config/paths.js';
 import { yamlUtils } from './config/target-utils.js';
-import { CLIError } from './error-handler.js';
+import { CLIError } from './errors.js';
 
 /**
  * Load and combine rules and output styles

@@ -11,7 +11,7 @@ import {
   pathUtils,
   yamlUtils,
 } from '../utils/config/target-utils.js';
-import { CLIError } from '../utils/error-handler.js';
+import { CLIError } from '../utils/errors.js';
 import { sanitize } from '../utils/security/security.js';
 import { DEFAULT_CLAUDE_CODE_ENV } from './functional/claude-code-logic.js';
 import {

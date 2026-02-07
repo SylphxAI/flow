@@ -7,3 +7,16 @@ export class UserCancelledError extends Error {
     this.name = 'UserCancelledError';
   }
 }
+
+/**
+ * CLI error with optional error code
+ */
+export class CLIError extends Error {
+  constructor(
+    message: string,
+    public code?: string
+  ) {
+    super(message);
+    this.name = 'CLIError';
+  }
+}

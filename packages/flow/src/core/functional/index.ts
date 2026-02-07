@@ -10,7 +10,6 @@
  */
 
 export * from './async.js';
-export * from './either.js';
 export * from './error-handler.js';
 export * from './error-types.js';
 export * from './option.js';
