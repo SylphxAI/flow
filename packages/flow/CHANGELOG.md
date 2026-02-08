@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 3.20.0 (2026-02-08)
+
+### ✨ Features
+
+- **flow:** add SessionStart memory hook and use stdin for notifications ([6580500](https://github.com/SylphxAI/flow/commit/65805004f164a8f9a05d821e528c7412f7573e2f))
+
 ## 3.19.1 (2026-02-07)
 
 ### 🐛 Bug Fixes
