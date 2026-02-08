@@ -78,8 +78,16 @@ export class FlowExecutor {
       console.log(chalk.dim('Joining existing session...'));
     }
 
-    // Register our PID with the session
-    await this.sessionManager.acquireSession(projectHash, projectPath, target);
+    // Register our PID with the session.
+    // Verify backupRef is still valid after acquiring — handles the TOCTOU race
+    // where cleanup could delete backup.json between getBackupRef() and acquireSession().
+    const result = await this.sessionManager.acquireSession(projectHash, projectPath, target);
+    if (!result.backupRef) {
+      // Session was cleaned up between our check and acquire — undo our PID registration
+      await this.sessionManager.releaseSession(projectHash);
+      return null;
+    }
+
     this.cleanupHandler.registerCleanupHooks(projectHash);
 
     // Always re-apply settings for self-healing

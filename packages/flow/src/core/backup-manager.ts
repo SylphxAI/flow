@@ -157,7 +157,8 @@ export class BackupManager {
    * 3. fs.rename(temp, configDir) — atomic on same filesystem
    *
    * If the process dies after step 2 but before step 3, the temp dir
-   * still exists and can be manually recovered.
+   * still exists. cleanupOrphanedRestores() detects this on next startup
+   * and renames it into place as recovery.
    */
   async restoreBackup(projectHash: string, sessionId: string): Promise<void> {
     const paths = this.projectManager.getProjectPaths(projectHash);
@@ -205,7 +206,18 @@ export class BackupManager {
       }
 
       // 3. Rename temp → config dir (atomic on same filesystem)
-      await fs.rename(tempDir, targetConfigDir);
+      try {
+        await fs.rename(tempDir, targetConfigDir);
+      } catch (renameError: unknown) {
+        // EXDEV: cross-device link — source and dest on different filesystems.
+        // Fall back to copy + delete (not atomic, but functional).
+        if (renameError instanceof Error && 'code' in renameError && (renameError as NodeJS.ErrnoException).code === 'EXDEV') {
+          await this.copyDirectory(tempDir, targetConfigDir);
+          await fs.rm(tempDir, { recursive: true, force: true });
+        } else {
+          throw renameError;
+        }
+      }
     } catch (error) {
       // Clean up temp dir on failure
       try {
@@ -246,6 +258,50 @@ export class BackupManager {
     const manifestPath = path.join(paths.backupsDir, sessionId, 'manifest.json');
 
     await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
+  }
+
+  /**
+   * Clean up orphaned .flow-restore-* temp directories left by interrupted restores.
+   * If the process dies between rm(.claude) and rename(temp, .claude), the temp dir
+   * is stranded. This scans known project paths and removes any orphaned temp dirs.
+   *
+   * If the config dir is also missing (both deleted), the temp dir IS the backup —
+   * rename it into place as recovery.
+   */
+  async cleanupOrphanedRestores(projectPath: string, targetOrId: Target | string): Promise<void> {
+    const target = resolveTargetOrId(targetOrId);
+    const targetConfigDir = this.projectManager.getTargetConfigDir(projectPath, target);
+    const parentDir = path.dirname(targetConfigDir);
+    const configBaseName = path.basename(targetConfigDir);
+
+    if (!existsSync(parentDir)) {
+      return;
+    }
+
+    try {
+      const entries = await fs.readdir(parentDir);
+      const orphanedRestores = entries.filter(
+        (e) => e.startsWith(`${configBaseName}.flow-restore-`)
+      );
+
+      for (const orphan of orphanedRestores) {
+        const orphanPath = path.join(parentDir, orphan);
+        if (!existsSync(targetConfigDir)) {
+          // Config dir is gone — this temp dir IS the recovery. Rename it in.
+          try {
+            await fs.rename(orphanPath, targetConfigDir);
+          } catch {
+            // If rename fails, remove it
+            await fs.rm(orphanPath, { recursive: true, force: true }).catch(() => {});
+          }
+        } else {
+          // Config dir exists — temp dir is a leftover. Remove it.
+          await fs.rm(orphanPath, { recursive: true, force: true }).catch(() => {});
+        }
+      }
+    } catch {
+      // Non-fatal — project dir might not exist
+    }
   }
 
   /**

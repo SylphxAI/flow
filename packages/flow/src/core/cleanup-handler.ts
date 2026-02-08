@@ -138,11 +138,15 @@ export class CleanupHandler {
    */
   private async restoreAndFinalize(
     projectHash: string,
-    backupRef: { sessionId: string; projectPath: string }
+    backupRef: { sessionId: string; projectPath: string; target?: string }
   ): Promise<void> {
     await this.backupManager.restoreBackup(projectHash, backupRef.sessionId);
     await this.sessionManager.finalizeSessionCleanup(projectHash);
     await this.backupManager.cleanupOldBackups(projectHash, 3);
+    // Clean up any orphaned .flow-restore-* temp dirs from interrupted restores
+    if (backupRef.target) {
+      await this.backupManager.cleanupOrphanedRestores(backupRef.projectPath, backupRef.target).catch(() => {});
+    }
     await this.gitStashManager.popSettingsChanges(backupRef.projectPath);
     await this.secretsManager.clearSecrets(projectHash);
   }

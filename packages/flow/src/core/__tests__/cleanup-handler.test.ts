@@ -44,6 +44,7 @@ function createMockBackupManager() {
   return {
     restoreBackup: vi.fn().mockResolvedValue(undefined),
     cleanupOldBackups: vi.fn().mockResolvedValue(undefined),
+    cleanupOrphanedRestores: vi.fn().mockResolvedValue(undefined),
   };
 }
 
