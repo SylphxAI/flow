@@ -23,13 +23,10 @@ claude-flow.config.json
 .swarm/
 .hive-mind/
 .claude-flow/
-memory/
-coordination/
 memory/claude-flow-data.json
-memory/sessions/*
-!memory/sessions/README.md
-memory/agents/*
-!memory/agents/README.md
+memory/sessions/
+memory/agents/
+coordination/
 coordination/memory_bank/*
 coordination/subtasks/*
 coordination/orchestration/*
