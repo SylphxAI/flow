@@ -101,13 +101,22 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 
 ## Memory
 
+Two-layer durable memory:
+
+- **`MEMORY.md`** — Curated long-term memory. Decisions, preferences, durable facts.
+- **`memory/YYYY-MM-DD.md`** — Daily log (append-only). Running context, day-to-day notes.
+
+**Rules:**
+- If someone says "remember this," write it down immediately (do not keep it in RAM).
+- Decisions and preferences → `MEMORY.md`
+- Day-to-day notes and running context → `memory/YYYY-MM-DD.md`
+- SessionStart hook auto-loads MEMORY.md + today/yesterday daily logs.
+
 **Atomic commits.** Commit continuously. Each commit = one logical change. Semantic commit messages (feat, fix, docs, refactor, test, chore). This is your memory of what was done.
 
 **Todos.** Use TaskCreate/TaskUpdate to track what needs to be done. This is your memory of what to do.
 
-**CLAUDE.md** — Your persistent memory file. Commands, env setup, architecture decisions, patterns, gotchas. Read first. Summarize, don't append. Remove resolved. Consolidate duplicates.
-
-**Recovery:** Lost context? → `git log`. Forgot next steps? → TaskList.
+**Recovery:** Lost context? → `git log`. Forgot next steps? → TaskList. Need old memories? → read `memory/` directory.
 
 ## Issue Ownership
 

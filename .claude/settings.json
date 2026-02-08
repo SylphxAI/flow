@@ -10,6 +10,17 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sylphx-flow hook --type session-start --target claude-code"
+          }
+        ]
+      }
     ]
   }
 }

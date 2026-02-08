@@ -22,6 +22,12 @@ describe('claude-code-logic', () => {
       expect(config.notificationCommand).toContain('hook --type notification');
       expect(config.notificationCommand).toContain('--target claude-code');
     });
+
+    it('should generate session-start command for target', async () => {
+      const config = await generateHookCommands('claude-code');
+      expect(config.sessionStartCommand).toContain('hook --type session-start');
+      expect(config.sessionStartCommand).toContain('--target claude-code');
+    });
   });
 
   describe('processSettings', () => {
@@ -32,6 +38,7 @@ describe('claude-code-logic', () => {
       if (result._tag === 'Success') {
         const parsed = JSON.parse(result.value);
         expect(parsed.hooks.Notification).toBeDefined();
+        expect(parsed.hooks.SessionStart).toBeDefined();
         expect(parsed.env.CLAUDE_CODE_MAX_OUTPUT_TOKENS).toBe('128000');
         expect(parsed.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS).toBe('1');
         expect(parsed.alwaysThinkingEnabled).toBe(true);
@@ -88,12 +95,14 @@ describe('claude-code-logic', () => {
     it('should use custom hook config', () => {
       const result = processSettings(null, {
         notificationCommand: 'custom-notification',
+        sessionStartCommand: 'custom-session-start',
       });
 
       expect(result._tag).toBe('Success');
       if (result._tag === 'Success') {
         const parsed = JSON.parse(result.value);
         expect(parsed.hooks.Notification[0].hooks[0].command).toBe('custom-notification');
+        expect(parsed.hooks.SessionStart[0].hooks[0].command).toBe('custom-session-start');
       }
     });
 
@@ -110,6 +119,7 @@ describe('claude-code-logic', () => {
       if (result._tag === 'Success') {
         const parsed = JSON.parse(result.value);
         expect(parsed.hooks.Notification[0].hooks[0].command).toContain('hook --type notification');
+        expect(parsed.hooks.SessionStart[0].hooks[0].command).toContain('hook --type session-start');
         expect(parsed.hooks.ExistingHook).toBeDefined();
       }
     });

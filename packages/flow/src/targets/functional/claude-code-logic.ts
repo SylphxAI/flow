@@ -66,6 +66,7 @@ const DEFAULT_CLAUDE_CODE_SETTINGS: Partial<ClaudeCodeSettings> = {
 
 export interface HookConfig {
   notificationCommand?: string;
+  sessionStartCommand?: string;
 }
 
 /**
@@ -75,15 +76,16 @@ export interface HookConfig {
 export const generateHookCommands = async (targetId: string): Promise<HookConfig> => {
   return {
     notificationCommand: `sylphx-flow hook --type notification --target ${targetId}`,
+    sessionStartCommand: `sylphx-flow hook --type session-start --target ${targetId}`,
   };
 };
 
 /**
  * Default hook commands (fallback)
- * Simplified to only include notification hook
  */
 const DEFAULT_HOOKS: HookConfig = {
   notificationCommand: 'sylphx-flow hook --type notification --target claude-code',
+  sessionStartCommand: 'sylphx-flow hook --type session-start --target claude-code',
 };
 
 /**
@@ -94,17 +96,19 @@ export const processSettings = (
   hookConfig: HookConfig = DEFAULT_HOOKS
 ): Result<string, ConfigError> => {
   const notificationCommand = hookConfig.notificationCommand || DEFAULT_HOOKS.notificationCommand!;
+  const sessionStartCommand = hookConfig.sessionStartCommand || DEFAULT_HOOKS.sessionStartCommand!;
 
   const hookConfiguration: ClaudeCodeSettings['hooks'] = {
     Notification: [
       {
         matcher: '',
-        hooks: [
-          {
-            type: 'command',
-            command: notificationCommand,
-          },
-        ],
+        hooks: [{ type: 'command', command: notificationCommand }],
+      },
+    ],
+    SessionStart: [
+      {
+        matcher: '',
+        hooks: [{ type: 'command', command: sessionStartCommand }],
       },
     ],
   };
