@@ -114,6 +114,12 @@ export class SessionManager {
    *
    * Deletes own PID file, scans remaining, checks liveness.
    * Returns `shouldRestore=true` only when no alive PIDs remain.
+   *
+   * Note: There is a tiny TOCTOU window between delete and scan where two
+   * concurrent exits could both see 0 alive PIDs. This is safe because
+   * restoreBackup() is idempotent (both restore the same backup), and
+   * the window is microseconds. Adding file locking would add complexity
+   * disproportionate to the risk.
    */
   async releaseSession(
     projectHash: string
@@ -128,7 +134,7 @@ export class SessionManager {
     }
 
     // Scan remaining PID files
-    const alivePids = await this.scanAlivePids(paths.pidsDir);
+    const alivePids = await this.scanAndCleanPids(paths.pidsDir);
 
     if (alivePids.length > 0) {
       // Other sessions still running
@@ -196,7 +202,7 @@ export class SessionManager {
       }
 
       // Check if any PIDs are still alive
-      const alivePids = await this.scanAlivePids(paths.pidsDir);
+      const alivePids = await this.scanAndCleanPids(paths.pidsDir);
 
       if (alivePids.length === 0) {
         // All PIDs dead — orphaned session
@@ -226,15 +232,15 @@ export class SessionManager {
       return false;
     }
 
-    const alivePids = await this.scanAlivePids(paths.pidsDir);
+    const alivePids = await this.scanAndCleanPids(paths.pidsDir);
     return alivePids.length > 0;
   }
 
   /**
-   * Scan PID directory, check liveness, clean dead PID files.
-   * Returns list of alive PIDs.
+   * Scan PID directory: check liveness, delete dead PID files, return alive PIDs.
+   * Side effect: removes files for PIDs that are no longer running.
    */
-  private async scanAlivePids(pidsDir: string): Promise<number[]> {
+  private async scanAndCleanPids(pidsDir: string): Promise<number[]> {
     if (!existsSync(pidsDir)) {
       return [];
     }

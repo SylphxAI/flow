@@ -121,16 +121,30 @@ export class CleanupHandler {
       );
 
       if (shouldRestore && backupRef) {
-        await this.backupManager.restoreBackup(this.currentProjectHash, backupRef.sessionId);
-        // CRITICAL: finalize AFTER restore succeeds
-        await this.sessionManager.finalizeSessionCleanup(this.currentProjectHash);
-        await this.backupManager.cleanupOldBackups(this.currentProjectHash, 3);
-        await this.gitStashManager.popSettingsChanges(backupRef.projectPath);
-        await this.secretsManager.clearSecrets(this.currentProjectHash);
+        await this.restoreAndFinalize(this.currentProjectHash, backupRef);
       }
     } catch (error) {
       debug('signal cleanup failed:', error);
     }
+  }
+
+  /**
+   * Restore backup and finalize session.
+   * Single source of truth for the restore → finalize → cleanup sequence.
+   *
+   * CRITICAL ordering: backup.json is deleted (via finalizeSessionCleanup) only
+   * AFTER restoreBackup succeeds. If restore throws, finalize is NOT called,
+   * ensuring orphan detection always works on next startup.
+   */
+  private async restoreAndFinalize(
+    projectHash: string,
+    backupRef: { sessionId: string; projectPath: string }
+  ): Promise<void> {
+    await this.backupManager.restoreBackup(projectHash, backupRef.sessionId);
+    await this.sessionManager.finalizeSessionCleanup(projectHash);
+    await this.backupManager.cleanupOldBackups(projectHash, 3);
+    await this.gitStashManager.popSettingsChanges(backupRef.projectPath);
+    await this.secretsManager.clearSecrets(projectHash);
   }
 
   /**
@@ -146,12 +160,7 @@ export class CleanupHandler {
 
     for (const [projectHash, backupRef] of orphanedSessions) {
       try {
-        await this.backupManager.restoreBackup(projectHash, backupRef.sessionId);
-        // CRITICAL: finalize AFTER restore succeeds
-        await this.sessionManager.finalizeSessionCleanup(projectHash);
-        await this.gitStashManager.popSettingsChanges(backupRef.projectPath);
-        await this.secretsManager.clearSecrets(projectHash);
-        await this.backupManager.cleanupOldBackups(projectHash, 3);
+        await this.restoreAndFinalize(projectHash, backupRef);
       } catch (error) {
         debug('startup recovery failed for session:', error);
       }
@@ -221,11 +230,16 @@ export class CleanupHandler {
           }
         } catch (error) {
           debug('failed to migrate legacy session %s: %O', hash, error);
-          // Remove corrupt legacy file
+          // Move corrupt file aside instead of deleting — preserves data for diagnosis
           try {
-            await fs.unlink(legacyPath);
+            await fs.rename(legacyPath, `${legacyPath}.corrupt`);
           } catch {
-            // Ignore
+            // If rename fails, remove it to prevent retry loops
+            try {
+              await fs.unlink(legacyPath);
+            } catch {
+              // Ignore
+            }
           }
         }
       }
@@ -268,12 +282,7 @@ export class CleanupHandler {
     const { shouldRestore, backupRef } = await this.sessionManager.releaseSession(projectHash);
 
     if (shouldRestore && backupRef) {
-      await this.backupManager.restoreBackup(projectHash, backupRef.sessionId);
-      // CRITICAL: finalize AFTER restore succeeds
-      await this.sessionManager.finalizeSessionCleanup(projectHash);
-      await this.backupManager.cleanupOldBackups(projectHash, 3);
-      await this.gitStashManager.popSettingsChanges(backupRef.projectPath);
-      await this.secretsManager.clearSecrets(projectHash);
+      await this.restoreAndFinalize(projectHash, backupRef);
     }
   }
 
