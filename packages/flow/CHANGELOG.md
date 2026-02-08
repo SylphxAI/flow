@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 3.21.1 (2026-02-08)
+
+### 🐛 Bug Fixes
+
+- resolve broken SessionStart hook — dead import silently killed applySettings ([5c9fb60](https://github.com/SylphxAI/flow/commit/5c9fb604894df7c3392ab6cc8caf4a1fc6f09c7e))
+
 ## 3.21.0 (2026-02-08)
 
 Add SessionStart memory hook and use stdin for notifications
