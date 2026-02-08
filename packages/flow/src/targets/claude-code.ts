@@ -381,30 +381,19 @@ Please begin your response with a comprehensive summary of all the instructions 
     const { processSettings, generateHookCommands } = await import(
       './functional/claude-code-logic.js'
     );
-    const { pathExists, createDirectory, readFile, writeFile } = await import(
-      '../composables/functional/useFileSystem.js'
-    );
 
     const claudeConfigDir = path.join(cwd, '.claude');
     const settingsPath = path.join(claudeConfigDir, 'settings.json');
 
     // Ensure .claude directory exists
-    const dirExistsResult = await pathExists(claudeConfigDir);
-    if (dirExistsResult._tag === 'Success' && !dirExistsResult.value) {
-      const createResult = await createDirectory(claudeConfigDir, { recursive: true });
-      if (createResult._tag === 'Failure') {
-        throw new Error(`Failed to create .claude directory: ${createResult.error.message}`);
-      }
-    }
+    await fsPromises.mkdir(claudeConfigDir, { recursive: true });
 
     // Read existing settings or null if doesn't exist
     let existingContent: string | null = null;
-    const fileExistsResult = await pathExists(settingsPath);
-    if (fileExistsResult._tag === 'Success' && fileExistsResult.value) {
-      const readResult = await readFile(settingsPath);
-      if (readResult._tag === 'Success') {
-        existingContent = readResult.value;
-      }
+    try {
+      existingContent = await fsPromises.readFile(settingsPath, 'utf-8');
+    } catch {
+      // File doesn't exist yet — will create fresh settings
     }
 
     // Generate hooks based on how CLI was invoked
@@ -418,10 +407,7 @@ Please begin your response with a comprehensive summary of all the instructions 
     }
 
     // Write updated settings
-    const writeResult = await writeFile(settingsPath, settingsResult.value);
-    if (writeResult._tag === 'Failure') {
-      throw new Error(`Failed to write settings: ${writeResult.error.message}`);
-    }
+    await fsPromises.writeFile(settingsPath, settingsResult.value, 'utf-8');
 
     return {
       count: 2,
