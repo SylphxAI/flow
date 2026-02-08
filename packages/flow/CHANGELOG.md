@@ -1,5 +1,25 @@
 # @sylphx/flow
 
+## 3.21.0 (2026-02-08)
+
+Add SessionStart memory hook and use stdin for notifications
+
+### ✨ Features
+
+- **flow:** replace state-flag session management with PID-based ground truth ([692344d](https://github.com/SylphxAI/flow/commit/692344d7cd2b2b8c3b460347b3111ac5b08e375a))
+
+### 🐛 Bug Fixes
+
+- close three gaps found in challenge round 2 ([52bf789](https://github.com/SylphxAI/flow/commit/52bf789323a30d3a245375bdd4442a2532984823))
+
+### ♻️ Refactoring
+
+- extract restoreAndFinalize helper, improve cleanup safety ([959f255](https://github.com/SylphxAI/flow/commit/959f25507fb9db78191c7ed3e540319948e1288c))
+
+### 💅 Styles
+
+- format package.json with biome (tabs → spaces) ([8560a3f](https://github.com/SylphxAI/flow/commit/8560a3f7c5debf220bf6fd02da19276911e75886))
+
 ## 3.20.0 (2026-02-08)
 
 ### ✨ Features
