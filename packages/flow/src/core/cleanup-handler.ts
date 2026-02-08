@@ -1,16 +1,17 @@
 /**
  * Cleanup Handler
  * Manages graceful cleanup on exit and crash recovery
- * Handles process signals and ensures backup restoration
  *
  * Centralized cleanup for all exit paths:
- * - Signal (SIGINT/SIGTERM) → onSignal() → restore + cleanup
- * - Manual (FlowExecutor.cleanup) → cleanup() → restore + cleanup
- * - Crash recovery (next startup) → recoverOnStartup() → restore + prune
+ * - Signal (SIGTERM) → onSignal() → release + restore + finalize
+ * - Manual (FlowExecutor.cleanup) → cleanup() → release + restore + finalize
+ * - Crash recovery (next startup) → recoverOnStartup() → restore + finalize
  *
- * IMPORTANT: Node.js 'exit' event handlers MUST be synchronous.
- * We use SIGINT/SIGTERM handlers to perform async cleanup before exiting.
- * The 'exit' handler is only a last-resort sync cleanup.
+ * SIGINT is NOT handled — the child process (claude-code) handles its own Ctrl+C.
+ * Suppression is done in execute-v2.ts around the child spawn.
+ *
+ * CRITICAL: backup.json is deleted AFTER restore succeeds (via finalizeSessionCleanup),
+ * ensuring orphan detection always works even if the process dies mid-cleanup.
  */
 
 import { existsSync } from 'node:fs';
@@ -51,7 +52,8 @@ export class CleanupHandler {
   }
 
   /**
-   * Register cleanup hooks for current project
+   * Register cleanup hooks for current project.
+   * SIGINT is intentionally NOT handled — child handles Ctrl+C.
    */
   registerCleanupHooks(projectHash: string): void {
     if (this.registered) {
@@ -61,43 +63,33 @@ export class CleanupHandler {
     this.currentProjectHash = projectHash;
     this.registered = true;
 
-    // SIGINT (Ctrl+C) - perform async cleanup then exit
-    process.on('SIGINT', () => {
-      this.handleSignal('SIGINT', 0);
-    });
-
-    // SIGTERM - perform async cleanup then exit
+    // SIGTERM — perform async cleanup then exit
     process.on('SIGTERM', () => {
       this.handleSignal('SIGTERM', 0);
     });
 
-    // Uncaught exceptions - perform async cleanup then exit with error
+    // Uncaught exceptions — perform async cleanup then exit with error
     process.on('uncaughtException', (error) => {
       console.error('\nUncaught Exception:', error);
       this.handleSignal('uncaughtException', 1);
     });
 
-    // Unhandled rejections - perform async cleanup then exit with error
+    // Unhandled rejections — perform async cleanup then exit with error
     process.on('unhandledRejection', (reason) => {
       console.error('\nUnhandled Rejection:', reason);
       this.handleSignal('unhandledRejection', 1);
     });
 
-    // 'exit' handler - SYNC ONLY, last resort
-    // This catches cases where process.exit() was called without going through signals
+    // 'exit' handler — SYNC ONLY, last resort safety net
     process.on('exit', () => {
-      // If cleanup wasn't done via signal handlers, log warning
-      // (We can't do async cleanup here - just flag it)
-      if (!this.cleanupCompleted && this.currentProjectHash) {
-        // Recovery will happen on next startup via recoverOnStartup()
-        // This is the intended safety net for abnormal exits
-      }
+      // If cleanup wasn't done via signal handlers, orphan recovery
+      // will happen on next startup via recoverOnStartup()
     });
   }
 
   /**
-   * Handle signal with async cleanup
-   * Ensures cleanup completes before process exit
+   * Handle signal with async cleanup.
+   * Ensures cleanup completes before process exit.
    */
   private handleSignal(signal: string, exitCode: number): void {
     // Prevent double cleanup
@@ -108,7 +100,6 @@ export class CleanupHandler {
 
     this.cleanupInProgress = true;
 
-    // Perform async cleanup, then exit
     this.onSignal(signal).finally(() => {
       this.cleanupCompleted = true;
       process.exit(exitCode);
@@ -116,8 +107,8 @@ export class CleanupHandler {
   }
 
   /**
-   * Async cleanup for signals and manual cleanup
-   * Handles session end and backup restoration
+   * Async cleanup for signals.
+   * Release session → restore if last → finalize AFTER restore.
    */
   private async onSignal(_signal: string): Promise<void> {
     if (!this.currentProjectHash) {
@@ -125,14 +116,16 @@ export class CleanupHandler {
     }
 
     try {
-      const { shouldRestore, session } = await this.sessionManager.endSession(
+      const { shouldRestore, backupRef } = await this.sessionManager.releaseSession(
         this.currentProjectHash
       );
 
-      if (shouldRestore && session) {
-        await this.backupManager.restoreBackup(this.currentProjectHash, session.sessionId);
+      if (shouldRestore && backupRef) {
+        await this.backupManager.restoreBackup(this.currentProjectHash, backupRef.sessionId);
+        // CRITICAL: finalize AFTER restore succeeds
+        await this.sessionManager.finalizeSessionCleanup(this.currentProjectHash);
         await this.backupManager.cleanupOldBackups(this.currentProjectHash, 3);
-        await this.gitStashManager.popSettingsChanges(session.projectPath);
+        await this.gitStashManager.popSettingsChanges(backupRef.projectPath);
         await this.secretsManager.clearSecrets(this.currentProjectHash);
       }
     } catch (error) {
@@ -141,22 +134,22 @@ export class CleanupHandler {
   }
 
   /**
-   * Recover on startup (for all projects)
-   * Comprehensive cleanup: crashed sessions, stale data, history pruning
-   * Silent operation - no console output
-   *
-   * Performance: Heavy cleanup scans (history pruning, orphaned project detection)
-   * run at most once per day to avoid slowing down every startup.
+   * Recover on startup (for all projects).
+   * Handles: orphaned sessions, legacy migration, periodic heavy cleanup.
    */
   async recoverOnStartup(): Promise<void> {
+    // 0. Migrate legacy session files (old <hash>.json format → new directory format)
+    await this.migrateLegacySessions();
+
     // 1. Always recover orphaned sessions (from crashes) — fast when none exist
     const orphanedSessions = await this.sessionManager.detectOrphanedSessions();
 
-    for (const [projectHash, session] of orphanedSessions) {
+    for (const [projectHash, backupRef] of orphanedSessions) {
       try {
-        await this.backupManager.restoreBackup(projectHash, session.sessionId);
-        await this.sessionManager.recoverSession(projectHash, session);
-        await this.gitStashManager.popSettingsChanges(session.projectPath);
+        await this.backupManager.restoreBackup(projectHash, backupRef.sessionId);
+        // CRITICAL: finalize AFTER restore succeeds
+        await this.sessionManager.finalizeSessionCleanup(projectHash);
+        await this.gitStashManager.popSettingsChanges(backupRef.projectPath);
         await this.secretsManager.clearSecrets(projectHash);
         await this.backupManager.cleanupOldBackups(projectHash, 3);
       } catch (error) {
@@ -175,6 +168,69 @@ export class CleanupHandler {
         debug('periodic cleanup failed:', error);
       }
       await this.updateCleanupTimestamp();
+    }
+  }
+
+  /**
+   * Migrate legacy session files (old format: sessions/<hash>.json)
+   * to new directory format (sessions/<hash>/backup.json + pids/)
+   */
+  private async migrateLegacySessions(): Promise<void> {
+    const sessionsDir = path.join(this.projectManager.getFlowHomeDir(), 'sessions');
+
+    if (!existsSync(sessionsDir)) {
+      return;
+    }
+
+    try {
+      const entries = await fs.readdir(sessionsDir, { withFileTypes: true });
+      const legacyFiles = entries.filter(
+        (e) => e.isFile() && e.name.endsWith('.json') && e.name !== '.last-cleanup'
+      );
+
+      for (const file of legacyFiles) {
+        const hash = file.name.replace('.json', '');
+        const legacyPath = path.join(sessionsDir, file.name);
+
+        try {
+          const content = JSON.parse(await fs.readFile(legacyPath, 'utf-8'));
+
+          // Only migrate if it has the old session format fields
+          if (content.sessionId && content.backupPath && content.cleanupRequired !== undefined) {
+            const paths = this.projectManager.getProjectPaths(hash);
+
+            // Create new directory structure
+            await fs.mkdir(paths.pidsDir, { recursive: true });
+
+            // Write backup.json from old session data (only if cleanup was still required)
+            if (content.cleanupRequired) {
+              const backupRef = {
+                sessionId: content.sessionId,
+                backupPath: content.backupPath,
+                projectPath: content.projectPath,
+                target: content.target,
+                createdAt: content.startTime,
+                createdByPid: content.pid,
+              };
+              await fs.writeFile(paths.backupRefFile, JSON.stringify(backupRef, null, 2));
+            }
+
+            // Remove legacy file
+            await fs.unlink(legacyPath);
+            debug('migrated legacy session %s', hash);
+          }
+        } catch (error) {
+          debug('failed to migrate legacy session %s: %O', hash, error);
+          // Remove corrupt legacy file
+          try {
+            await fs.unlink(legacyPath);
+          } catch {
+            // Ignore
+          }
+        }
+      }
+    } catch (error) {
+      debug('legacy migration scan failed:', error);
     }
   }
 
@@ -205,31 +261,33 @@ export class CleanupHandler {
   }
 
   /**
-   * Manually cleanup a specific project session (with multi-session support)
+   * Manually cleanup a specific project session.
+   * Release → restore if last → finalize AFTER restore.
    */
   async cleanup(projectHash: string): Promise<void> {
-    const { shouldRestore, session } = await this.sessionManager.endSession(projectHash);
+    const { shouldRestore, backupRef } = await this.sessionManager.releaseSession(projectHash);
 
-    if (shouldRestore && session) {
-      // Last session - full restore and cleanup
-      await this.backupManager.restoreBackup(projectHash, session.sessionId);
+    if (shouldRestore && backupRef) {
+      await this.backupManager.restoreBackup(projectHash, backupRef.sessionId);
+      // CRITICAL: finalize AFTER restore succeeds
+      await this.sessionManager.finalizeSessionCleanup(projectHash);
       await this.backupManager.cleanupOldBackups(projectHash, 3);
-      await this.gitStashManager.popSettingsChanges(session.projectPath);
+      await this.gitStashManager.popSettingsChanges(backupRef.projectPath);
       await this.secretsManager.clearSecrets(projectHash);
     }
   }
 
   /**
-   * Clean up data for projects whose paths no longer exist
-   * Detects orphaned project hashes by checking if the original project path is accessible
+   * Clean up data for projects whose paths no longer exist.
+   * Uses isSessionActive instead of getActiveSession.
    */
   private async cleanupOrphanedProjects(): Promise<void> {
     const allHashes = await this.getAllProjectHashes();
 
     for (const hash of allHashes) {
       // Skip projects with active sessions
-      const activeSession = await this.sessionManager.getActiveSession(hash);
-      if (activeSession) {
+      const isActive = await this.sessionManager.isSessionActive(hash);
+      if (isActive) {
         continue;
       }
 
@@ -267,7 +325,6 @@ export class CleanupHandler {
       }
     };
 
-    // Scan both directories in parallel
     const [backupHashes, secretHashes] = await Promise.all([
       scanDir(path.join(flowHome, 'backups')),
       scanDir(path.join(flowHome, 'secrets')),
@@ -302,7 +359,7 @@ export class CleanupHandler {
   }
 
   /**
-   * Remove all stored data for a project hash (backups, secrets, session file)
+   * Remove all stored data for a project hash (backups, secrets, session dir)
    */
   private async cleanupProjectData(projectHash: string): Promise<void> {
     const paths = this.projectManager.getProjectPaths(projectHash);
@@ -321,11 +378,11 @@ export class CleanupHandler {
       debug('failed to remove secrets for %s: %O', projectHash, error);
     }
 
-    // Remove session file if exists
+    // Remove session directory (replaces old fs.unlink(sessionFile))
     try {
-      await fs.unlink(paths.sessionFile);
+      await fs.rm(paths.sessionDir, { recursive: true, force: true });
     } catch {
-      // Expected: file may not exist
+      // Expected: directory may not exist
     }
   }
 }

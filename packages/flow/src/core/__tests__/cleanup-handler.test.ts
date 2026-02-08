@@ -1,7 +1,8 @@
 /**
  * Tests for CleanupHandler
- * Covers: signal cleanup, crash recovery, orphaned project detection,
- * periodic cleanup gating, and session history pruning coordination
+ * Covers: cleanup flow, crash recovery, orphaned project detection,
+ * periodic cleanup gating, finalize-after-restore ordering,
+ * and legacy migration
  */
 
 import fs from 'node:fs';
@@ -16,21 +17,26 @@ function createMockProjectManager(flowHome: string) {
   return {
     getFlowHomeDir: () => flowHome,
     getProjectPaths: (hash: string) => ({
-      sessionFile: path.join(flowHome, 'sessions', `${hash}.json`),
+      sessionDir: path.join(flowHome, 'sessions', hash),
+      backupRefFile: path.join(flowHome, 'sessions', hash, 'backup.json'),
+      pidsDir: path.join(flowHome, 'sessions', hash, 'pids'),
       backupsDir: path.join(flowHome, 'backups', hash),
       secretsDir: path.join(flowHome, 'secrets', hash),
       latestBackup: path.join(flowHome, 'backups', hash, 'latest'),
     }),
+    getActiveProjects: vi.fn().mockResolvedValue([]),
   };
 }
 
 function createMockSessionManager() {
   return {
     detectOrphanedSessions: vi.fn().mockResolvedValue(new Map()),
-    endSession: vi.fn().mockResolvedValue({ shouldRestore: false, session: null }),
-    recoverSession: vi.fn().mockResolvedValue(undefined),
-    getActiveSession: vi.fn().mockResolvedValue(null),
+    releaseSession: vi.fn().mockResolvedValue({ shouldRestore: false, backupRef: null }),
+    finalizeSessionCleanup: vi.fn().mockResolvedValue(undefined),
+    isSessionActive: vi.fn().mockResolvedValue(false),
     cleanupSessionHistory: vi.fn().mockResolvedValue(undefined),
+    getBackupRef: vi.fn().mockResolvedValue(null),
+    acquireSession: vi.fn().mockResolvedValue({ isFirstSession: false, backupRef: null }),
   };
 }
 
@@ -94,24 +100,74 @@ describe('CleanupHandler', () => {
   // --- cleanup() ---
 
   describe('cleanup()', () => {
-    it('should restore backup and clean up when last session ends', async () => {
-      const session = { sessionId: 'session-1', projectPath: '/tmp/project' };
-      mockSessionManager.endSession.mockResolvedValue({ shouldRestore: true, session });
+    it('should restore backup and finalize when last session ends', async () => {
+      const backupRef = {
+        sessionId: 'session-1',
+        projectPath: '/tmp/project',
+        backupPath: '/tmp/backup',
+        target: 'claude-code',
+      };
+      mockSessionManager.releaseSession.mockResolvedValue({ shouldRestore: true, backupRef });
 
       await handler.cleanup('abc123');
 
       expect(mockBackupManager.restoreBackup).toHaveBeenCalledWith('abc123', 'session-1');
+      // CRITICAL: finalize called AFTER restore
+      expect(mockSessionManager.finalizeSessionCleanup).toHaveBeenCalledWith('abc123');
       expect(mockBackupManager.cleanupOldBackups).toHaveBeenCalledWith('abc123', 3);
       expect(mockGitStash.popSettingsChanges).toHaveBeenCalledWith('/tmp/project');
       expect(mockSecrets.clearSecrets).toHaveBeenCalledWith('abc123');
     });
 
+    it('should call finalize AFTER restore (ordering)', async () => {
+      const callOrder: string[] = [];
+      mockSessionManager.releaseSession.mockResolvedValue({
+        shouldRestore: true,
+        backupRef: {
+          sessionId: 's1',
+          projectPath: '/tmp/p',
+          backupPath: '/tmp/b',
+          target: 'claude-code',
+        },
+      });
+      mockBackupManager.restoreBackup.mockImplementation(async () => {
+        callOrder.push('restore');
+      });
+      mockSessionManager.finalizeSessionCleanup.mockImplementation(async () => {
+        callOrder.push('finalize');
+      });
+
+      await handler.cleanup('abc123');
+
+      expect(callOrder).toEqual(['restore', 'finalize']);
+    });
+
+    it('should NOT call finalize if restore fails', async () => {
+      mockSessionManager.releaseSession.mockResolvedValue({
+        shouldRestore: true,
+        backupRef: {
+          sessionId: 's1',
+          projectPath: '/tmp/p',
+          backupPath: '/tmp/b',
+          target: 'claude-code',
+        },
+      });
+      mockBackupManager.restoreBackup.mockRejectedValue(new Error('restore failed'));
+
+      // cleanup() will throw since restoreBackup throws
+      await expect(handler.cleanup('abc123')).rejects.toThrow('restore failed');
+
+      // finalize should NOT have been called
+      expect(mockSessionManager.finalizeSessionCleanup).not.toHaveBeenCalled();
+    });
+
     it('should not restore when other sessions still active', async () => {
-      mockSessionManager.endSession.mockResolvedValue({ shouldRestore: false, session: null });
+      mockSessionManager.releaseSession.mockResolvedValue({ shouldRestore: false, backupRef: null });
 
       await handler.cleanup('abc123');
 
       expect(mockBackupManager.restoreBackup).not.toHaveBeenCalled();
+      expect(mockSessionManager.finalizeSessionCleanup).not.toHaveBeenCalled();
       expect(mockGitStash.popSettingsChanges).not.toHaveBeenCalled();
       expect(mockSecrets.clearSecrets).not.toHaveBeenCalled();
     });
@@ -120,30 +176,31 @@ describe('CleanupHandler', () => {
   // --- recoverOnStartup() ---
 
   describe('recoverOnStartup()', () => {
-    it('should recover orphaned sessions', async () => {
-      const session = {
+    it('should recover orphaned sessions with finalize after restore', async () => {
+      const backupRef = {
         sessionId: 'session-crashed',
         projectPath: '/tmp/crashed-project',
-        projectHash: 'hash1',
+        backupPath: '/tmp/backup',
+        target: 'claude-code',
       };
-      const orphaned = new Map([['hash1', session]]);
+      const orphaned = new Map([['hash1', backupRef]]);
       mockSessionManager.detectOrphanedSessions.mockResolvedValue(orphaned);
 
       await handler.recoverOnStartup();
 
       expect(mockBackupManager.restoreBackup).toHaveBeenCalledWith('hash1', 'session-crashed');
-      expect(mockSessionManager.recoverSession).toHaveBeenCalledWith('hash1', session);
+      expect(mockSessionManager.finalizeSessionCleanup).toHaveBeenCalledWith('hash1');
       expect(mockGitStash.popSettingsChanges).toHaveBeenCalledWith('/tmp/crashed-project');
       expect(mockSecrets.clearSecrets).toHaveBeenCalledWith('hash1');
       expect(mockBackupManager.cleanupOldBackups).toHaveBeenCalledWith('hash1', 3);
     });
 
     it('should handle multiple orphaned sessions independently', async () => {
-      const session1 = { sessionId: 's1', projectPath: '/p1' };
-      const session2 = { sessionId: 's2', projectPath: '/p2' };
+      const ref1 = { sessionId: 's1', projectPath: '/p1', backupPath: '/b1', target: 'claude-code' };
+      const ref2 = { sessionId: 's2', projectPath: '/p2', backupPath: '/b2', target: 'claude-code' };
       const orphaned = new Map([
-        ['h1', session1],
-        ['h2', session2],
+        ['h1', ref1],
+        ['h2', ref2],
       ]);
       mockSessionManager.detectOrphanedSessions.mockResolvedValue(orphaned);
 
@@ -156,7 +213,9 @@ describe('CleanupHandler', () => {
 
       // Second session should still be recovered despite first failure
       expect(mockBackupManager.restoreBackup).toHaveBeenCalledTimes(2);
-      expect(mockSessionManager.recoverSession).toHaveBeenCalledWith('h2', session2);
+      expect(mockSessionManager.finalizeSessionCleanup).toHaveBeenCalledWith('h2');
+      // First session's finalize should NOT have been called (restore failed)
+      expect(mockSessionManager.finalizeSessionCleanup).not.toHaveBeenCalledWith('h1');
     });
 
     it('should skip heavy cleanup when marker is fresh', async () => {
@@ -209,6 +268,76 @@ describe('CleanupHandler', () => {
     });
   });
 
+  // --- Legacy migration ---
+
+  describe('migrateLegacySessions (via recoverOnStartup)', () => {
+    it('should migrate legacy session files with cleanupRequired=true', async () => {
+      // Create a legacy session file
+      const legacySession = {
+        projectHash: 'abc123',
+        projectPath: '/tmp/project',
+        sessionId: 'session-legacy',
+        pid: 999999,
+        startTime: '2026-01-01T00:00:00.000Z',
+        backupPath: '/tmp/backups/session-legacy',
+        status: 'active',
+        target: 'claude-code',
+        cleanupRequired: true,
+        isOriginal: true,
+        sharedBackupId: 'session-legacy',
+        refCount: 1,
+        activePids: [999999],
+      };
+      fs.writeFileSync(
+        path.join(flowHome, 'sessions', 'abc123.json'),
+        JSON.stringify(legacySession)
+      );
+
+      // Fresh cleanup marker to skip heavy cleanup
+      fs.writeFileSync(path.join(flowHome, '.last-cleanup'), new Date().toISOString());
+
+      await handler.recoverOnStartup();
+
+      // Legacy file should be gone
+      expect(fs.existsSync(path.join(flowHome, 'sessions', 'abc123.json'))).toBe(false);
+
+      // New directory structure should exist with backup.json
+      const paths = mockProjectManager.getProjectPaths('abc123');
+      expect(fs.existsSync(paths.backupRefFile)).toBe(true);
+
+      const backupRef = JSON.parse(fs.readFileSync(paths.backupRefFile, 'utf-8'));
+      expect(backupRef.sessionId).toBe('session-legacy');
+      expect(backupRef.projectPath).toBe('/tmp/project');
+    });
+
+    it('should migrate legacy session files with cleanupRequired=false (no backup.json)', async () => {
+      const legacySession = {
+        sessionId: 'session-done',
+        backupPath: '/tmp/backup',
+        projectPath: '/tmp/project',
+        target: 'claude-code',
+        cleanupRequired: false,
+        pid: 999999,
+        startTime: '2026-01-01T00:00:00.000Z',
+      };
+      fs.writeFileSync(
+        path.join(flowHome, 'sessions', 'def456.json'),
+        JSON.stringify(legacySession)
+      );
+
+      fs.writeFileSync(path.join(flowHome, '.last-cleanup'), new Date().toISOString());
+
+      await handler.recoverOnStartup();
+
+      // Legacy file should be gone
+      expect(fs.existsSync(path.join(flowHome, 'sessions', 'def456.json'))).toBe(false);
+
+      // No backup.json should be created (cleanupRequired was false)
+      const paths = mockProjectManager.getProjectPaths('def456');
+      expect(fs.existsSync(paths.backupRefFile)).toBe(false);
+    });
+  });
+
   // --- Orphaned project cleanup ---
 
   describe('cleanupOrphanedProjects (via recoverOnStartup)', () => {
@@ -248,11 +377,8 @@ describe('CleanupHandler', () => {
       );
 
       // Mock: this project has an active session
-      mockSessionManager.getActiveSession.mockImplementation(async (hash: string) => {
-        if (hash === activeHash) {
-          return { projectHash: activeHash };
-        }
-        return null;
+      mockSessionManager.isSessionActive.mockImplementation(async (hash: string) => {
+        return hash === activeHash;
       });
 
       await handler.recoverOnStartup();

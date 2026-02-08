@@ -149,7 +149,15 @@ export class BackupManager {
   }
 
   /**
-   * Restore backup to project
+   * Restore backup to project (atomic).
+   *
+   * Uses copy-to-temp → rm → rename pattern to ensure atomicity:
+   * 1. Copy backup → temp dir (.claude.flow-restore-<timestamp>)
+   * 2. rm -rf current config dir
+   * 3. fs.rename(temp, configDir) — atomic on same filesystem
+   *
+   * If the process dies after step 2 but before step 3, the temp dir
+   * still exists and can be manually recovered.
    */
   async restoreBackup(projectHash: string, sessionId: string): Promise<void> {
     const paths = this.projectManager.getProjectPaths(projectHash);
@@ -169,19 +177,45 @@ export class BackupManager {
     // Resolve target to get config
     const target = resolveTarget(targetId);
 
-    // Get target config directory
+    // Get target config directory (e.g., /project/.claude)
     const targetConfigDir = this.projectManager.getTargetConfigDir(projectPath, target);
-
-    // Remove current target directory
-    if (existsSync(targetConfigDir)) {
-      await fs.rm(targetConfigDir, { recursive: true, force: true });
-    }
-
-    // Restore from backup using target config's configDir
     const backupTargetDir = path.join(backupPath, target.config.configDir);
 
-    if (existsSync(backupTargetDir)) {
-      await this.copyDirectory(backupTargetDir, targetConfigDir);
+    if (!existsSync(backupTargetDir)) {
+      // No backup config to restore — just remove current config
+      if (existsSync(targetConfigDir)) {
+        await fs.rm(targetConfigDir, { recursive: true, force: true });
+      }
+      return;
+    }
+
+    // Atomic restore: copy → rm → rename
+    const tempDir = path.join(
+      path.dirname(targetConfigDir),
+      `${path.basename(targetConfigDir)}.flow-restore-${Date.now()}`
+    );
+
+    try {
+      // 1. Copy backup to temp dir
+      await this.copyDirectory(backupTargetDir, tempDir);
+
+      // 2. Remove current config dir
+      if (existsSync(targetConfigDir)) {
+        await fs.rm(targetConfigDir, { recursive: true, force: true });
+      }
+
+      // 3. Rename temp → config dir (atomic on same filesystem)
+      await fs.rename(tempDir, targetConfigDir);
+    } catch (error) {
+      // Clean up temp dir on failure
+      try {
+        if (existsSync(tempDir)) {
+          await fs.rm(tempDir, { recursive: true, force: true });
+        }
+      } catch {
+        // Ignore cleanup errors
+      }
+      throw error;
     }
   }
 

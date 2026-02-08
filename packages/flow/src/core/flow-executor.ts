@@ -60,6 +60,7 @@ export class FlowExecutor {
 
   /**
    * Try to join an existing session. Returns summary if joined, null otherwise.
+   * Always re-applies settings for self-healing (fixes corrupted state from partial restores).
    */
   private async tryJoinExistingSession(
     projectPath: string,
@@ -67,31 +68,31 @@ export class FlowExecutor {
     target: string,
     verbose?: boolean
   ): Promise<{ joined: true } | null> {
-    const existingSession = await this.sessionManager.getActiveSession(projectHash);
-    if (!existingSession) {
+    // Check if there's an active session (backup.json exists)
+    const backupRef = await this.sessionManager.getBackupRef(projectHash);
+    if (!backupRef) {
       return null;
     }
 
-    const targetObj = resolveTargetOrId(target);
-    const agentsDir = path.join(projectPath, targetObj.config.agentDir);
-    const filesExist = existsSync(agentsDir) && (await fs.readdir(agentsDir)).length > 0;
-
-    if (filesExist) {
-      await this.sessionManager.startSession(
-        projectPath,
-        projectHash,
-        target,
-        existingSession.backupPath
-      );
-      this.cleanupHandler.registerCleanupHooks(projectHash);
-      return { joined: true };
-    }
-
     if (verbose) {
-      console.log(chalk.dim('Session files missing, re-attaching...'));
+      console.log(chalk.dim('Joining existing session...'));
     }
-    await this.sessionManager.endSession(projectHash);
-    return null;
+
+    // Register our PID with the session
+    await this.sessionManager.acquireSession(projectHash, projectPath, target);
+    this.cleanupHandler.registerCleanupHooks(projectHash);
+
+    // Always re-apply settings for self-healing
+    const targetObj = resolveTargetOrId(target);
+    if (targetObj.applySettings) {
+      try {
+        await targetObj.applySettings(projectPath, {});
+      } catch (error) {
+        debug('applySettings failed during join:', error);
+      }
+    }
+
+    return { joined: true };
   }
 
   /**
@@ -128,12 +129,12 @@ export class FlowExecutor {
             }),
     ]);
 
-    const { session } = await this.sessionManager.startSession(
-      projectPath,
+    // Acquire session with backup info — atomic first-session detection
+    const { backupRef } = await this.sessionManager.acquireSession(
       projectHash,
+      projectPath,
       target,
-      backup.backupPath,
-      backup.sessionId
+      { sessionId: backup.sessionId, backupPath: backup.backupPath }
     );
 
     this.cleanupHandler.registerCleanupHooks(projectHash);
@@ -142,8 +143,9 @@ export class FlowExecutor {
       await this.clearUserSettings(projectPath, target);
     }
 
+    const sessionId = backupRef?.sessionId ?? backup.sessionId;
     const templates = await this.templateLoader.loadTemplates(target);
-    const manifest = await this.backupManager.getManifest(projectHash, session.sessionId);
+    const manifest = await this.backupManager.getManifest(projectHash, sessionId);
 
     if (!manifest) {
       throw new Error('Backup manifest not found');
@@ -161,7 +163,7 @@ export class FlowExecutor {
       }
     }
 
-    await this.backupManager.updateManifest(projectHash, session.sessionId, manifest);
+    await this.backupManager.updateManifest(projectHash, sessionId, manifest);
 
     return {
       agents: attachResult.agentsAdded.length,

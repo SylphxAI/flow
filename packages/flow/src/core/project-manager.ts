@@ -18,7 +18,9 @@ import { targetManager } from './target-manager.js';
 const execAsync = promisify(exec);
 
 export interface ProjectPaths {
-  sessionFile: string;
+  sessionDir: string; // ~/.sylphx-flow/sessions/<hash>/
+  backupRefFile: string; // ~/.sylphx-flow/sessions/<hash>/backup.json
+  pidsDir: string; // ~/.sylphx-flow/sessions/<hash>/pids/
   backupsDir: string;
   secretsDir: string;
   latestBackup: string;
@@ -45,12 +47,14 @@ export class ProjectManager {
    * Get all paths for a project
    */
   getProjectPaths(projectHash: string): ProjectPaths {
-    const sessionsDir = path.join(this.flowHomeDir, 'sessions');
+    const sessionDir = path.join(this.flowHomeDir, 'sessions', projectHash);
     const backupsDir = path.join(this.flowHomeDir, 'backups', projectHash);
     const secretsDir = path.join(this.flowHomeDir, 'secrets', projectHash);
 
     return {
-      sessionFile: path.join(sessionsDir, `${projectHash}.json`),
+      sessionDir,
+      backupRefFile: path.join(sessionDir, 'backup.json'),
+      pidsDir: path.join(sessionDir, 'pids'),
       backupsDir,
       secretsDir,
       latestBackup: path.join(backupsDir, 'latest'),
@@ -216,19 +220,19 @@ export class ProjectManager {
   /**
    * Get all active projects
    */
-  async getActiveProjects(): Promise<Array<{ hash: string; sessionFile: string }>> {
+  async getActiveProjects(): Promise<Array<{ hash: string; sessionDir: string }>> {
     const sessionsDir = path.join(this.flowHomeDir, 'sessions');
 
     if (!existsSync(sessionsDir)) {
       return [];
     }
 
-    const files = await fs.readdir(sessionsDir);
-    return files
-      .filter((file) => file.endsWith('.json'))
-      .map((file) => ({
-        hash: file.replace('.json', ''),
-        sessionFile: path.join(sessionsDir, file),
+    const entries = await fs.readdir(sessionsDir, { withFileTypes: true });
+    return entries
+      .filter((entry) => entry.isDirectory() && entry.name !== 'history')
+      .map((entry) => ({
+        hash: entry.name,
+        sessionDir: path.join(sessionsDir, entry.name),
       }));
   }
 
@@ -243,7 +247,8 @@ export class ProjectManager {
   } | null> {
     const paths = this.getProjectPaths(projectHash);
 
-    const hasActiveSession = existsSync(paths.sessionFile);
+    // Session is active if backup.json exists in the session directory
+    const hasActiveSession = existsSync(paths.backupRefFile);
 
     let backupsCount = 0;
     if (existsSync(paths.backupsDir)) {

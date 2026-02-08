@@ -423,10 +423,9 @@ Please begin your response with a comprehensive summary of all the instructions 
       throw new Error(`Failed to write settings: ${writeResult.error.message}`);
     }
 
-    // Return 1 hook configured (Notification only)
     return {
-      count: 1,
-      message: 'Configured notification hook',
+      count: 2,
+      message: 'Configured Notification and SessionStart hooks',
     };
   },
 };

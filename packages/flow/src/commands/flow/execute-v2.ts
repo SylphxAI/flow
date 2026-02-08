@@ -308,7 +308,25 @@ export async function executeFlowV2(
       continue: options.continue,
     };
 
-    await executeTargetCommand(selectedTargetId, systemPrompt, userPrompt, runOptions);
+    // Suppress SIGINT in parent — child process handles its own Ctrl+C.
+    // Without this, SIGINT propagates to parent and triggers premature cleanup
+    // while the child is still running.
+    const originalSigintListeners = process.listeners('SIGINT') as ((...args: unknown[]) => void)[];
+    process.removeAllListeners('SIGINT');
+    process.on('SIGINT', () => {
+      // Intentionally empty — child handles Ctrl+C
+    });
+
+    try {
+      await executeTargetCommand(selectedTargetId, systemPrompt, userPrompt, runOptions);
+    } finally {
+      // Restore original SIGINT listeners after child exits
+      process.removeAllListeners('SIGINT');
+      for (const listener of originalSigintListeners) {
+        process.on('SIGINT', listener);
+      }
+    }
+
     await executor.cleanup(projectPath);
   } catch (error) {
     if (error instanceof UserCancelledError) {

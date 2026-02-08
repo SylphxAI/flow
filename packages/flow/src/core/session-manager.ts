@@ -1,31 +1,41 @@
 /**
- * Session Manager (Updated for ~/.sylphx-flow)
- * Manages temporary Flow sessions with multi-project support
- * All sessions stored in ~/.sylphx-flow/sessions/
+ * Session Manager — PID-based ground truth
+ *
+ * Replaces state-flag session tracking with PID liveness checks.
+ * PID liveness (`kill(pid, 0)`) is the single source of truth.
+ *
+ * Storage structure:
+ *   ~/.sylphx-flow/sessions/<project-hash>/
+ *     backup.json              — Backup reference (exists = workspace modified)
+ *     pids/
+ *       <pid>.json             — Per-process lock file
  */
 
 import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { Target } from '../types/target.types.js';
+import createDebug from 'debug';
 import { readJsonFileSafe } from '../utils/files/file-operations.js';
 import type { ProjectManager } from './project-manager.js';
 
-export interface Session {
-  projectHash: string;
-  projectPath: string;
-  sessionId: string;
+const debug = createDebug('flow:session');
+
+/** Per-process lock file content */
+export interface PidLock {
   pid: number;
   startTime: string;
-  backupPath: string;
-  status: 'active' | 'completed' | 'crashed';
   target: string;
-  cleanupRequired: boolean;
-  // Multi-session support
-  isOriginal: boolean; // First session that created backup
-  sharedBackupId: string; // Shared backup ID for all sessions
-  refCount: number; // Number of active sessions
-  activePids: number[]; // All active PIDs sharing this session
+  projectPath: string;
+}
+
+/** Backup reference — written by first session, deleted after restore */
+export interface BackupRef {
+  sessionId: string;
+  backupPath: string;
+  projectPath: string;
+  target: string;
+  createdAt: string;
+  createdByPid: number;
 }
 
 export class SessionManager {
@@ -36,177 +46,256 @@ export class SessionManager {
   }
 
   /**
-   * Start a new session for a project (with multi-session support)
+   * Acquire a session slot for this process.
+   *
+   * Uses atomic `mkdir(pidsDir)` (without `recursive`) for first-session detection:
+   * - EEXIST → another session already exists (join)
+   * - Success → this is the first session (create backup.json)
    */
-  async startSession(
-    projectPath: string,
+  async acquireSession(
     projectHash: string,
-    targetOrId: Target | string,
-    backupPath: string,
-    sessionId?: string
-  ): Promise<{ session: Session; isFirstSession: boolean }> {
-    // Get target ID for storage
-    const targetId = typeof targetOrId === 'string' ? targetOrId : targetOrId.id;
+    projectPath: string,
+    target: string,
+    backupInfo?: { sessionId: string; backupPath: string }
+  ): Promise<{ isFirstSession: boolean; backupRef: BackupRef | null }> {
     const paths = this.projectManager.getProjectPaths(projectHash);
 
-    // Ensure sessions directory exists
-    await fs.mkdir(path.dirname(paths.sessionFile), { recursive: true });
+    // Ensure the session directory exists
+    await fs.mkdir(paths.sessionDir, { recursive: true });
 
-    // Check for existing session
-    const existingSession = await this.getActiveSession(projectHash);
+    let isFirstSession = false;
 
-    if (existingSession) {
-      // Join existing session (don't create new backup)
-      existingSession.refCount++;
-      existingSession.activePids.push(process.pid);
-
-      await fs.writeFile(paths.sessionFile, JSON.stringify(existingSession, null, 2));
-
-      return {
-        session: existingSession,
-        isFirstSession: false,
-      };
+    try {
+      // Atomic mkdir — fails with EEXIST if pids/ already exists
+      await fs.mkdir(paths.pidsDir);
+      isFirstSession = true;
+    } catch (error: unknown) {
+      if (isErrnoException(error) && error.code === 'EEXIST') {
+        // Another session already created pids/ — we're joining
+        isFirstSession = false;
+      } else {
+        throw error;
+      }
     }
 
-    // First session - create new (use provided sessionId or generate one)
-    const newSessionId = sessionId || `session-${Date.now()}`;
-    const session: Session = {
-      projectHash,
-      projectPath,
-      sessionId: newSessionId,
+    // Write our PID lock file
+    const pidLock: PidLock = {
       pid: process.pid,
       startTime: new Date().toISOString(),
-      backupPath,
-      status: 'active',
-      target: targetId,
-      cleanupRequired: true,
-      isOriginal: true,
-      sharedBackupId: newSessionId,
-      refCount: 1,
-      activePids: [process.pid],
+      target,
+      projectPath,
     };
+    await fs.writeFile(
+      path.join(paths.pidsDir, `${process.pid}.json`),
+      JSON.stringify(pidLock, null, 2)
+    );
 
-    await fs.writeFile(paths.sessionFile, JSON.stringify(session, null, 2));
+    if (isFirstSession && backupInfo) {
+      // First session — write backup reference
+      const backupRef: BackupRef = {
+        sessionId: backupInfo.sessionId,
+        backupPath: backupInfo.backupPath,
+        projectPath,
+        target,
+        createdAt: new Date().toISOString(),
+        createdByPid: process.pid,
+      };
+      await fs.writeFile(paths.backupRefFile, JSON.stringify(backupRef, null, 2));
+      return { isFirstSession: true, backupRef };
+    }
 
-    return {
-      session,
-      isFirstSession: true,
-    };
+    // Join — read existing backup ref
+    const backupRef = await this.getBackupRef(projectHash);
+    return { isFirstSession, backupRef };
   }
 
   /**
-   * Mark session as completed (with reference counting)
+   * Release this process's session slot.
+   *
+   * Deletes own PID file, scans remaining, checks liveness.
+   * Returns `shouldRestore=true` only when no alive PIDs remain.
    */
-  async endSession(
+  async releaseSession(
     projectHash: string
-  ): Promise<{ shouldRestore: boolean; session: Session | null }> {
+  ): Promise<{ shouldRestore: boolean; backupRef: BackupRef | null }> {
+    const paths = this.projectManager.getProjectPaths(projectHash);
+
+    // Delete own PID file
     try {
-      const session = await this.getActiveSession(projectHash);
+      await fs.unlink(path.join(paths.pidsDir, `${process.pid}.json`));
+    } catch {
+      // PID file might not exist (double-cleanup)
+    }
 
-      if (!session) {
-        return { shouldRestore: false, session: null };
-      }
+    // Scan remaining PID files
+    const alivePids = await this.scanAlivePids(paths.pidsDir);
 
-      const paths = this.projectManager.getProjectPaths(projectHash);
+    if (alivePids.length > 0) {
+      // Other sessions still running
+      return { shouldRestore: false, backupRef: null };
+    }
 
-      // Remove current PID from active PIDs
-      session.activePids = session.activePids.filter((pid) => pid !== process.pid);
-      session.refCount = session.activePids.length;
+    // No alive PIDs — this is the last session
+    const backupRef = await this.getBackupRef(projectHash);
+    return { shouldRestore: backupRef !== null, backupRef };
+  }
 
-      if (session.refCount === 0) {
-        // Last session - mark completed and cleanup
-        session.status = 'completed';
-        session.cleanupRequired = false;
+  /**
+   * Finalize session cleanup — called AFTER restoreBackup() succeeds.
+   * Deletes backup.json, pids/, and the session directory.
+   */
+  async finalizeSessionCleanup(projectHash: string): Promise<void> {
+    const paths = this.projectManager.getProjectPaths(projectHash);
+    const flowHome = this.projectManager.getFlowHomeDir();
 
-        const flowHome = this.projectManager.getFlowHomeDir();
+    // Archive backup ref to history before deleting
+    const backupRef = await this.getBackupRef(projectHash);
+    if (backupRef) {
+      const historyPath = path.join(
+        flowHome,
+        'sessions',
+        'history',
+        `${backupRef.sessionId}.json`
+      );
+      await fs.mkdir(path.dirname(historyPath), { recursive: true });
+      await fs.writeFile(
+        historyPath,
+        JSON.stringify({ ...backupRef, status: 'completed', finalizedAt: new Date().toISOString() }, null, 2)
+      );
+    }
 
-        // Archive to history
-        const historyPath = path.join(flowHome, 'sessions', 'history', `${session.sessionId}.json`);
-        await fs.mkdir(path.dirname(historyPath), { recursive: true });
-        await fs.writeFile(historyPath, JSON.stringify(session, null, 2));
-
-        // Remove active session file
-        await fs.unlink(paths.sessionFile);
-
-        return { shouldRestore: true, session };
-      } else {
-        // Still have active sessions, update session file
-        await fs.writeFile(paths.sessionFile, JSON.stringify(session, null, 2));
-
-        return { shouldRestore: false, session };
-      }
-    } catch (_error) {
-      // Session file might not exist
-      return { shouldRestore: false, session: null };
+    // Remove entire session directory (backup.json + pids/)
+    try {
+      await fs.rm(paths.sessionDir, { recursive: true, force: true });
+    } catch {
+      // Directory might already be gone
     }
   }
 
   /**
-   * Get active session for a project
+   * Detect orphaned sessions — backup.json exists but no alive PIDs.
+   * Scans all session directories, not individual files.
    */
-  getActiveSession(projectHash: string): Promise<Session | null> {
-    const paths = this.projectManager.getProjectPaths(projectHash);
-    return readJsonFileSafe<Session | null>(paths.sessionFile, null);
-  }
-
-  /**
-   * Detect orphaned sessions (from crashes) across all projects
-   * Handles multi-session by checking all PIDs
-   */
-  async detectOrphanedSessions(): Promise<Map<string, Session>> {
-    const orphaned = new Map<string, Session>();
-
-    // Get all active projects
+  async detectOrphanedSessions(): Promise<Map<string, BackupRef>> {
+    const orphaned = new Map<string, BackupRef>();
     const projects = await this.projectManager.getActiveProjects();
 
     for (const { hash } of projects) {
-      const session = await this.getActiveSession(hash);
+      const paths = this.projectManager.getProjectPaths(hash);
 
-      if (!session) {
+      // Must have backup.json to be a recoverable session
+      const backupRef = await this.getBackupRef(hash);
+      if (!backupRef) {
+        // No backup.json — clean up stale session directory
+        try {
+          await fs.rm(paths.sessionDir, { recursive: true, force: true });
+        } catch {
+          debug('failed to clean stale session dir for %s', hash);
+        }
         continue;
       }
 
-      // Check all active PIDs
-      const stillRunning = [];
-      for (const pid of session.activePids) {
-        if (await this.checkPIDRunning(pid)) {
-          stillRunning.push(pid);
-        }
-      }
+      // Check if any PIDs are still alive
+      const alivePids = await this.scanAlivePids(paths.pidsDir);
 
-      // Update active PIDs and refCount
-      session.activePids = stillRunning;
-      session.refCount = stillRunning.length;
-
-      if (session.refCount === 0 && session.cleanupRequired) {
-        // All sessions crashed
-        orphaned.set(hash, session);
-      } else if (session.refCount !== session.activePids.length) {
-        // Some PIDs crashed, update session file
-        const paths = this.projectManager.getProjectPaths(hash);
-        await fs.writeFile(paths.sessionFile, JSON.stringify(session, null, 2));
+      if (alivePids.length === 0) {
+        // All PIDs dead — orphaned session
+        orphaned.set(hash, backupRef);
       }
+      // If alive PIDs exist, session is active — leave it alone
     }
 
     return orphaned;
   }
 
   /**
-   * Check if process is still running
+   * Get backup reference for a project (null if no active session)
    */
-  private async checkPIDRunning(pid: number): Promise<boolean> {
+  async getBackupRef(projectHash: string): Promise<BackupRef | null> {
+    const paths = this.projectManager.getProjectPaths(projectHash);
+    return readJsonFileSafe<BackupRef | null>(paths.backupRefFile, null);
+  }
+
+  /**
+   * Check if a session is active (any alive PIDs for this project)
+   */
+  async isSessionActive(projectHash: string): Promise<boolean> {
+    const paths = this.projectManager.getProjectPaths(projectHash);
+
+    if (!existsSync(paths.backupRefFile)) {
+      return false;
+    }
+
+    const alivePids = await this.scanAlivePids(paths.pidsDir);
+    return alivePids.length > 0;
+  }
+
+  /**
+   * Scan PID directory, check liveness, clean dead PID files.
+   * Returns list of alive PIDs.
+   */
+  private async scanAlivePids(pidsDir: string): Promise<number[]> {
+    if (!existsSync(pidsDir)) {
+      return [];
+    }
+
+    let files: string[];
     try {
-      // Send signal 0 to check if process exists
+      files = await fs.readdir(pidsDir);
+    } catch {
+      return [];
+    }
+
+    const alivePids: number[] = [];
+
+    for (const file of files) {
+      if (!file.endsWith('.json')) {
+        continue;
+      }
+
+      const pid = parseInt(file.replace('.json', ''), 10);
+      if (isNaN(pid)) {
+        continue;
+      }
+
+      if (this.isPidAlive(pid)) {
+        alivePids.push(pid);
+      } else {
+        // Clean dead PID file
+        try {
+          await fs.unlink(path.join(pidsDir, file));
+        } catch {
+          // Ignore — might be cleaned by another process
+        }
+      }
+    }
+
+    return alivePids;
+  }
+
+  /**
+   * Check if a process is alive via kill(pid, 0).
+   * - Success → alive (same user)
+   * - EPERM → alive (different user, e.g. PID 1)
+   * - ESRCH → dead
+   */
+  private isPidAlive(pid: number): boolean {
+    try {
       process.kill(pid, 0);
       return true;
-    } catch (_error) {
+    } catch (error: unknown) {
+      // EPERM = process exists but we can't signal it (different user)
+      if (isErrnoException(error) && error.code === 'EPERM') {
+        return true;
+      }
+      // ESRCH = no such process
       return false;
     }
   }
 
   /**
-   * Prune old session history files to prevent unbounded accumulation
-   * Keeps the most recent N history entries (sorted by session timestamp in filename)
+   * Prune old session history files to prevent unbounded accumulation.
+   * Keeps the most recent N history entries.
    */
   async cleanupSessionHistory(keepLast: number = 50): Promise<void> {
     const flowHome = this.projectManager.getFlowHomeDir();
@@ -231,27 +320,8 @@ export class SessionManager {
       }
     }
   }
+}
 
-  /**
-   * Recover from crashed session
-   */
-  async recoverSession(projectHash: string, session: Session): Promise<void> {
-    session.status = 'crashed';
-    session.cleanupRequired = false;
-
-    const flowHome = this.projectManager.getFlowHomeDir();
-    const paths = this.projectManager.getProjectPaths(projectHash);
-
-    // Archive to history
-    const historyPath = path.join(flowHome, 'sessions', 'history', `${session.sessionId}.json`);
-    await fs.mkdir(path.dirname(historyPath), { recursive: true });
-    await fs.writeFile(historyPath, JSON.stringify(session, null, 2));
-
-    // Remove active session
-    try {
-      await fs.unlink(paths.sessionFile);
-    } catch {
-      // File might not exist
-    }
-  }
+function isErrnoException(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && 'code' in error;
 }
