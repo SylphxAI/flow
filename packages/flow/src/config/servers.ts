@@ -189,6 +189,18 @@ export const MCP_SERVER_REGISTRY: Record<string, MCPServerDefinition> = {
     category: 'core',
     defaultInInit: true,
   },
+
+  fal: {
+    id: 'fal',
+    name: 'fal',
+    description: 'fal.ai MCP server for generative AI models (image, video, audio)',
+    config: {
+      type: 'http' as const,
+      url: 'https://docs.fal.ai/mcp',
+    },
+    category: 'ai',
+    defaultInInit: true,
+  },
 };
 
 /**
