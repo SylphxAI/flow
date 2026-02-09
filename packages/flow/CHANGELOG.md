@@ -1,5 +1,13 @@
 # @sylphx/flow
 
+## 3.22.0 (2026-02-09)
+
+Add fal.ai MCP server for generative AI models (image, video, audio)
+
+### ✨ Features
+
+- **flow:** add fal.ai MCP server to registry ([f931207](https://github.com/SylphxAI/flow/commit/f931207e0ed36df22b60a7075623c4130c6b0eec))
+
 ## 3.21.1 (2026-02-08)
 
 ### 🐛 Bug Fixes
