@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 3.23.0 (2026-02-14)
+
+### ✨ Features
+
+- **flow:** add --resume flag to resume Claude Code sessions ([17e4189](https://github.com/SylphxAI/flow/commit/17e41893275c7fff8f43f63d2353294bfc333c6f))
+
 ## 3.22.0 (2026-02-09)
 
 Add fal.ai MCP server for generative AI models (image, video, audio)
