@@ -84,4 +84,5 @@ export interface RunCommandOptions {
   prompt?: string;
   print?: boolean; // Headless print mode
   continue?: boolean; // Continue previous conversation
+  resume?: string | boolean; // Resume a previous session
 }

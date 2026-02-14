@@ -306,6 +306,7 @@ export async function executeFlowV2(
       prompt,
       print: options.print,
       continue: options.continue,
+      resume: options.resume,
     };
 
     // Suppress SIGINT in parent — child process handles its own Ctrl+C.

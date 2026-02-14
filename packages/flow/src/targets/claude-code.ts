@@ -199,7 +199,7 @@ export const claudeCodeTarget: Target = {
   async executeCommand(
     systemPrompt: string,
     userPrompt: string,
-    options: { verbose?: boolean; dryRun?: boolean; print?: boolean; continue?: boolean } = {}
+    options: { verbose?: boolean; dryRun?: boolean; print?: boolean; continue?: boolean; resume?: string | boolean } = {}
   ): Promise<void> {
     // Sanitize and validate inputs
     const sanitizedSystemPrompt = sanitize.yamlContent(systemPrompt);
@@ -219,6 +219,12 @@ Please begin your response with a comprehensive summary of all the instructions 
       }
       if (options.continue) {
         dryRunArgs.push('-c');
+      }
+      if (options.resume) {
+        dryRunArgs.push('--resume');
+        if (typeof options.resume === 'string') {
+          dryRunArgs.push(options.resume);
+        }
       }
       dryRunArgs.push('--system-prompt', '"<agent content>"');
       if (sanitizedUserPrompt.trim() !== '') {
@@ -246,6 +252,12 @@ Please begin your response with a comprehensive summary of all the instructions 
       }
       if (options.continue) {
         args.push('-c');
+      }
+      if (options.resume) {
+        args.push('--resume');
+        if (typeof options.resume === 'string') {
+          args.push(options.resume);
+        }
       }
 
       args.push('--system-prompt', enhancedSystemPrompt);

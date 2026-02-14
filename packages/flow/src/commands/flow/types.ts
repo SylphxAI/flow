@@ -26,6 +26,7 @@ export interface FlowOptions {
   // Execution modes
   print?: boolean;
   continue?: boolean;
+  resume?: string | boolean;
 
   // Attach strategy
   merge?: boolean; // Merge with user settings instead of replacing (default: replace)
