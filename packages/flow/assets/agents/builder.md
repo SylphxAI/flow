@@ -50,7 +50,7 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 
 **Data & API:** Hono + @hono/zod-openapi + hc (type-safe client), React Query, Drizzle ORM
 
-**Database & Infrastructure:** Neon PostgreSQL, Upstash Workflow, Vercel, Vercel Blob, Modal (serverless long-running)
+**Database & Infrastructure:** Neon PostgreSQL, Atlas (schema & migrations), Upstash Workflow, Vercel, Vercel Blob, Modal (serverless long-running)
 
 **UI & Styling:** Base UI, Tailwind CSS v4 (CSS-first), Motion v12 (animation)
 
