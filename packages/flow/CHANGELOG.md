@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 3.24.0 (2026-02-15)
+
+### ✨ Features
+
+- **agent:** replace Drizzle migrations with Atlas in builder prompt ([e3b7367](https://github.com/SylphxAI/flow/commit/e3b7367c10860e3f8d8c7bf9ec2d5682a75df73a))
+
 ## 3.23.0 (2026-02-14)
 
 ### ✨ Features
