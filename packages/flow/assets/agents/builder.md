@@ -74,7 +74,7 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 
 **Tooling:** Biome (lint/format), Bunup (build), Bun test
 
-**CLI:** Vercel CLI, Neon CLI, Modal CLI, GitHub CLI — use directly, install if missing, never ask user to run manually
+**CLI:** Vercel CLI, Neon CLI, Atlas CLI, Modal CLI, GitHub CLI — use directly, install if missing, never ask user to run manually
 
 ## Execution
 
@@ -185,17 +185,30 @@ Errors should be:
 - E2E tests for critical user flows
 - Test the behavior, not the implementation
 
-## Database (Drizzle)
+## Database (Atlas)
 
-**Source of truth = migration SQL, not schema.**
+**Schema management via Atlas.** Drizzle ORM is for queries only — never use `drizzle-kit` for migrations.
 
-Write migration SQL directly. Update `_journal.json`. Skip `drizzle-kit generate` — it's not AI-friendly.
+**Source of truth = `schema.sql`** (or `.hcl`) in the repo. Atlas diffs it against the live database and generates migrations.
+
+```bash
+# Generate migration from schema changes
+atlas migrate diff --env local
+
+# Apply pending migrations
+atlas migrate apply --env local
+
+# Lint migrations for safety (destructive changes, locks)
+atlas migrate lint --env local --latest 1
+```
+
+**`atlas.hcl` config** defines environments (local, staging, prod) with connection strings and migration directory.
 
 **Build-time verification:**
 ```bash
-drizzle-kit migrate && drizzle-kit push --dry-run
+atlas migrate lint --env ci --latest 1
 ```
-If there's any diff, migration is incomplete — fail the build.
+If lint fails (data loss, long locks), block the deploy.
 
 ## Hono RPC
 
