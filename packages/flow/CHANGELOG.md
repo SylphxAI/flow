@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 3.24.1 (2026-02-15)
+
+### 🐛 Bug Fixes
+
+- **agent:** add Atlas to database & infrastructure in tech stack ([5bbd761](https://github.com/SylphxAI/flow/commit/5bbd76157587ff1c915ef01ab6a179c3353a1ad8))
+
 ## 3.24.0 (2026-02-15)
 
 ### ✨ Features
