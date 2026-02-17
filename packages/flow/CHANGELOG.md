@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 3.24.2 (2026-02-17)
+
+### 🐛 Bug Fixes
+
+- **flow:** graceful exit when Claude Code exits with non-zero code ([44892b5](https://github.com/SylphxAI/flow/commit/44892b51beda34b49020ed1d0324cfcc3e4b28f9))
+
 ## 3.24.1 (2026-02-15)
 
 ### 🐛 Bug Fixes
