@@ -20,3 +20,15 @@ export class CLIError extends Error {
     this.name = 'CLIError';
   }
 }
+
+/**
+ * Child process exited with non-zero code.
+ * Since stdio is inherited, the child already displayed its own error —
+ * upstream handlers should cleanup and exit silently without printing anything.
+ */
+export class ChildProcessExitError extends Error {
+  constructor(public exitCode: number) {
+    super(`Child process exited with code ${exitCode}`);
+    this.name = 'ChildProcessExitError';
+  }
+}

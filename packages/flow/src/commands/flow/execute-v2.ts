@@ -19,7 +19,7 @@ import { TargetInstaller } from '../../services/target-installer.js';
 import type { RunCommandOptions } from '../../types.js';
 import { extractAgentInstructions, loadAgentContent } from '../../utils/agent-enhancer.js';
 import { showAttachSummary, showHeader } from '../../utils/display/banner.js';
-import { CLIError, UserCancelledError } from '../../utils/errors.js';
+import { CLIError, ChildProcessExitError, UserCancelledError } from '../../utils/errors.js';
 import { log, promptConfirm, promptSelect } from '../../utils/prompts/index.js';
 import { ensureTargetInstalled, promptForTargetSelection } from '../../utils/target-selection.js';
 import { resolvePrompt } from './prompt.js';
@@ -338,6 +338,17 @@ export async function executeFlowV2(
         debug('cleanup after cancel failed:', cleanupError);
       }
       process.exit(0);
+    }
+
+    // Child process already displayed its own error via inherited stdio —
+    // cleanup silently and exit with the same code.
+    if (error instanceof ChildProcessExitError) {
+      try {
+        await executor.cleanup(projectPath);
+      } catch (cleanupError) {
+        debug('cleanup after child exit failed:', cleanupError);
+      }
+      process.exit(error.exitCode);
     }
 
     console.error(chalk.red('\n  Error:'), error);

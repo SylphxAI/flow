@@ -11,7 +11,7 @@ import {
   pathUtils,
   yamlUtils,
 } from '../utils/config/target-utils.js';
-import { CLIError } from '../utils/errors.js';
+import { CLIError, ChildProcessExitError } from '../utils/errors.js';
 import { sanitize } from '../utils/security/security.js';
 import { DEFAULT_CLAUDE_CODE_ENV } from './functional/claude-code-logic.js';
 import {
@@ -30,11 +30,6 @@ interface ClaudeCodeAgentMetadata {
   name: string;
   description: string;
   model?: string;
-}
-
-/** Error with exit code from child process */
-interface ProcessExitError extends Error {
-  code: number | null;
 }
 
 /** Type guard for Node.js errors with errno/code properties */
@@ -299,9 +294,9 @@ Please begin your response with a comprehensive summary of all the instructions 
           if (code === 0) {
             resolve();
           } else {
-            const error = new Error(`Claude Code exited with code ${code}`) as ProcessExitError;
-            error.code = code;
-            reject(error);
+            // Child already displayed its error via inherited stdio — use
+            // ChildProcessExitError so upstream handlers exit silently.
+            reject(new ChildProcessExitError(code ?? 1));
           }
         });
 
@@ -313,12 +308,14 @@ Please begin your response with a comprehensive summary of all the instructions 
         });
       });
     } catch (error: unknown) {
+      // ChildProcessExitError means the child already printed its own error —
+      // let it propagate unmodified so upstream can exit silently.
+      if (error instanceof ChildProcessExitError) {
+        throw error;
+      }
       if (isNodeError(error)) {
         if (error.code === 'ENOENT') {
           throw new CLIError('Claude Code not found. Please install it first.', 'CLAUDE_NOT_FOUND');
-        }
-        if (error.code !== undefined) {
-          throw new CLIError(`Claude Code exited with code ${error.code}`, 'CLAUDE_ERROR');
         }
         throw new CLIError(`Failed to execute Claude Code: ${error.message}`, 'CLAUDE_ERROR');
       }
