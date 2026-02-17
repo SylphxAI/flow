@@ -17,6 +17,7 @@ import {
   upgradeCommand,
 } from './commands/flow-command.js';
 import { hookCommand } from './commands/hook-command.js';
+import { sessionsCommand } from './commands/sessions-command.js';
 import { settingsCommand } from './commands/settings-command.js';
 import { UserCancelledError } from './utils/errors.js';
 
@@ -73,6 +74,7 @@ export function createCLI(): Command {
   program.addCommand(doctorCommand);
   program.addCommand(upgradeCommand);
   program.addCommand(hookCommand);
+  program.addCommand(sessionsCommand);
   program.addCommand(settingsCommand);
 
   return program;

@@ -14,6 +14,7 @@ import {
 import { CLIError, ChildProcessExitError } from '../utils/errors.js';
 import { sanitize } from '../utils/security/security.js';
 import { DEFAULT_CLAUDE_CODE_ENV } from './functional/claude-code-logic.js';
+import { findLastSessionId } from './functional/claude-session.js';
 import {
   detectTargetConfig,
   stripFrontMatter,
@@ -206,6 +207,24 @@ export const claudeCodeTarget: Target = {
 
 Please begin your response with a comprehensive summary of all the instructions and context provided above.`;
 
+    // Resolve session ID for --resume (auto-detect or passthrough)
+    let resolvedResumeId: string | undefined;
+    if (options.resume) {
+      if (typeof options.resume === 'string') {
+        resolvedResumeId = options.resume;
+      } else {
+        // Auto-resolve: find last session for current project
+        const lastSession = await findLastSessionId(process.cwd());
+        if (lastSession) {
+          resolvedResumeId = lastSession;
+          if (options.verbose) {
+            console.log(chalk.dim(`  Resolved session: ${resolvedResumeId}`));
+          }
+        }
+        // If null, fall through to bare --resume (Claude's own picker as fallback)
+      }
+    }
+
     if (options.dryRun) {
       // Build the command for display
       const dryRunArgs = ['claude', '--dangerously-skip-permissions'];
@@ -217,8 +236,8 @@ Please begin your response with a comprehensive summary of all the instructions 
       }
       if (options.resume) {
         dryRunArgs.push('--resume');
-        if (typeof options.resume === 'string') {
-          dryRunArgs.push(options.resume);
+        if (resolvedResumeId) {
+          dryRunArgs.push(resolvedResumeId);
         }
       }
       dryRunArgs.push('--system-prompt', '"<agent content>"');
@@ -250,8 +269,8 @@ Please begin your response with a comprehensive summary of all the instructions 
       }
       if (options.resume) {
         args.push('--resume');
-        if (typeof options.resume === 'string') {
-          args.push(options.resume);
+        if (resolvedResumeId) {
+          args.push(resolvedResumeId);
         }
       }
 
