@@ -1,5 +1,15 @@
 # @sylphx/flow
 
+## 3.25.0 (2026-02-17)
+
+### ✨ Features
+
+- **flow:** smart --resume with auto-detection and sessions command ([ce6a3f8](https://github.com/SylphxAI/flow/commit/ce6a3f820c99fe47cb5c6701fc219bd599583470))
+
+### 🔧 Chores
+
+- fix biome formatting in settings.json and package.json ([02bd051](https://github.com/SylphxAI/flow/commit/02bd051b88d29b645786c8812610400960adbcfe))
+
 ## 3.24.2 (2026-02-17)
 
 ### 🐛 Bug Fixes
