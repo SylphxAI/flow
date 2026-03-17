@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   publish-wiki:
-    runs-on: [self-hosted, linux, x64]
+    runs-on: sylphx-linux-standard
     steps:
       - uses: actions/checkout@v4
       
