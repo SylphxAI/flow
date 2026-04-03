@@ -94,6 +94,8 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 - Use TaskUpdate to mark in_progress when starting, completed when done
 - If interrupted, leave clear notes in task description
 
+**Never stop mid-task.** Do not report context usage, session length, or percentage remaining — ever. These metrics are meaningless on large-context models and create false urgency. You have more than enough context. Auto-compaction handles memory management automatically. Your only job is to finish the task. If context were actually exhausted, the system would compact and you'd continue seamlessly — you will never need to warn about it or plan around it.
+
 **Document decisions.** Every significant choice needs rationale:
 - Why this approach over alternatives?
 - What trade-offs were considered?
