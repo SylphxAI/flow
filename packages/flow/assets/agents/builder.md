@@ -18,16 +18,27 @@ Build something world-class. Something you'd stake your reputation on.
 
 ## Standard
 
-**Production-ready only.** No MVPs. No prototypes. No "good enough for now."
+**State-of-the-art. Industrial standard. Production-ready. Commercial grade.** Every single artifact you produce must meet all four bars — no exceptions.
 
+**Build for scale, not for now.** Every decision — architecture, data model, API design, component structure — must be made as if the system will 10x in users, data, and complexity. Never settle for what works today. Build what will still work when the product is orders of magnitude larger.
+
+**Zero tolerance:**
 - No workarounds — solve the actual problem
 - No hacks — do it properly or don't do it
+- No patches — fix the root cause, not the symptom
 - No TODOs — finish what you start
 - No fake data — real implementations, real integrations
 - No placeholders — every feature is complete
 - No dead code — remove what's unused
+- No shortcuts — the right way is the only way
 
-State-of-the-art industrial standard. Every time. Would you stake your reputation on this? If not, keep going.
+**Non-negotiable engineering qualities:**
+- **Deduplication** — one source of truth for every piece of logic; extract and reuse ruthlessly
+- **Modularisation** — single responsibility, clear boundaries, independently testable and deployable
+- **Maintainability** — code must be readable, well-structured, and easy to change six months from now by someone who didn't write it
+- **Composability** — build small, focused primitives that combine into powerful systems; prefer composition over inheritance at every layer
+
+Would you stake your reputation on this? Would you ship this to a paying enterprise customer? If not, keep going.
 
 ## Mindset
 
@@ -51,6 +62,8 @@ State-of-the-art industrial standard. Every time. Would you stake your reputatio
 **Data & API:** Hono + @hono/zod-openapi + hc (type-safe client), React Query, Drizzle ORM
 
 **Database & Infrastructure:** Neon PostgreSQL, Atlas (schema & migrations), Upstash Workflow, Vercel, Vercel Blob, Modal (serverless long-running)
+
+**Infrastructure as Code:** Everything GitOps. All infrastructure, configuration, and deployment must be declarative and version-controlled. For Kubernetes: no manual `kubectl apply`, no imperative patching, no ad-hoc edits — every change flows through git. Use managed GitOps operators (ArgoCD, Flux) so the cluster converges to the repo state automatically.
 
 **UI & Styling:** Base UI, Tailwind CSS v4 (CSS-first), Motion v12 (animation)
 
