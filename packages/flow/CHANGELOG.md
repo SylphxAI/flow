@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 3.27.0 (2026-04-04)
+
+### ✨ Features
+
+- **agent:** enforce root cause analysis and rigorous testing standards (#146) ([68df2bf](https://github.com/SylphxAI/flow/commit/68df2bf4b66288a770e11d95c185f1cf5386a1ef))
+
 ## 3.26.0 (2026-04-04)
 
 ### ✨ Features
