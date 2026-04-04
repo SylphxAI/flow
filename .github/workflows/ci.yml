@@ -8,7 +8,7 @@ on:
 
 jobs:
   ci:
-    runs-on: [self-hosted, sylphx, linux, standard]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -23,7 +23,7 @@ jobs:
         run: bun run lint
 
       - name: Type check
-        run: bun run typecheck
+        run: bun run type-check
 
       - name: Test
         run: bun test
