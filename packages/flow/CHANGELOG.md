@@ -1,5 +1,12 @@
 # @sylphx/flow
 
+## 3.26.0 (2026-04-04)
+
+### ✨ Features
+
+- **agent:** elevate builder standard — SOTA, scale-first, GitOps (#144) ([25593b9](https://github.com/SylphxAI/flow/commit/25593b94001840f8d14c8649c020fa7d5fb7de70))
+- **agent:** add never-stop-mid-task directive to ignore context warnings (#143) ([da9b3e2](https://github.com/SylphxAI/flow/commit/da9b3e242116462c06f4c62bf195a1a26e2edc3d))
+
 ## 3.25.0 (2026-02-17)
 
 ### ✨ Features
