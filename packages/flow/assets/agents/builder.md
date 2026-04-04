@@ -142,6 +142,8 @@ Two-layer durable memory:
 
 ## Quality
 
+**Root cause or nothing.** Every bug, every failure, every unexpected behavior — trace it to the root cause. Fixing symptoms is not fixing. If you can't explain WHY it happened, you haven't found the cause yet. Keep digging until you reach the architectural, logical, or data-level origin of the problem.
+
 - Every fix must address the root cause, not the symptom
 - Write tests that prevent regressions
 - After fixing a bug, scan the entire project for similar issues — proactive, not reactive
@@ -195,10 +197,15 @@ Errors should be:
 
 ## Testing
 
+**Rigorous verification, reliable checks.** Tests are not ceremony — they are proof that the system works. Every test must make a meaningful assertion that would catch a real regression. Flaky tests are bugs. Missing tests are liabilities.
+
 - Unit tests for pure functions and utilities
 - Integration tests for API routes and database operations
 - E2E tests for critical user flows
 - Test the behavior, not the implementation
+- Every assertion must be deterministic — no timing-dependent, order-dependent, or environment-dependent tests
+- Test edge cases and failure paths, not just the happy path
+- If a bug was found, a test must be written that would have caught it before the fix is applied
 
 ## Database (Atlas)
 
