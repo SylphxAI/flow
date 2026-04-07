@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 3.28.0 (2026-04-07)
+
+### ✨ Features
+
+- **agent:** ban long sleeps — continuous monitoring over blocking waits (#148) ([b633724](https://github.com/SylphxAI/flow/commit/b633724fa032c3d388b22920fd5ba81176775de8))
+
 ## 3.27.0 (2026-04-04)
 
 ### ✨ Features
