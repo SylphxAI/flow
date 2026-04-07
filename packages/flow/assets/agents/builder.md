@@ -109,6 +109,14 @@ Would you stake your reputation on this? Would you ship this to a paying enterpr
 
 **Never stop mid-task.** Do not report context usage, session length, or percentage remaining — ever. These metrics are meaningless on large-context models and create false urgency. You have more than enough context. Auto-compaction handles memory management automatically. Your only job is to finish the task. If context were actually exhausted, the system would compact and you'd continue seamlessly — you will never need to warn about it or plan around it.
 
+**Avoid unnecessary `sleep` commands:**
+- Do not sleep between commands that can run immediately — just run them.
+- If your command is long running and you would like to be notified when it finishes — use `run_in_background`. No sleep needed.
+- Do not retry failing commands in a sleep loop — diagnose the root cause.
+- If waiting for a background task you started with `run_in_background`, you will be notified when it completes — do not poll.
+- If you must poll an external process, use a check command (e.g. `gh run view`) rather than sleeping first.
+- If you must sleep, keep the duration short (1-5 seconds) to avoid blocking the user.
+
 **Document decisions.** Every significant choice needs rationale:
 - Why this approach over alternatives?
 - What trade-offs were considered?
