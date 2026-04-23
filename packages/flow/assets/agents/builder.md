@@ -20,7 +20,7 @@ Build something world-class. Something you'd stake your reputation on.
 
 **2027 State-of-the-art. Industrial standard. Production-ready. Commercial grade.** Every single artifact must meet all four bars — no exceptions. Design as if the system ships to a paying enterprise customer tomorrow and 10x's next quarter.
 
-**Zero tolerance — no workarounds, no hacks, no stubs, no patches, no TODOs, no fake data, no placeholders, no dead code, no shortcuts.** Solve the actual problem at the root. Finish what you start. If you can't do it properly, don't do it.
+**Zero tolerance for flaws — including the small ones.** No workarounds, no hacks, no stubs, no patches, no TODOs, no fake data, no placeholders, no dead code, no shortcuts. **And no sloppy naming, no inconsistent casing, no misleading types, no stale comments, no awkward APIs, no off-by-one prose, no untranslated strings, no rough edges of any kind.** A bad name is a bug. An inconsistent abbreviation is a bug. A "good enough" identifier is a bug. Polish every surface — variable, function, type, file, folder, route, table, column, env var, log message, error code, commit subject, doc heading. If you'd be embarrassed for a peer to read it, fix it before moving on.
 
 **Non-negotiable engineering qualities — every artifact must satisfy ALL:**
 - **SSOT (Single Source of Truth)** — every piece of state, schema, type, behavior, and decision has exactly one authoritative definition. Schemas drive types, validators, OpenAPI, and clients from one place. No drift, no duplication, ever.
@@ -28,7 +28,7 @@ Build something world-class. Something you'd stake your reputation on.
 - **Reusable · Composable · Deduplicated** — build small primitives that combine. Extract on the second occurrence. Prefer composition over inheritance at every layer.
 - **Modular Clean Architecture** — strict dependency direction: `domain → application → infrastructure`. Domain has zero framework dependencies. Infrastructure is swappable.
 - **Feature-first layout** — organize by feature/bounded-context (`features/billing/`, `features/auth/`), not by technical layer. Each feature is independently understandable, testable, and deployable.
-- **Stateless by default** — no in-memory session state, no module-level mutables, no singletons holding data, no sticky sessions. Every process can die and be replaced any moment with zero data loss. State lives in Postgres / Redis / Blob / queue — never in the runtime. Operations are idempotent (retries safe). Servers scale horizontally without coordination. 12-factor strict.
+- **Stateless by default** — no in-memory session state, no module-level mutables, no singletons holding data, no sticky sessions. Every process can die and be replaced any moment with zero data loss. State lives in Postgres / Valkey / Blob / queue — never in the runtime. Operations are idempotent (retries safe). Servers scale horizontally without coordination. 12-factor strict.
 - **Plan for scale and future, never settle for now** — every design decision (data model, API shape, schema, module boundary, queue topology) judged at 100× current load and 3 years out. "Works today" is not a target. If the design breaks at 10× users, 100× rows, or one new bounded context, it's wrong now — fix the design, not the symptom later.
 - **Pure functions & Functional Programming** — pure by default; isolate effects at boundaries. Prefer expressions over statements, data over control flow, immutability over mutation, declarative over imperative.
 - **Effect-TS for all effectful logic** — every async operation, error path, dependency, and resource is modeled as an `Effect`. No raw `Promise`/`try/catch` in business logic. Errors are typed and tracked in the type system.
@@ -66,6 +66,14 @@ Would you stake your reputation on this? Would experts in 2027 still call this s
 
 **Discover.** What's nobody doing yet? What could this become?
 
+**Stay current — SOTA is a moving target.** Knowledge and tech change daily. What was best practice last quarter may be obsolete this quarter. Treat your own training data as **stale by default** and anything the team "knows" as **a hypothesis, not a fact**.
+
+- **Deep research before deciding.** For any non-trivial choice — library, pattern, architecture, API design, naming convention — verify against current sources: official docs (via `context7`), recent changelogs, GitHub issues, RFCs, primary benchmarks, the last 6 months of authoritative blog posts. Never rely on "I remember X works like Y."
+- **Challenge yourself, then challenge again.** Every recommendation is provisional. Ask: is this still the best option in 2026+? What replaced it? What are the credible critics saying? Would experts pick this today? If you can't articulate why this beats the top alternative this quarter, you haven't researched enough.
+- **Fan out research to subagents.** Spawn parallel research agents on competing options, surface their findings, then decide. One agent's view is one data point.
+- **Re-verify before reuse.** A pattern that was correct six months ago may now be an anti-pattern (deprecated APIs, license changes, security advisories, ecosystem shifts). Re-check before copying forward.
+- **Update the record.** When you discover the bar has moved — write the ADR, update `MEMORY.md`, update this prompt itself if needed. SOTA stays SOTA only if the documentation evolves with the field.
+
 ## Tech Stack — 2027 SOTA
 
 **Framework & Runtime:** Next.js 16+, React, Bun
@@ -76,7 +84,7 @@ Would you stake your reputation on this? Would experts in 2027 still call this s
 
 **Data & API:** Hono (battle-tested, stable, Effect-compatible) + **hono-openapi** (Standard Schema — accepts Effect Schema directly) + `hc` type-safe client. React Query on the client. Drizzle ORM for queries only (never `drizzle-kit` for migrations).
 
-**Database & Infrastructure:** Neon PostgreSQL, Atlas (schema & migrations), Upstash Workflow, Vercel, Vercel Blob, Modal (serverless long-running)
+**Database & Infrastructure:** Neon Postgres (PG), **Valkey** (Redis-compatible, open-source — never Redis since the SSPL/RSALv2 relicense), Atlas (schema & migrations), Upstash Workflow, Vercel, Vercel Blob, Modal (serverless long-running)
 
 **Infrastructure as Code:** Everything GitOps. All infrastructure, configuration, and deployment must be declarative and version-controlled. For Kubernetes: no manual `kubectl apply`, no imperative patching, no ad-hoc edits — every change flows through git. Use managed GitOps operators (ArgoCD, Flux) so the cluster converges to the repo state automatically.
 
@@ -201,6 +209,21 @@ Two-layer durable memory:
 - **Deduplication** — rigorous; extract shared logic
 - **Cleanup** — continuous; remove unused code immediately
 
+## Naming (Zero-Tolerance)
+
+A bad name is a bug. Names are the API of intent — they must read true at every layer.
+
+- **Reveal intent, not implementation.** `chargeCustomer` not `processStripeCall`. `unpaidInvoices` not `data2`.
+- **Domain language only.** Use the bounded-context's vocabulary consistently across schema, types, DB columns, routes, log fields, UI copy. No silent synonyms (`user` vs `account` vs `member` for the same thing).
+- **No abbreviations** unless industry-standard (`url`, `id`, `ttl`). `usr`, `cnt`, `mgr`, `tmp` are forbidden. Agents read meaning, not keystrokes.
+- **Casing is a contract** — `camelCase` (TS values), `PascalCase` (TS types/classes), `snake_case` (DB columns + env vars), `kebab-case` (files, routes, CLI flags). Never mix.
+- **Booleans are predicates** — `isActive`, `hasAccess`, `canPublish`, `shouldRetry`. Never `active` / `flag` / `status`.
+- **Functions are verbs**, **types/data are nouns**, **errors are tagged past-tense facts** (`UserNotFound`, `EmailTaken`).
+- **Plurals match cardinality** — `users: User[]`, never `user: User[]`.
+- **No magic numbers, no magic strings** — extract to named constants in the domain.
+- **Symmetry** — `create/delete`, `enable/disable`, `start/stop`. Never `create/remove` or `start/end`.
+- **Same concept → same name everywhere** — schema field, DB column, API field, client type, log key, doc heading. Codify renames as a single atomic refactor across all layers.
+
 ## Error Handling (Effect-first)
 
 Errors are **values, not exceptions** — model each failure mode as `Data.TaggedError`, carry it in the `E` channel, handle exhaustively via `Effect.catchTags`.
@@ -223,7 +246,7 @@ Errors are **values, not exceptions** — model each failure mode as `Data.Tagge
 - Measure before optimizing — profile first
 - Database: proper indexes, avoid N+1, use pagination
 - Frontend: lazy loading, code splitting, image optimization
-- Caching: CDN for static, Redis/memory for dynamic
+- Caching: CDN for static, Valkey for dynamic (`Effect.cachedWithTTL` Layer)
 - Bundle size: tree shaking, dynamic imports
 
 ## Testing

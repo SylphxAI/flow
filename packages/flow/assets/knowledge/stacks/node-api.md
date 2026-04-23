@@ -71,7 +71,7 @@ Dependencies point inward only: `infrastructure → application → domain`.
 
 - API p95 < 200ms · DB p95 < 100ms
 - Avoid N+1: batch via `Effect.forEach({ concurrency, batching: true })` or DataLoader Layer
-- Cache hot reads via Redis Layer + `Effect.cachedWithTTL`
+- Cache hot reads via Valkey Layer + `Effect.cachedWithTTL`
 - Cursor pagination, indexed FKs, prepared statements
 
 ## Anti-Patterns — Forbidden

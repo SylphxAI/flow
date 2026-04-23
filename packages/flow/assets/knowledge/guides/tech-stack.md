@@ -65,7 +65,8 @@ Every effectful path (I/O, async, error, dependency, resource) is an `Effect`. N
 | **Client data** | React Query | Server-state caching |
 | **DB queries** | Drizzle ORM | Typed query builder; queries only |
 | **DB schema/migrations** | Atlas | Declarative `schema.sql`/`.hcl` SSOT, automatic diffing |
-| **DB** | Neon PostgreSQL | Serverless Postgres, branching |
+| **DB** | Neon Postgres (PG) | Serverless Postgres, branching |
+| **Cache / KV** | Valkey | Open-source Redis fork — never use Redis since the relicense |
 | **Long-running** | Modal | Serverless containers |
 | **Workflows** | Upstash Workflow | Durable execution |
 | **Hosting** | Vercel | Next.js native |
