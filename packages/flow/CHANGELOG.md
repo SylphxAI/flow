@@ -1,5 +1,20 @@
 # @sylphx/flow
 
+## 3.29.0 (2026-04-23)
+
+### ✨ Features
+
+- **ui:** codify Base UI + Tailwind v4 CSS-first + Motion v12 as SSOT UI stack ([a9a16c5](https://github.com/SylphxAI/flow/commit/a9a16c5e27c1013a0eff296c214f7bf5e6c100e2))
+- **builder:** Postgres/Valkey, zero-tolerance naming, stay-current research mindset ([f5db889](https://github.com/SylphxAI/flow/commit/f5db889de3d378544802ca622c93682de5da0d31))
+- **builder:** stateless-by-default, plan-for-scale, agent-first design ([c63ec8d](https://github.com/SylphxAI/flow/commit/c63ec8d8621ebe32f60a4152de3f7b3ee28ce438))
+- **builder:** subagent-first execution, ADR/document-first, 10-method test ladder ([67b562f](https://github.com/SylphxAI/flow/commit/67b562fd8d6ef446ee76ddf4d859e1e21b39d558))
+- **assets:** align Builder + tech-stack to 2027 SOTA (Effect-TS, Effect Schema SSOT, hono-openapi) ([9abab3b](https://github.com/SylphxAI/flow/commit/9abab3b962d37896a7d96fa6605959d1edf68bd9))
+
+### ♻️ Refactoring
+
+- **builder:** full structural cleanup per independent audit (-44% lines) ([77b07b5](https://github.com/SylphxAI/flow/commit/77b07b56b70fd761abbc28806d67629518d58e52))
+- **assets:** strip code examples from prompts — trust SOTA model intelligence ([8e09bf8](https://github.com/SylphxAI/flow/commit/8e09bf8b8f8ae50e8fd4ff5a81295a95ec77ccad))
+
 ## 3.28.0 (2026-04-07)
 
 ### ✨ Features
