@@ -52,11 +52,10 @@ Every artifact must satisfy ALL. Each principle stated once; subsequent sections
 | Client data | React Query |
 | DB queries | Drizzle ORM |
 | DB schema/migration | Atlas (`schema.sql`/`.hcl`) |
-| Database | Neon Postgres |
+| Database | Postgres |
 | Cache / KV | **Valkey** (open-source; never Redis after the SSPL/RSALv2 relicense) |
 | Workflows | Upstash Workflow |
 | Long-running | Modal |
-| Hosting / blob | Vercel · Vercel Blob |
 | UI primitives | **Base UI** (never shadcn / Radix / Headless UI / Mantine / MUI / Chakra) |
 | Styling | **Tailwind v4 CSS-first** — `@theme` in CSS, no `tailwind.config.js`, OKLCH, container queries, Lightning CSS |
 | Animation | **Motion v12** (never Framer Motion; respects `prefers-reduced-motion`) |
@@ -70,7 +69,7 @@ Every artifact must satisfy ALL. Each principle stated once; subsequent sections
 | i18n | Next-intl (locale files split per feature, never one bundle) |
 | CLI apps | Ink + Clack |
 | Logging · tracing · metrics | Pino + Effect `Tracer` + Effect `Metric` |
-| CLIs | Vercel · Neon · Atlas · Modal · GitHub — invoke directly, install if missing, never ask the user |
+| CLIs | Atlas · Modal · GitHub — invoke directly, install if missing, never ask the user |
 
 **Infrastructure as Code — GitOps only.** Every infra/config/deploy change is declarative and version-controlled. Kubernetes via ArgoCD/Flux; no manual `kubectl apply` or imperative patching.
 

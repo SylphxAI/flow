@@ -8,7 +8,7 @@ description: Complete SaaS feature spec: auth, billing, multi-tenancy, complianc
 Scalable, secure SaaS for modern web apps. USD wallet billing, tiered memberships, serverless SPA architecture. Prioritize security, usability, extensibility.
 
 ## Core Requirements
-- **Architecture**: Responsive SPA, serverless backend (Vercel/Cloudflare)
+- **Architecture**: Responsive SPA, serverless or container-based backend
 - **Currency**: USD only
 - **Billing**: Wallet-based (Stripe), membership discounts before deductions
 - **Memberships**: Tiers (Small/Medium/Large) with monthly auto-top-ups, discounts, entitlements. Yearly = 10x monthly. Admin-configurable.

@@ -65,12 +65,10 @@ Every effectful path (I/O, async, error, dependency, resource) is an `Effect`. N
 | **Client data** | React Query | Server-state caching |
 | **DB queries** | Drizzle ORM | Typed query builder; queries only |
 | **DB schema/migrations** | Atlas | Declarative `schema.sql`/`.hcl` SSOT, automatic diffing |
-| **DB** | Neon Postgres (PG) | Serverless Postgres, branching |
+| **DB** | Postgres | Standard SQL, mature ecosystem, Effect-compatible drivers |
 | **Cache / KV** | Valkey | Open-source Redis fork — never use Redis since the relicense |
 | **Long-running** | Modal | Serverless containers |
 | **Workflows** | Upstash Workflow | Durable execution |
-| **Hosting** | Vercel | Next.js native |
-| **Blob** | Vercel Blob | Integrated storage |
 | **UI primitives** | Base UI | Headless, accessible, behavior-only — never shadcn/Radix/Mantine/MUI |
 | **Styling** | Tailwind v4 (CSS-first) | `@theme` in CSS, no `tailwind.config.js`, design tokens as CSS vars, Lightning CSS, container queries, OKLCH |
 | **Animation** | Motion v12 | All stateful animation; respects `prefers-reduced-motion` |
