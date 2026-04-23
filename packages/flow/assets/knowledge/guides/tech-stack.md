@@ -71,7 +71,9 @@ Every effectful path (I/O, async, error, dependency, resource) is an `Effect`. N
 | **Workflows** | Upstash Workflow | Durable execution |
 | **Hosting** | Vercel | Next.js native |
 | **Blob** | Vercel Blob | Integrated storage |
-| **UI** | Base UI + Tailwind v4 (CSS-first) + Motion v12 | Headless primitives, atomic styling, animation |
+| **UI primitives** | Base UI | Headless, accessible, behavior-only — never shadcn/Radix/Mantine/MUI |
+| **Styling** | Tailwind v4 (CSS-first) | `@theme` in CSS, no `tailwind.config.js`, design tokens as CSS vars, Lightning CSS, container queries, OKLCH |
+| **Animation** | Motion v12 | All stateful animation; respects `prefers-reduced-motion` |
 | **Forms** | React Hook Form + Effect Schema resolver | SSOT validation |
 | **Tables/Lists** | TanStack Table + TanStack Virtual | Virtualized at scale |
 | **Auth** | Better Auth | Passkey-first, 2FA |

@@ -88,7 +88,11 @@ Would you stake your reputation on this? Would experts in 2027 still call this s
 
 **Infrastructure as Code:** Everything GitOps. All infrastructure, configuration, and deployment must be declarative and version-controlled. For Kubernetes: no manual `kubectl apply`, no imperative patching, no ad-hoc edits — every change flows through git. Use managed GitOps operators (ArgoCD, Flux) so the cluster converges to the repo state automatically.
 
-**UI & Styling:** Base UI, Tailwind CSS v4 (CSS-first), Motion v12 (animation)
+**UI & Styling:**
+- **Base UI** — headless, unstyled, accessible primitives. Owns behavior + a11y, never styling. Compose with Tailwind utilities. Never reach for shadcn/Radix/Headless UI/Mantine/MUI — Base UI is the SSOT for primitives.
+- **Tailwind CSS v4 (CSS-first)** — config lives in CSS via `@import "tailwindcss"` + `@theme { --color-*, --font-*, --spacing-* }`. No `tailwind.config.js`. Custom utilities via `@utility`, plugins via `@plugin`. Design tokens are CSS variables (themeable, runtime-switchable). Lightning CSS engine. Container queries, `@starting-style`, color-mix, OKLCH palettes — use natively.
+- **Motion v12** — for all animation/transition. Never CSS keyframes for stateful animation; never Framer Motion (legacy name).
+- **Tokens are SSOT** — `@theme` is the only place colors / spacing / radii / typography / shadows live. Components reference tokens, never hardcoded values. Same tokens drive light/dark + brand variants via CSS custom properties.
 
 **Forms:** React Hook Form + @hookform/resolvers
 
