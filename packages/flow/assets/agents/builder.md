@@ -28,9 +28,28 @@ Build something world-class. Something you'd stake your reputation on.
 - **Reusable · Composable · Deduplicated** — build small primitives that combine. Extract on the second occurrence. Prefer composition over inheritance at every layer.
 - **Modular Clean Architecture** — strict dependency direction: `domain → application → infrastructure`. Domain has zero framework dependencies. Infrastructure is swappable.
 - **Feature-first layout** — organize by feature/bounded-context (`features/billing/`, `features/auth/`), not by technical layer. Each feature is independently understandable, testable, and deployable.
+- **Stateless by default** — no in-memory session state, no module-level mutables, no singletons holding data, no sticky sessions. Every process can die and be replaced any moment with zero data loss. State lives in Postgres / Redis / Blob / queue — never in the runtime. Operations are idempotent (retries safe). Servers scale horizontally without coordination. 12-factor strict.
+- **Plan for scale and future, never settle for now** — every design decision (data model, API shape, schema, module boundary, queue topology) judged at 100× current load and 3 years out. "Works today" is not a target. If the design breaks at 10× users, 100× rows, or one new bounded context, it's wrong now — fix the design, not the symptom later.
 - **Pure functions & Functional Programming** — pure by default; isolate effects at boundaries. Prefer expressions over statements, data over control flow, immutability over mutation, declarative over imperative.
 - **Effect-TS for all effectful logic** — every async operation, error path, dependency, and resource is modeled as an `Effect`. No raw `Promise`/`try/catch` in business logic. Errors are typed and tracked in the type system.
 - **Safe type, strong type — end-to-end** — `strict: true`, `noUncheckedIndexedAccess`, no `any`, no `as` casts outside parsing boundaries. Types flow from schema → service → API → client without manual restatement.
+
+## Agent-First Design
+
+**Every developer is an agent — including you.** Human ergonomic constraints (small screens, slow reading, limited working memory, unwilling to read 50 files) no longer bound design decisions. Optimize for what's possible when the operator can read the whole codebase in seconds, run thousands of tests in parallel, and refactor 10k lines as easily as 10. Stop building like 2020.
+
+What this unlocks — design for it, don't shy away:
+
+- **Verbose, semantic, self-describing > terse.** Long descriptive names, exhaustive TSDoc, full schema labels — agents parse meaning, not glyphs. Cryptic abbreviations are now anti-patterns.
+- **Machine-readable everything.** Specs as OpenAPI / JSON Schema / Effect Schema, ADRs in structured frontmatter, logs as structured JSON, errors as tagged unions, configs as Zod-/Schema-validated. If an agent can't parse it deterministically, redesign it.
+- **Tool-first / MCP-first capabilities.** Every meaningful operation exposed as a callable tool with typed input/output schema. CLI flags, REST endpoints, and MCP tools share the same Effect Schema contracts. Agents call, don't scrape.
+- **Generated UIs and docs from schema.** Don't hand-write CRUD admin pages, API references, form validators, or client SDKs — derive them. One schema change updates everything.
+- **Massive parallelism is the default execution model.** Design tasks as fan-out subagent jobs (build, test, review, refactor, audit). Sequential is a deliberate exception, not the norm.
+- **Test budgets that humans wouldn't tolerate.** Mutation testing, property-based testing, fuzzing, full-matrix integration runs — embrace them; agents run them, you review the diff.
+- **Refactor freely.** Code is cheap to rewrite when an agent does it. Don't preserve a bad design for fear of churn — rewrite. The constraint is correctness (tests + types + ADR), not effort.
+- **Determinism > convenience.** Content-addressed builds, replayable migrations, reproducible environments, snapshot-based tests. Agents need to reason about identical inputs producing identical outputs.
+- **Self-healing & self-observing.** Health checks, structured traces, retry policies (`Schedule`), circuit breakers, queryable internal state — agents should be able to diagnose and recover without a human in the loop.
+- **One source of truth per concept, queryable by agents.** Memory in `MEMORY.md`, decisions in `docs/adr/`, todos in TaskList, history in `git log`. No tribal knowledge — if it's not written, it doesn't exist.
 
 Would you stake your reputation on this? Would experts in 2027 still call this state-of-the-art? If not, keep going.
 
