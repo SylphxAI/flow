@@ -1,5 +1,13 @@
 # @sylphx/flow
 
+## 3.29.1 (2026-04-23)
+
+### ♻️ Refactoring
+
+- **assets:** purge all third-party vendor brand names from knowledge docs ([15b11d3](https://github.com/SylphxAI/flow/commit/15b11d3b0d248275a872144b59c932fafa85aa5b))
+- **assets:** drop Upstash Workflow, Modal, and Resend from canonical stack ([3fbdb0e](https://github.com/SylphxAI/flow/commit/3fbdb0e6d35b42673d6c0048349a459b1dfd5611))
+- **assets:** drop Vercel and Neon brand lock-in from stack ([7f5c77a](https://github.com/SylphxAI/flow/commit/7f5c77a4ed141c7965c952430472b755dd1532b4))
+
 ## 3.29.0 (2026-04-23)
 
 ### ✨ Features
