@@ -91,12 +91,18 @@ Would you stake your reputation on this? Would experts in 2027 still call this s
 
 **Automate.** If automation exists for a task, manual execution is prohibited.
 
-**Parallelize.** For complex multi-faceted tasks, create agent teams. Assign independent pieces to teammates working in parallel — research, cross-layer changes (frontend + backend + tests), new modules, competing hypotheses. Use subagents for simpler focused tasks that only report back.
+**Subagents are your default — not your last resort.** A single agent on a single thread is a bottleneck. For anything beyond a trivial edit, fan out:
 
-**Plan before doing.** For any non-trivial task:
-1. Use EnterPlanMode to plan the implementation
-2. Use TaskCreate to create todos for each step
-3. Execute systematically, using TaskUpdate to mark progress
+- **Parallel execution** — split independent work (frontend / backend / migration / tests / docs) across a subagent team running concurrently. Send one message with multiple Agent calls.
+- **Independent review** — after writing code, spawn a fresh reviewer subagent (no shared context, unbiased) to audit. Use for: code review, security review, architecture review, accessibility, performance.
+- **Cross-check & adversarial verification** — for high-stakes changes, spawn 2 subagents with the same brief and compare. Disagreement = signal to dig deeper.
+- **Specialized roles** — exploration → Explore agent; planning → Plan agent; implementation → Builder; review → code-reviewer / security-reviewer.
+- **Brief like a colleague** — each subagent starts with zero context. Self-contained prompt: goal, what's been ruled out, exact files/lines, expected output format. Cap report length.
+- **Trust but verify** — a subagent's report describes intent, not result. Always inspect actual diffs before reporting done.
+
+**Proactive, not drift.** Initiative goes into completing the stated task, hardening it, and surfacing related risks — not into expanding scope. Bigger idea? → file an ADR / issue, finish the current task first.
+
+**Plan before doing.** Non-trivial task → EnterPlanMode → TaskCreate todos → execute with TaskUpdate. ADR-first: significant architectural or product decisions get written down BEFORE the code, not after.
 
 **Never forget, never drop.** Work in progress must be tracked:
 - Use TaskCreate BEFORE starting work
@@ -113,10 +119,13 @@ Would you stake your reputation on this? Would experts in 2027 still call this s
 - If you must poll an external process, use a check command (e.g. `gh run view`) rather than sleeping first.
 - If you must sleep, keep the duration short (1-5 seconds) to avoid blocking the user.
 
-**Document decisions.** Every significant choice needs rationale:
-- Why this approach over alternatives?
-- What trade-offs were considered?
-- Write to CLAUDE.md for future reference
+**Document-first, ADR-first.** Writing comes before code, not after.
+
+- **ADR** (`docs/adr/NNNN-title.md`) for any significant architectural, product, or stack decision — context · decision · alternatives considered · consequences. Write the ADR, get it into the repo, *then* implement.
+- **Spec / design doc** for any new feature or module before coding — what / why / interface / failure modes / open questions.
+- **Inline docs** explain WHY (intent, trade-off, gotcha), never WHAT (the code already says that).
+- **Public API docs** kept in lockstep with code — stale docs are bugs. CI fails if exported symbols lack TSDoc.
+- **README / CHANGELOG** updated in the same commit as the change.
 
 ## Memory
 
@@ -200,14 +209,30 @@ Errors are **values, not exceptions** — model each failure mode as `Data.Tagge
 
 ## Testing
 
-**Rigorous verification, reliable checks.** Tests are not ceremony — they are proof that the system works. Every test must make a meaningful assertion that would catch a real regression. Flaky tests are bugs. Missing tests are liabilities.
+**Rigorous verification, reliable checks.** Tests are proof the system works, not ceremony. Every assertion must catch a real regression. Flaky tests are bugs. Missing tests are liabilities.
 
-- **Pure domain** — tested as pure functions: input → output, no mocks needed
-- **Effect application logic** — tested by providing test `Layer`s (`Layer.succeed(UserRepo, fakeRepo)`); never mock modules, swap dependencies via the Effect runtime
-- **Integration** — real Hono app + real Effect runtime + test DB layer
-- **E2E** — Playwright across critical user flows
-- **TestClock / TestRandom** — Effect's deterministic test services for time, retries, schedules — zero flake
-- Test the behavior, not the implementation. Every assertion deterministic. Cover failure paths (every tagged error). Bug → regression test before fix.
+**The 10-method ladder** — adopt in this order; each catches defects the previous miss. Time-starved? stop where the risk profile allows, but know what you're skipping:
+
+| # | Method | Catches | Tool |
+|---|---|---|---|
+| 1 | **Unit testing** | Logic bugs in pure functions | `bun:test` |
+| 2 | **Type-level testing** | API contract drift at compile time | `tsd` / `expect-type` |
+| 3 | **Integration testing** | Cross-module wiring bugs | `bun:test` + fake `Layer`s |
+| 4 | **Property-based testing** | Edge cases you didn't imagine | `fast-check` (use `@effect/vitest` arbitrary helpers) |
+| 5 | **Contract testing** | Runtime data corruption at boundaries | **Effect Schema** at every external edge |
+| 6 | **Mutation testing** | Tests that exist but don't assert | `Stryker` |
+| 7 | **E2E browser testing** | UI regressions | `Playwright` |
+| 8 | **Load testing** | Performance under real traffic | `k6` |
+| 9 | **Chaos engineering** | Failure-mode bugs | `Chaos Mesh` / fault-injection Layers |
+| 10 | **SAST / security** | Injection, taint, secret leaks | `Semgrep` / `CodeQL` |
+
+**Stack-native specifics:**
+- Pure domain → input/output assertions, no harness
+- Effect use-cases → swap fake `Layer`s; never mock modules
+- Time / retries / schedules → `TestClock`, `TestRandom` for zero flake
+- Every `Data.TaggedError` has a regression test on its failure path
+- Bug found → write the failing test FIRST, then fix
+- **Use review subagents** to audit test coverage gaps and assertion quality after writing — they catch what you assumed
 
 ## Database (Atlas)
 
