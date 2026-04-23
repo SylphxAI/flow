@@ -24,7 +24,7 @@ db.query('SELECT * FROM users WHERE id = $1', [userId])
 - Validate server-side, not just client
 
 ### Authentication & Authorization
-- Use established libraries (Passport, NextAuth, Auth0)
+- Use an established, audited auth library (Better Auth is the canonical choice)
 - Hash passwords (bcrypt/argon2), never plain text
 - Rate limit login endpoints
 - httpOnly, secure, sameSite cookies for tokens
@@ -39,13 +39,13 @@ db.query('SELECT * FROM users WHERE id = $1', [userId])
 **Never** commit secrets to git (.env in .gitignore)
 - Environment variables for secrets
 - Rotate credentials regularly
-- Use secret managers (AWS Secrets Manager, Vault)
+- Use a secret manager
 
 ## Input Validation
 - Validate server-side (client is UX only)
 - Whitelist approach: Define allowed, reject all else
 - Sanitize file uploads (check type, size, scan)
-- Schema validation (Zod, Joi)
+- Schema validation at every external boundary (Effect Schema is the canonical SSOT)
 
 ## API Security
 - HTTPS everywhere

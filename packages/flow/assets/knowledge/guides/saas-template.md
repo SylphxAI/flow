@@ -10,7 +10,7 @@ Scalable, secure SaaS for modern web apps. USD wallet billing, tiered membership
 ## Core Requirements
 - **Architecture**: Responsive SPA, serverless or container-based backend
 - **Currency**: USD only
-- **Billing**: Wallet-based (Stripe), membership discounts before deductions
+- **Billing**: Wallet-based, membership discounts before deductions
 - **Memberships**: Tiers (Small/Medium/Large) with monthly auto-top-ups, discounts, entitlements. Yearly = 10x monthly. Admin-configurable.
 - **Compliance**: GDPR/CCPA compliant, verifiable acceptance criteria
 
@@ -20,7 +20,7 @@ Scalable, secure SaaS for modern web apps. USD wallet billing, tiered membership
 - **Auth**: Email/password, SSO (Google/OAuth), Passkey-first 2FA (SimpleWebAuthn), reCAPTCHA v3, rate limiting (5 attempts/5min)
 - **Sessions**: Rotating JWTs, Redis denylist, log all logins (IP, UA, timestamp)
 - **Security**: 2FA setup/recovery codes, email alerts for new logins/devices
-- **Profiles**: Display name, bio, avatar (128x128px, S3)
+- **Profiles**: Display name, bio, avatar (128x128px, blob storage)
 - **Usernames**: Unique, lowercase, reserved blocks, 30-day change cooldown + audit
 - **Devices**: Active sessions list (IP/UA/location), one-click logout
 
@@ -29,7 +29,7 @@ Scalable, secure SaaS for modern web apps. USD wallet billing, tiered membership
 - **Activity Feed**: Log actions (recharges, spends, logins, invites, referrals) with timestamps/filters
 
 ### Billing & Wallet
-- **Wallet**: USD balances, Stripe top-ups (min $10), auto-deduct with tier discounts
+- **Wallet**: USD balances, top-ups (min $10), auto-deduct with tier discounts
 - **Memberships**: Tiers ($10/mo, $50/mo, $100/mo) with auto-top-up, % discounts, perks. Yearly = 10x. Admin CRUD.
 - **Invoicing**: PDF receipts, admin dashboard for search/export (CSV/PDF)
 
@@ -73,7 +73,7 @@ GDPR, CCPA, PECR. Data minimization, user rights.
 ## Deployment
 Serverless for scalability, CI/CD for reliability.
 - **Local**: Docker Compose (web/DB/Redis). Run: `bun install && bun db:migrate && bun dev`
-- **Monitoring**: Sentry for errors, SLO alerts (99.9%), retry failed webhooks (3x, exponential)
+- **Monitoring**: Error tracking, SLO alerts (99.9%), retry failed webhooks (3x, exponential)
 - **Status**: Auto-update from monitoring events
 
 ## Testing

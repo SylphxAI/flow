@@ -11,7 +11,7 @@ description: Profiling, caching, optimization patterns across frontend and backe
 
 ### Tools
 **Frontend**: Chrome DevTools, Lighthouse, React Profiler
-**Backend**: APM (New Relic, Datadog), query explain plans
+**Backend**: APM, query explain plans
 
 ### Metrics
 **Frontend**: FCP < 1.8s, LCP < 2.5s, CLS < 0.1, FID < 100ms, TTI < 3.5s
@@ -74,8 +74,7 @@ description: Profiling, caching, optimization patterns across frontend and backe
 
 ### Async Processing
 
-**Background**: Email, image processing, reports, aggregation
-**Tools**: Job queues (Bull, BullMQ), message queues (RabbitMQ, Kafka), serverless
+**Background**: Email, image processing, reports, aggregation — push to a job/message queue or a serverless worker
 
 ### Response Time
 - Gzip compression
@@ -102,8 +101,8 @@ description: Profiling, caching, optimization patterns across frontend and backe
 
 ## Monitoring
 
-**Frontend**: RUM, synthetic monitoring, Core Web Vitals, error tracking (Sentry)
-**Backend**: APM, log aggregation (ELK, Datadog), alerting, distributed tracing
+**Frontend**: RUM, synthetic monitoring, Core Web Vitals, error tracking
+**Backend**: APM, log aggregation, alerting, distributed tracing (OpenTelemetry)
 
 **Continuous**:
 1. Set budgets

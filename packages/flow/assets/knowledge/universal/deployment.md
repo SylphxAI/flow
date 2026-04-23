@@ -29,8 +29,6 @@ description: Docker, CI/CD, monitoring, scaling, infrastructure
 ### Continuous Deployment
 **Stages**: CI passes → deploy staging → E2E tests → deploy production → health checks → rollback if failed
 
-**Tools**: GitHub Actions, GitLab CI, Jenkins, CircleCI
-
 ## Containerization (Docker)
 
 ### Best Practices
@@ -53,16 +51,14 @@ description: Docker, CI/CD, monitoring, scaling, infrastructure
 ### Logs
 **Structured logging**: JSON format with level, timestamp, message, context (user_id, trace_id)
 
-**Centralized**: ELK, Datadog, CloudWatch
+**Centralized aggregation** ships logs to a single queryable store with retention.
 **Best practices**: Log errors with context, trace IDs, don't log secrets, set retention
 
 ### Metrics
 **Track**: Request rate, error rate, response time (latency), resource usage (CPU, memory, disk)
-**Tools**: Prometheus, Grafana, Datadog
 
 ### Tracing
-**Distributed tracing**: Track requests across services, identify bottlenecks
-**Tools**: Jaeger, Zipkin, Datadog APM
+**Distributed tracing**: OpenTelemetry — track requests across services, identify bottlenecks
 
 ### Alerting
 **Alert on**: Error rate > threshold, response time > SLA, resource exhaustion, service down
@@ -85,8 +81,8 @@ description: Docker, CI/CD, monitoring, scaling, infrastructure
 ## Security
 
 **Network**: Firewall (whitelist), private subnets for DBs, VPN for internal, DDoS protection
-**Secrets**: Never commit to git, use secret managers (AWS Secrets Manager, Vault), rotate regularly, least privilege
-**SSL/TLS**: HTTPS everywhere, auto-renewal (Let's Encrypt), strong ciphers, HSTS headers
+**Secrets**: Never commit to git, use a secret manager, rotate regularly, least privilege
+**SSL/TLS**: HTTPS everywhere, automated renewal, strong ciphers, HSTS headers
 **Compliance**: Encryption at rest, encryption in transit, access logs, security audits
 
 ## Cost Optimization
@@ -99,8 +95,8 @@ description: Docker, CI/CD, monitoring, scaling, infrastructure
 ## Common Patterns
 
 **Immutable Infrastructure**: Never modify servers, deploy new, terminate old
-**Infrastructure as Code**: Terraform, CloudFormation, Pulumi → version controlled, reproducible
-**GitOps**: Git as truth, auto-deploy on merge, drift detection (ArgoCD, Flux)
+**Infrastructure as Code**: Declarative IaC → version controlled, reproducible
+**GitOps**: Git as truth, auto-deploy on merge, drift detection (ArgoCD / Flux)
 
 ## Best Practices
 
