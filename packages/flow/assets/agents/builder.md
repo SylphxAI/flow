@@ -175,24 +175,11 @@ Two-layer durable memory:
 
 ## Error Handling (Effect-first)
 
-Errors are **values, not exceptions**. Model every failure mode as a tagged class in the `E` channel; the type system enforces exhaustive handling.
-
-```ts
-class UserNotFound extends Data.TaggedError("UserNotFound")<{ id: UserId }> {}
-class EmailTaken    extends Data.TaggedError("EmailTaken")<{ email: Email }> {}
-
-const createUser = (input: NewUser): Effect.Effect<User, EmailTaken, UserRepo> =>
-  Effect.gen(function* () {
-    const repo = yield* UserRepo
-    const exists = yield* repo.findByEmail(input.email)
-    if (exists) return yield* new EmailTaken({ email: input.email })
-    return yield* repo.insert(input)
-  })
-```
+Errors are **values, not exceptions** — model each failure mode as `Data.TaggedError`, carry it in the `E` channel, handle exhaustively via `Effect.catchTags`.
 
 - **Domain/Application:** never `throw`, never `try/catch`. Return `Effect` with typed errors.
-- **Infrastructure boundary:** `Effect.catchTags` → map domain errors to HTTP responses; unknown defects → 500 with structured Pino log + trace id.
-- **Never swallow.** Unhandled defects crash loud with full Effect cause trees.
+- **Infrastructure boundary:** map tagged errors to HTTP responses; unknown defects → 500 + structured log + trace id.
+- **Never swallow.** Unhandled defects crash loud with full cause trees.
 
 ## Security
 
@@ -224,117 +211,19 @@ const createUser = (input: NewUser): Effect.Effect<User, EmailTaken, UserRepo> =
 
 ## Database (Atlas)
 
-**Schema management via Atlas.** Drizzle ORM is for queries only — never use `drizzle-kit` for migrations.
+Schema SSOT = `schema.sql`/`.hcl` in repo. Atlas diffs against live DB → generates migrations (`migrate diff` / `apply` / `lint`). Drizzle for queries only — **never** `drizzle-kit` for migrations. CI runs `migrate lint`; destructive changes or long locks block the deploy.
 
-**Source of truth = `schema.sql`** (or `.hcl`) in the repo. Atlas diffs it against the live database and generates migrations.
+## Schema SSOT (Effect Schema)
 
-```bash
-# Generate migration from schema changes
-atlas migrate diff --env local
-
-# Apply pending migrations
-atlas migrate apply --env local
-
-# Lint migrations for safety (destructive changes, locks)
-atlas migrate lint --env local --latest 1
-```
-
-**`atlas.hcl` config** defines environments (local, staging, prod) with connection strings and migration directory.
-
-**Build-time verification:**
-```bash
-atlas migrate lint --env ci --latest 1
-```
-If lint fails (data loss, long locks), block the deploy.
-
-## Effect Schema (SSOT)
-
-One schema → type, decoder, encoder, OpenAPI, client contract, DB codec, form validator. Never restate a shape.
-
-```ts
-import { Schema } from "effect"
-
-export const UserId = Schema.String.pipe(Schema.brand("UserId"))
-export type UserId = typeof UserId.Type
-
-export const User = Schema.Struct({
-  id: UserId,
-  email: Schema.String.pipe(Schema.pattern(/^[^@]+@[^@]+$/)),
-  createdAt: Schema.Date,
-})
-export type User = typeof User.Type
-
-// Derive — never duplicate:
-//   API contract  → hono-openapi accepts `User` directly (Standard Schema)
-//   Client types  → `typeof User.Type` via hc
-//   DB codec      → Schema.decodeUnknown(User)(row)
-//   Form          → react-hook-form resolver from same schema
-```
+One `Schema.Struct` per shape → derives type (`typeof X.Type`), decoder, encoder, OpenAPI, `hc` client contract, DB codec, form resolver. Never restate a shape as a TS interface or parallel Zod definition. Brand IDs and domain values.
 
 ## Hono + hono-openapi + Effect
 
-**Standard Schema** lets `hono-openapi` consume Effect Schema natively — no Zod bridge.
+`hono-openapi`'s `validator()` consumes Effect Schema directly via Standard Schema — no Zod bridge. Run domain `Effect`s at the route boundary with `Effect.runPromise(... .pipe(Effect.catchTags(...), Effect.provide(AppLayer)))`. Domain/application stay framework-free.
 
-```ts
-import { Hono } from "hono"
-import { describeRoute, validator } from "hono-openapi"
-import { Effect, Layer } from "effect"
-
-const usersApp = new Hono()
-  .post(
-    "/",
-    describeRoute({ description: "Create user", responses: { 201: { /* ... */ } } }),
-    validator("json", NewUser),                  // Effect Schema directly
-    async (c) => {
-      const input = c.req.valid("json")
-      const result = await Effect.runPromise(
-        createUser(input).pipe(
-          Effect.catchTag("EmailTaken", (e) =>
-            Effect.succeed({ _tag: "conflict" as const, email: e.email })
-          ),
-          Effect.provide(AppLayer),              // Layer wires UserRepo, Db, Logger
-        )
-      )
-      return result._tag === "conflict"
-        ? c.json({ error: "EMAIL_TAKEN", email: result.email }, 409)
-        : c.json(result, 201)
-    }
-  )
-```
-
-**Split clients by entity** — monolithic `hc<AppType>` kills IDE performance at 100+ routes.
-
-```typescript
-// ✅ Split: one Hono app + one client per entity
-const booksApp = new Hono()
-  .get('/', (c) => c.json([]))
-  .post('/', (c) => c.json({ id: 1 }))
-  .get('/:id', (c) => c.json({ id: c.req.param('id') }))
-
-const authorsApp = new Hono()
-  .get('/', (c) => c.json([]))
-  .post('/', (c) => c.json({ id: 1 }))
-
-// Main app — chain with .route()
-const app = new Hono()
-  .route('/books', booksApp)
-  .route('/authors', authorsApp)
-
-// Clients — split by entity, <100 routes each
-export const booksClient = hc<typeof booksApp>('/api/books')
-export const authorsClient = hc<typeof authorsApp>('/api/authors')
-```
-
-**Chain routes** — separate `app.get()` calls break type inference:
-```typescript
-// ✅ Chained — types work
-const app = new Hono().get('/', h1).post('/', h2)
-
-// ❌ Separate — types broken
-const app = new Hono()
-app.get('/', h1)
-app.post('/', h2)
-```
+**Hono RPC rules:**
+- **Chain handlers** (`new Hono().get(...).post(...)`) — separate `app.get()` calls break type inference.
+- **Split `hc` clients per entity**, <100 routes each — monolithic `hc<AppType>` kills IDE performance.
 
 ## Frontend
 

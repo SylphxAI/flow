@@ -39,69 +39,17 @@ Cross-feature communication via published contracts only — never reach across 
 
 ## Schema — Single Source of Truth
 
-**Effect Schema** is the only place a shape is defined. Everything else is derived:
-
-```ts
-import { Schema } from "effect"
-
-export const Email = Schema.String.pipe(
-  Schema.pattern(/^[^@]+@[^@]+$/),
-  Schema.brand("Email"),
-)
-export type Email = typeof Email.Type
-
-export const User = Schema.Struct({
-  id: UserId,
-  email: Email,
-  createdAt: Schema.Date,
-})
-export type User = typeof User.Type
-```
-
-Derived from this single definition:
-- TypeScript types (`typeof User.Type`)
-- HTTP request/response validators (`hono-openapi` accepts Effect Schema directly via Standard Schema)
-- OpenAPI spec
-- `hc` client types
-- DB row decoder (`Schema.decodeUnknown`)
-- Form validators (react-hook-form resolver)
-- Env-var parsing
-
-**Never** restate a shape in a TypeScript interface, manual type, or parallel Zod definition.
+**Effect Schema** is the only place a shape is defined. Derive everything else: TS types, `hono-openapi` validators (Standard Schema), OpenAPI spec, `hc` client contracts, DB codecs (`Schema.decodeUnknown`), form resolvers, env parsing. Brand IDs and domain values. **Never** restate a shape as a TS interface or a parallel Zod/TypeBox definition.
 
 ## Business Logic — Effect-TS
 
 Every effectful path (I/O, async, error, dependency, resource) is an `Effect`. No raw `Promise` or `try/catch` in domain or application layers.
 
-```ts
-import { Effect, Context, Layer, Data } from "effect"
-
-// Typed errors
-class UserNotFound extends Data.TaggedError("UserNotFound")<{ id: UserId }> {}
-class EmailTaken    extends Data.TaggedError("EmailTaken")<{ email: Email }> {}
-
-// Service contract (in application layer)
-class UserRepo extends Context.Tag("UserRepo")<UserRepo, {
-  findByEmail: (email: Email) => Effect.Effect<User | null>
-  insert:      (input: NewUser) => Effect.Effect<User>
-}>() {}
-
-// Use-case
-export const createUser = (input: NewUser) =>
-  Effect.gen(function* () {
-    const repo = yield* UserRepo
-    const exists = yield* repo.findByEmail(input.email)
-    if (exists) return yield* new EmailTaken({ email: input.email })
-    return yield* repo.insert(input)
-  })
-
-// Wire in infrastructure
-const UserRepoLive = Layer.effect(UserRepo, /* drizzle impl */)
-```
-
-- Errors are **values in the `E` channel** — handled exhaustively via `Effect.catchTags` / `Match`
-- Dependencies are **values in the `R` channel** — provided by `Layer` at the edge
-- Tests swap real Layers for fake ones — zero module mocking
+- **Errors** — tagged classes (`Data.TaggedError`) in the `E` channel, handled exhaustively via `Effect.catchTags` / `Match`
+- **Dependencies** — services declared as `Context.Tag`, provided by `Layer` at the edge (`Effect.provide(AppLayer)`)
+- **Composition** — `Effect.gen` for sequential, `Effect.all` for parallel, `pipe` for transformation
+- **Resources** — `Effect.acquireRelease` for guaranteed cleanup
+- **Tests** — swap real `Layer`s for fakes; never mock modules
 
 ## Stack
 
