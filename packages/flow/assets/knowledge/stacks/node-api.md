@@ -1,220 +1,274 @@
 ---
-name: Node.js API
-description: Express/Fastify, REST/GraphQL, authentication, middleware, error handling
+name: API Service (Hono + Effect)
+description: Production-grade API — Hono + hono-openapi + Effect-TS + Effect Schema, modular clean architecture, feature-first
 ---
 
-# Backend API Development
+# API Development — 2027 SOTA
 
-## REST Structure
+Hono on Bun. Effect-TS for all business logic. Effect Schema as the single source of truth. Clean architecture, feature-first folders, end-to-end type safety.
+
+## Folder Layout (feature-first)
 
 ```
-GET    /users              List
-POST   /users              Create
-GET    /users/:id          Get
-PATCH  /users/:id          Update
-DELETE /users/:id          Delete
-GET    /users/:id/posts    Nested
+src/
+├── features/
+│   ├── users/
+│   │   ├── domain/
+│   │   │   ├── schema.ts        # Effect Schema — SSOT
+│   │   │   └── errors.ts        # TaggedError classes
+│   │   ├── application/
+│   │   │   ├── repo.ts          # Context.Tag (interface)
+│   │   │   └── use-cases.ts     # Effect programs
+│   │   └── infrastructure/
+│   │       ├── routes.ts        # Hono + hono-openapi
+│   │       ├── repo.drizzle.ts  # Layer.effect(Repo, ...)
+│   │       └── layer.ts         # Composed Layer
+│   └── billing/...
+├── shared/
+│   ├── http/                    # error-mapping, middleware
+│   ├── db/                      # Drizzle client, transactions
+│   └── observability/           # Pino, Effect Tracer
+└── main.ts                      # Compose AppLayer, bind Hono, listen
 ```
 
-**Status**: 200 OK, 201 Created, 204 No Content, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal Server Error
+Cross-feature: import only from `features/<feature>/index.ts` (published contract). Never reach into `internal/`.
 
-**Response format (project standard):**
-```json
-{ "data": {...}, "meta": {...} }
-{ "items": [...], "total": 100, "page": 1, "limit": 20 }
-{ "error": { "code": "VALIDATION_ERROR", "message": "...", "field": "..." } }
-```
+## Domain — pure types + schema
 
-## N+1 Problem
+```ts
+// features/users/domain/schema.ts
+import { Schema } from "effect"
 
-```javascript
-// BAD - N+1 queries
-for (user of users) { user.posts = await getPosts(user.id) }
+export const UserId = Schema.String.pipe(Schema.brand("UserId"))
+export type UserId = typeof UserId.Type
 
-// GOOD - Join
-await db.users.findMany({ include: { posts: true } })
+export const Email = Schema.String.pipe(
+  Schema.pattern(/^[^@\s]+@[^@\s]+\.[^@\s]+$/),
+  Schema.brand("Email"),
+)
+export type Email = typeof Email.Type
 
-// GOOD - Batch fetch
-const userIds = users.map(u => u.id)
-const posts = await db.posts.findMany({ where: { userId: { in: userIds } } })
-
-// GraphQL: DataLoader
-const loader = new DataLoader(async (ids) => {
-  const items = await db.find({ where: { id: { in: ids } } })
-  return ids.map(id => items.filter(i => i.parentId === id))
+export const User = Schema.Struct({
+  id: UserId,
+  email: Email,
+  createdAt: Schema.Date,
 })
+export type User = typeof User.Type
+
+export const NewUser = Schema.Struct({ email: Email })
+export type NewUser = typeof NewUser.Type
 ```
 
-## Database
-
-**Connection pooling:**
-```javascript
-const pool = new Pool({ max: 20, idleTimeoutMillis: 30000 })
+```ts
+// features/users/domain/errors.ts
+import { Data } from "effect"
+export class UserNotFound extends Data.TaggedError("UserNotFound")<{ id: UserId }> {}
+export class EmailTaken    extends Data.TaggedError("EmailTaken")<{ email: Email }> {}
 ```
 
-**Caching pattern:**
-```javascript
-async function getUser(id) {
-  const cached = await redis.get(`user:${id}`)
-  if (cached) return JSON.parse(cached)
+## Application — use-cases as Effect programs
 
-  const user = await db.users.findUnique({ where: { id } })
-  await redis.set(`user:${id}`, JSON.stringify(user), 'EX', 3600)
-  return user
-}
+```ts
+// features/users/application/repo.ts
+import { Context, Effect } from "effect"
+import type { Email, NewUser, User, UserId } from "../domain/schema"
 
-// Invalidate on update
-async function updateUser(id, data) {
-  const user = await db.users.update({ where: { id }, data })
-  await redis.del(`user:${id}`)
-  return user
-}
+export class UserRepo extends Context.Tag("UserRepo")<UserRepo, {
+  findById:    (id: UserId)    => Effect.Effect<User | null>
+  findByEmail: (email: Email)  => Effect.Effect<User | null>
+  insert:      (input: NewUser) => Effect.Effect<User>
+}>() {}
 ```
 
-## Authentication
+```ts
+// features/users/application/use-cases.ts
+import { Effect } from "effect"
+import { EmailTaken, UserNotFound } from "../domain/errors"
+import { UserRepo } from "./repo"
 
-**Session vs Token:**
-- Session: Traditional web apps, need fine-grained control
-- Token (JWT): SPAs, mobile apps, microservices
+export const createUser = (input: NewUser) =>
+  Effect.gen(function* () {
+    const repo = yield* UserRepo
+    const exists = yield* repo.findByEmail(input.email)
+    if (exists) return yield* new EmailTaken({ email: input.email })
+    return yield* repo.insert(input)
+  })
 
-**JWT middleware (project standard):**
-```javascript
-function requireAuth(req, res, next) {
-  const token = req.headers.authorization?.split(' ')[1]
-  if (!token) return res.status(401).json({ error: { code: 'NO_TOKEN' } })
-
-  try {
-    req.userId = jwt.verify(token, process.env.JWT_SECRET).userId
-    next()
-  } catch {
-    res.status(401).json({ error: { code: 'INVALID_TOKEN' } })
-  }
-}
+export const getUser = (id: UserId) =>
+  Effect.gen(function* () {
+    const repo = yield* UserRepo
+    const user = yield* repo.findById(id)
+    if (!user) return yield* new UserNotFound({ id })
+    return user
+  })
 ```
 
-**Authorization patterns:**
-```javascript
-// Role check
-function requireRole(...roles) {
-  return async (req, res, next) => {
-    const user = await db.users.findUnique({ where: { id: req.userId } })
-    if (!roles.includes(user.role)) {
-      return res.status(403).json({ error: { code: 'FORBIDDEN' } })
-    }
-    next()
-  }
-}
+Note: dependencies are values in the `R` channel (`UserRepo`). Errors are values in the `E` channel (`EmailTaken`, `UserNotFound`). The compiler enforces exhaustive handling.
 
-// Ownership check
-function requireOwnership(getter) {
-  return async (req, res, next) => {
-    const resource = await getter(req)
-    if (resource.userId !== req.userId) {
-      return res.status(403).json({ error: { code: 'NOT_OWNER' } })
-    }
-    next()
-  }
-}
-```
+## Infrastructure — Hono + hono-openapi
 
-## Error Handling
+```ts
+// features/users/infrastructure/routes.ts
+import { Hono } from "hono"
+import { describeRoute, validator } from "hono-openapi"
+import { Effect, Match } from "effect"
+import { NewUser, UserId, User } from "../domain/schema"
+import { createUser, getUser } from "../application/use-cases"
+import { runWithApp } from "@/shared/http/runtime"
+import { mapDomainError } from "@/shared/http/errors"
 
-**Project standard:**
-```javascript
-class ApiError extends Error {
-  constructor(statusCode, code, message) {
-    super(message)
-    this.statusCode = statusCode
-    this.code = code
-    this.isOperational = true
-  }
-}
-
-// Error middleware (last!)
-app.use((err, req, res, next) => {
-  if (err.isOperational) {
-    return res.status(err.statusCode).json({
-      error: { code: err.code, message: err.message }
+export const usersRoutes = new Hono()
+  .post(
+    "/",
+    describeRoute({
+      description: "Create user",
+      responses: {
+        201: { description: "Created", content: { "application/json": { schema: User } } },
+        409: { description: "Email taken" },
+      },
+    }),
+    validator("json", NewUser),                  // Effect Schema (Standard Schema)
+    async (c) => runWithApp(c, createUser(c.req.valid("json")), {
+      onSuccess: (user) => c.json(user, 201),
+      onError: mapDomainError(c, {
+        EmailTaken: (e) => c.json({ error: "EMAIL_TAKEN", email: e.email }, 409),
+      }),
     })
-  }
-
-  console.error('PROGRAMMER ERROR:', err)
-  res.status(500).json({ error: { code: 'INTERNAL_ERROR' } })
-})
-
-// Usage
-if (!user) throw new ApiError(404, 'NOT_FOUND', 'User not found')
+  )
+  .get(
+    "/:id",
+    validator("param", Schema.Struct({ id: UserId })),
+    async (c) => runWithApp(c, getUser(c.req.valid("param").id), {
+      onSuccess: (user) => c.json(user),
+      onError: mapDomainError(c, {
+        UserNotFound: () => c.json({ error: "NOT_FOUND" }, 404),
+      }),
+    })
+  )
 ```
+
+## Wiring — Layers
+
+```ts
+// features/users/infrastructure/repo.drizzle.ts
+import { Effect, Layer, Schema } from "effect"
+import { UserRepo } from "../application/repo"
+import { User } from "../domain/schema"
+import { Db } from "@/shared/db"
+
+export const UserRepoLive = Layer.effect(
+  UserRepo,
+  Effect.gen(function* () {
+    const db = yield* Db
+    return UserRepo.of({
+      findById: (id) =>
+        Effect.tryPromise(() => db.query.users.findFirst({ where: eq(users.id, id) }))
+          .pipe(Effect.flatMap(Schema.decodeUnknown(Schema.NullOr(User)))),
+      // ...
+    })
+  })
+)
+```
+
+```ts
+// main.ts
+import { Hono } from "hono"
+import { Layer } from "effect"
+import { DbLive } from "./shared/db"
+import { LoggerLive } from "./shared/observability"
+import { UserRepoLive } from "./features/users/infrastructure/repo.drizzle"
+import { usersRoutes } from "./features/users/infrastructure/routes"
+
+export const AppLayer = Layer.mergeAll(DbLive, LoggerLive, UserRepoLive)
+
+const app = new Hono().route("/users", usersRoutes)
+export default { fetch: app.fetch, port: 3000 }
+```
+
+## Error Mapping (boundary)
+
+```ts
+// shared/http/errors.ts
+import { Match } from "effect"
+
+export const mapDomainError = <Tags extends string>(
+  c: Context,
+  handlers: Partial<Record<Tags, (e: any) => Response>>,
+) => (error: { _tag: Tags }) =>
+  (handlers[error._tag] ?? defaultHandler)(error)
+
+const defaultHandler = (e: unknown) => /* log + 500 */
+```
+
+Domain/application **never** touch HTTP. The boundary translates tagged errors to status codes.
+
+## Cross-cutting concerns
+
+| Concern | Mechanism |
+|---|---|
+| Tracing | Effect's built-in `Tracer` — automatic span per `Effect.withSpan` |
+| Logging | Pino at the infrastructure boundary, structured with trace id |
+| Metrics | Effect `Metric` — counters, histograms |
+| Retries | `Effect.retry(schedule)` with `Schedule.exponential` |
+| Timeouts | `Effect.timeout("5 seconds")` |
+| Concurrency | `Effect.all(effects, { concurrency: "unbounded" })` |
+| Resources | `Effect.acquireRelease` — guaranteed cleanup |
+| Auth | Hono middleware → puts user in `Context`, available via `Context.Tag` |
+
+## Testing
+
+```ts
+import { Effect, Layer, TestClock } from "effect"
+import { describe, it, expect } from "bun:test"
+import { UserRepo } from "@/features/users/application/repo"
+import { createUser } from "@/features/users/application/use-cases"
+
+const fakeRepo = (state: { users: User[] }) =>
+  Layer.succeed(UserRepo, UserRepo.of({
+    findByEmail: (email) =>
+      Effect.succeed(state.users.find((u) => u.email === email) ?? null),
+    insert: (input) =>
+      Effect.sync(() => {
+        const u = { ...input, id: "u1" as UserId, createdAt: new Date() }
+        state.users.push(u)
+        return u
+      }),
+    // ...
+  }))
+
+it("rejects duplicate emails", async () => {
+  const state = { users: [{ id: "u0", email: "a@b.c", createdAt: new Date() }] }
+  const result = await Effect.runPromiseExit(
+    createUser({ email: "a@b.c" as Email }).pipe(Effect.provide(fakeRepo(state)))
+  )
+  expect(result._tag).toBe("Failure")
+})
+```
+
+- Pure domain → tested as pure functions
+- Effect use-cases → swap real `Layer` for fake one (no module mocks)
+- Time/random → `TestClock`, `TestRandom` for deterministic schedules and retries
+- Integration → real Hono + real Effect runtime + test DB layer
+- Every tagged error has a regression test
 
 ## Performance
 
-**Targets**: DB < 100ms, API < 200ms
+| Target | Approach |
+|---|---|
+| API p95 < 200ms | Edge runtime where possible, parallel `Effect.all` |
+| DB p95 < 100ms | Drizzle prepared statements, indexed FKs, cursor pagination |
+| N+1 avoidance | Batch via `Effect.forEach({ concurrency, batching: true })` or DataLoader Layer |
+| Cache | Redis Layer with `Effect.cached` / `Effect.cachedWithTTL` |
+| Resilience | `Schedule.exponential` retries, `Effect.timeout`, circuit breaker via `Schedule` |
 
-**Optimize:**
-- N+1 → Joins / DataLoader
-- Connection pooling
-- Redis caching
-- Job queues (background tasks)
-- Pagination (always LIMIT)
+## Anti-Patterns — Forbidden
 
-## GraphQL Basics
-
-**When**: Complex relationships, flexible queries
-**vs REST**: Simple CRUD → REST
-
-**DataLoader (required for N+1):**
-```javascript
-const postLoader = new DataLoader(async (userIds) => {
-  const posts = await db.posts.findMany({ where: { userId: { in: userIds } } })
-  return userIds.map(id => posts.filter(p => p.userId === id))
-})
-
-// In resolver
-User: {
-  posts: (user) => postLoader.load(user.id)
-}
-```
-
-## Common Patterns
-
-**Repository:**
-```javascript
-class UserRepo {
-  findById(id) { return db.users.findUnique({ where: { id } }) }
-  save(data) { return db.users.create({ data }) }
-}
-```
-
-**Service:**
-```javascript
-class UserService {
-  async createUser(data) {
-    if (!data.email) throw new Error('Email required')
-    return await this.repo.save(data)
-  }
-}
-```
-
-**Middleware chain:**
-```javascript
-app.use(cors())
-app.use(express.json())
-app.use(rateLimit())
-app.use(auth())
-app.use(errorHandler()) // Last!
-```
-
-## Best Practices
-
-✅ Prepared statements (prevent injection)
-✅ Connection pooling
-✅ Index foreign keys
-✅ Rate limit auth endpoints
-✅ Hash passwords (bcrypt/argon2)
-✅ HTTPS only
-✅ Validate server-side
-
-❌ SQL injection (string concat)
-❌ Plain text passwords
-❌ N+1 queries
-❌ No error handling
+- ❌ `try/catch` in domain or application
+- ❌ Raw `Promise.then/.catch` outside infrastructure adapters
+- ❌ Throwing exceptions for control flow
+- ❌ Class-based services with hidden state
+- ❌ Inheritance — compose `Layer`s instead
+- ❌ Module mocking in tests
+- ❌ Cross-feature reach-in
+- ❌ Re-defining a schema as a TS interface
+- ❌ Drizzle-kit migrations (use Atlas)

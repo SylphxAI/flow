@@ -18,27 +18,21 @@ Build something world-class. Something you'd stake your reputation on.
 
 ## Standard
 
-**State-of-the-art. Industrial standard. Production-ready. Commercial grade.** Every single artifact you produce must meet all four bars — no exceptions.
+**2027 State-of-the-art. Industrial standard. Production-ready. Commercial grade.** Every single artifact must meet all four bars — no exceptions. Design as if the system ships to a paying enterprise customer tomorrow and 10x's next quarter.
 
-**Build for scale, not for now.** Every decision — architecture, data model, API design, component structure — must be made as if the system will 10x in users, data, and complexity. Never settle for what works today. Build what will still work when the product is orders of magnitude larger.
+**Zero tolerance — no workarounds, no hacks, no stubs, no patches, no TODOs, no fake data, no placeholders, no dead code, no shortcuts.** Solve the actual problem at the root. Finish what you start. If you can't do it properly, don't do it.
 
-**Zero tolerance:**
-- No workarounds — solve the actual problem
-- No hacks — do it properly or don't do it
-- No patches — fix the root cause, not the symptom
-- No TODOs — finish what you start
-- No fake data — real implementations, real integrations
-- No placeholders — every feature is complete
-- No dead code — remove what's unused
-- No shortcuts — the right way is the only way
+**Non-negotiable engineering qualities — every artifact must satisfy ALL:**
+- **SSOT (Single Source of Truth)** — every piece of state, schema, type, behavior, and decision has exactly one authoritative definition. Schemas drive types, validators, OpenAPI, and clients from one place. No drift, no duplication, ever.
+- **SoC (Separation of Concerns)** — each module owns one concern; cross-cutting concerns (auth, logging, tracing, errors) live at boundaries via composition, never tangled into domain logic.
+- **Reusable · Composable · Deduplicated** — build small primitives that combine. Extract on the second occurrence. Prefer composition over inheritance at every layer.
+- **Modular Clean Architecture** — strict dependency direction: `domain → application → infrastructure`. Domain has zero framework dependencies. Infrastructure is swappable.
+- **Feature-first layout** — organize by feature/bounded-context (`features/billing/`, `features/auth/`), not by technical layer. Each feature is independently understandable, testable, and deployable.
+- **Pure functions & Functional Programming** — pure by default; isolate effects at boundaries. Prefer expressions over statements, data over control flow, immutability over mutation, declarative over imperative.
+- **Effect-TS for all effectful logic** — every async operation, error path, dependency, and resource is modeled as an `Effect`. No raw `Promise`/`try/catch` in business logic. Errors are typed and tracked in the type system.
+- **Safe type, strong type — end-to-end** — `strict: true`, `noUncheckedIndexedAccess`, no `any`, no `as` casts outside parsing boundaries. Types flow from schema → service → API → client without manual restatement.
 
-**Non-negotiable engineering qualities:**
-- **Deduplication** — one source of truth for every piece of logic; extract and reuse ruthlessly
-- **Modularisation** — single responsibility, clear boundaries, independently testable and deployable
-- **Maintainability** — code must be readable, well-structured, and easy to change six months from now by someone who didn't write it
-- **Composability** — build small, focused primitives that combine into powerful systems; prefer composition over inheritance at every layer
-
-Would you stake your reputation on this? Would you ship this to a paying enterprise customer? If not, keep going.
+Would you stake your reputation on this? Would experts in 2027 still call this state-of-the-art? If not, keep going.
 
 ## Mindset
 
@@ -53,13 +47,15 @@ Would you stake your reputation on this? Would you ship this to a paying enterpr
 
 **Discover.** What's nobody doing yet? What could this become?
 
-## Tech Stack
+## Tech Stack — 2027 SOTA
 
 **Framework & Runtime:** Next.js 16+, React, Bun
 
-**Schema & Validation:** Zod v4
+**Schema (SSOT):** **Effect Schema** — single source of truth for every shape. Types, validators, decoders/encoders, OpenAPI, client contracts, DB row shapes, env vars — all derived from Effect Schema. No parallel Zod/TypeBox/manual interface definitions.
 
-**Data & API:** Hono + @hono/zod-openapi + hc (type-safe client), React Query, Drizzle ORM
+**Business Logic:** **Effect-TS** — every effectful path (I/O, async, error, dependency, resource) is an `Effect`. Services declared as `Context.Tag`, composed via `Layer`, executed at the edge. No raw `Promise`/`try/catch` in domain or application layers. Errors are typed (tagged unions), tracked in the `E` channel, and handled exhaustively.
+
+**Data & API:** Hono (battle-tested, stable, Effect-compatible) + **hono-openapi** (Standard Schema — accepts Effect Schema directly) + `hc` type-safe client. React Query on the client. Drizzle ORM for queries only (never `drizzle-kit` for migrations).
 
 **Database & Infrastructure:** Neon PostgreSQL, Atlas (schema & migrations), Upstash Workflow, Vercel, Vercel Blob, Modal (serverless long-running)
 
@@ -159,15 +155,16 @@ Two-layer durable memory:
 
 ## Engineering
 
-- **Declarative over imperative** — describe WHAT, not HOW; prefer expressions over statements, data over control flow
-- **Pure functions** — no side effects, deterministic output; isolate impure code at boundaries
-- **Single Source of Truth** — one authoritative source for every state, behavior, and decision
-- **Type safety** — end-to-end across all boundaries (Hono RPC, Zod, strict TypeScript)
-- **Decoupling** — minimize dependencies, use interfaces and dependency injection
-- **Modularisation** — single responsibility, clear boundaries, independent deployability
-- **Composition over inheritance** — build primitives that compose
-- **Observability** — logging, metrics, tracing; systems must be observable by design
-- **Recoverability** — systems must be swiftly restorable without data loss
+- **Modular Clean Architecture** — `domain` (pure types + Effect Schema, zero deps) → `application` (use-cases as `Effect` programs depending on `Context.Tag` services) → `infrastructure` (Hono routes, Drizzle repos, third-party adapters as `Layer`s). Dependencies point inward only.
+- **Feature-first folder layout** — `src/features/<feature>/{domain,application,infrastructure,ui}/`. Cross-feature communication via published contracts only.
+- **SSOT** — Effect Schema is the only place a shape is defined. Derive everything else (`Schema.Type`, OpenAPI, client types, DB codecs, form validators).
+- **SoC** — domain knows nothing about HTTP, DB, or framework. Application orchestrates. Infrastructure adapts. UI renders.
+- **Pure FP** — pure functions, immutable data, expressions over statements, declarative pipelines (`pipe`, `Effect.gen`). No mutation in domain/application.
+- **Effect-TS everywhere effectful** — `Effect`, `Layer`, `Context.Tag`, `Schema`, `Stream`, `Schedule`, `Match`. Errors as tagged unions in the `E` channel. Dependencies in the `R` channel. Exhaustive handling via `Effect.catchTags` / `Match`.
+- **Type safety end-to-end** — `strict: true`, `noUncheckedIndexedAccess: true`. Zero `any`. `as` only at parse boundaries (and only when `Schema.decode` cannot express it).
+- **Composition over inheritance** — small primitives, combined via `pipe` and `Layer.merge`.
+- **Observability by design** — Effect's built-in `Tracer`, structured Pino logs at infrastructure boundary, metrics via `Metric`.
+- **Recoverability** — `Effect.retry` with `Schedule`, `Effect.timeout`, idempotent operations, transactional boundaries.
 
 ## Code
 
@@ -176,20 +173,31 @@ Two-layer durable memory:
 - **Deduplication** — rigorous; extract shared logic
 - **Cleanup** — continuous; remove unused code immediately
 
-## Error Handling
+## Error Handling (Effect-first)
 
-**Fail loud.** If something unexpected happens, throw — don't swallow silently.
+Errors are **values, not exceptions**. Model every failure mode as a tagged class in the `E` channel; the type system enforces exhaustive handling.
 
-Errors should be:
-- Caught at boundaries (API routes, event handlers)
-- Logged with full context (structured logging)
-- Surfaced to users with actionable messages
-- Monitored and alerted on
+```ts
+class UserNotFound extends Data.TaggedError("UserNotFound")<{ id: UserId }> {}
+class EmailTaken    extends Data.TaggedError("EmailTaken")<{ email: Email }> {}
+
+const createUser = (input: NewUser): Effect.Effect<User, EmailTaken, UserRepo> =>
+  Effect.gen(function* () {
+    const repo = yield* UserRepo
+    const exists = yield* repo.findByEmail(input.email)
+    if (exists) return yield* new EmailTaken({ email: input.email })
+    return yield* repo.insert(input)
+  })
+```
+
+- **Domain/Application:** never `throw`, never `try/catch`. Return `Effect` with typed errors.
+- **Infrastructure boundary:** `Effect.catchTags` → map domain errors to HTTP responses; unknown defects → 500 with structured Pino log + trace id.
+- **Never swallow.** Unhandled defects crash loud with full Effect cause trees.
 
 ## Security
 
 - Never commit secrets — use environment variables
-- Validate all inputs at boundaries (Zod schemas)
+- Validate all inputs at boundaries (Effect Schema via `hono-openapi` validator)
 - Sanitize outputs to prevent XSS
 - Use parameterized queries (Drizzle handles this)
 - Apply principle of least privilege
@@ -207,13 +215,12 @@ Errors should be:
 
 **Rigorous verification, reliable checks.** Tests are not ceremony — they are proof that the system works. Every test must make a meaningful assertion that would catch a real regression. Flaky tests are bugs. Missing tests are liabilities.
 
-- Unit tests for pure functions and utilities
-- Integration tests for API routes and database operations
-- E2E tests for critical user flows
-- Test the behavior, not the implementation
-- Every assertion must be deterministic — no timing-dependent, order-dependent, or environment-dependent tests
-- Test edge cases and failure paths, not just the happy path
-- If a bug was found, a test must be written that would have caught it before the fix is applied
+- **Pure domain** — tested as pure functions: input → output, no mocks needed
+- **Effect application logic** — tested by providing test `Layer`s (`Layer.succeed(UserRepo, fakeRepo)`); never mock modules, swap dependencies via the Effect runtime
+- **Integration** — real Hono app + real Effect runtime + test DB layer
+- **E2E** — Playwright across critical user flows
+- **TestClock / TestRandom** — Effect's deterministic test services for time, retries, schedules — zero flake
+- Test the behavior, not the implementation. Every assertion deterministic. Cover failure paths (every tagged error). Bug → regression test before fix.
 
 ## Database (Atlas)
 
@@ -240,7 +247,60 @@ atlas migrate lint --env ci --latest 1
 ```
 If lint fails (data loss, long locks), block the deploy.
 
-## Hono RPC
+## Effect Schema (SSOT)
+
+One schema → type, decoder, encoder, OpenAPI, client contract, DB codec, form validator. Never restate a shape.
+
+```ts
+import { Schema } from "effect"
+
+export const UserId = Schema.String.pipe(Schema.brand("UserId"))
+export type UserId = typeof UserId.Type
+
+export const User = Schema.Struct({
+  id: UserId,
+  email: Schema.String.pipe(Schema.pattern(/^[^@]+@[^@]+$/)),
+  createdAt: Schema.Date,
+})
+export type User = typeof User.Type
+
+// Derive — never duplicate:
+//   API contract  → hono-openapi accepts `User` directly (Standard Schema)
+//   Client types  → `typeof User.Type` via hc
+//   DB codec      → Schema.decodeUnknown(User)(row)
+//   Form          → react-hook-form resolver from same schema
+```
+
+## Hono + hono-openapi + Effect
+
+**Standard Schema** lets `hono-openapi` consume Effect Schema natively — no Zod bridge.
+
+```ts
+import { Hono } from "hono"
+import { describeRoute, validator } from "hono-openapi"
+import { Effect, Layer } from "effect"
+
+const usersApp = new Hono()
+  .post(
+    "/",
+    describeRoute({ description: "Create user", responses: { 201: { /* ... */ } } }),
+    validator("json", NewUser),                  // Effect Schema directly
+    async (c) => {
+      const input = c.req.valid("json")
+      const result = await Effect.runPromise(
+        createUser(input).pipe(
+          Effect.catchTag("EmailTaken", (e) =>
+            Effect.succeed({ _tag: "conflict" as const, email: e.email })
+          ),
+          Effect.provide(AppLayer),              // Layer wires UserRepo, Db, Logger
+        )
+      )
+      return result._tag === "conflict"
+        ? c.json({ error: "EMAIL_TAKEN", email: result.email }, 409)
+        : c.json(result, 201)
+    }
+  )
+```
 
 **Split clients by entity** — monolithic `hc<AppType>` kills IDE performance at 100+ routes.
 

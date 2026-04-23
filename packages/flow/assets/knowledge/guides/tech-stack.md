@@ -1,92 +1,153 @@
 ---
-name: Tech Stack (Recommended)
-description: Opinionated stack (Next.js, PandaCSS, GraphQL, Pothos, Drizzle) - optimized for LLM accuracy
+name: Tech Stack (2027 SOTA)
+description: Opinionated stack — Effect-TS + Effect Schema (SSOT) + Hono + hono-openapi, modular clean architecture, feature-first, pure FP
 ---
 
-# Technical Stack
+# Technical Stack — 2027 SOTA
 
-Scalable, secure SaaS stack. Type safety, performance, serverless. Validate with E2E (Playwright), monitor with Sentry.
+Production-ready, commercial-grade. Every layer designed for SSOT, SoC, composability, and end-to-end type safety. No workarounds, no stubs.
 
-## Domain-Driven Architecture
+## Architecture Principles
 
-Feature-based layout: `src/features/<domain>/` (frontend), `src/graphql/<domain>/` (backend). Colocate related code. Cross-domain via explicit exports.
+**Modular Clean Architecture** — strict inward dependency:
+```
+infrastructure  →  application  →  domain
+   (adapters)       (use-cases)     (pure)
+```
+- **domain/** — pure types, Effect Schema, business invariants. Zero framework deps.
+- **application/** — use-cases as `Effect` programs, dependencies declared via `Context.Tag`.
+- **infrastructure/** — Hono routes, Drizzle repositories, third-party adapters, wired as `Layer`s.
+- **ui/** — React components, hooks, presentation logic.
 
-**Frontend domains**: `src/features/<domain>/` → `components/`, `hooks/`, `store/`, `services/`, `utils/`, `types.ts`
-**Backend domains**: `src/graphql/<domain>/` → `types/`, `queries.ts`, `mutations.ts`, `subscriptions.ts`, `loaders.ts` (DataLoader for N+1)
-**Shared infra**: `src/lib/` (clients), `src/app/` (routes, providers)
+**Feature-first layout** — organize by bounded context, not by technical layer:
+```
+src/features/
+├── billing/
+│   ├── domain/        # schema.ts, errors.ts, policies.ts
+│   ├── application/   # use-cases.ts, services.ts (Context.Tag)
+│   ├── infrastructure/ # routes.ts, repo.drizzle.ts, stripe.adapter.ts
+│   └── ui/            # components, hooks
+├── auth/
+└── users/
+```
+Cross-feature communication via published contracts only — never reach across `features/*/` internals.
 
-## Frontend Stack
+**Functional Programming everywhere:**
+- Pure functions by default, immutable data, expressions over statements
+- Side effects modelled as `Effect`, isolated at the infrastructure boundary
+- Declarative pipelines via `pipe`, `Effect.gen`, `Match`
 
-**Framework**: Next.js App Router (routing, SSR/SSG, Turbopack). `src/app/(app)/dashboard/page.tsx`
+## Schema — Single Source of Truth
 
-**UI**: React + Radix UI primitives (a11y). Prefer Radix for structural/interactive, custom only when Radix lacks. `src/features/<domain>/components/`
+**Effect Schema** is the only place a shape is defined. Everything else is derived:
 
-**State**: Zustand (global sessions). Avoid Redux. `src/features/<domain>/store/`
+```ts
+import { Schema } from "effect"
 
-**Styling**: PandaCSS (type-safe atomic CSS-in-JS, zero-runtime, <10KB)
-- **Tokens/Themes**: `panda.config.ts` semantics (`colors.primary.500`), `_dark`/CSS vars
-- **Atomic**: Inline JSX (`bg-primary-500 p-4`), `css({ color: 'red' })` merges
-- **Recipes**: `cva` (Button variants), `sva` slots (Card), `jsx: ['Button']` track
-- **Merging**: `cx(recipe(), css({ bg: 'red' }))` overrides
-- **Optimize**: `staticCss: { recipes: '*' }`, purge globs, `panda analyze`, Next.js plugins
+export const Email = Schema.String.pipe(
+  Schema.pattern(/^[^@]+@[^@]+$/),
+  Schema.brand("Email"),
+)
+export type Email = typeof Email.Type
 
-**Hooks**: react-use (localStorage, useMeasure, useDebounce, sensors), urql (GraphQL cache, SSR, subscriptions, offline, batching)
+export const User = Schema.Struct({
+  id: UserId,
+  email: Email,
+  createdAt: Schema.Date,
+})
+export type User = typeof User.Type
+```
 
-**Auth**: Better Auth (passkey-first, 2FA), reCAPTCHA (bot mitigation)
+Derived from this single definition:
+- TypeScript types (`typeof User.Type`)
+- HTTP request/response validators (`hono-openapi` accepts Effect Schema directly via Standard Schema)
+- OpenAPI spec
+- `hc` client types
+- DB row decoder (`Schema.decodeUnknown`)
+- Form validators (react-hook-form resolver)
+- Env-var parsing
 
-## Backend Stack
+**Never** restate a shape in a TypeScript interface, manual type, or parallel Zod definition.
 
-GraphQL-first, serverless. `src/graphql/<domain>/`
+## Business Logic — Effect-TS
 
-**Schema/Server**: Pothos (code-first), Yoga. `gql.tada` for all GraphQL docs (never raw templates), `graphql-scalars` for custom scalars
-- Modular `queryField`, typed client hooks via `gql.tada`, colocate operations with components/pages, DataLoader in `loaders.ts` (batch, cache, prevent N+1)
+Every effectful path (I/O, async, error, dependency, resource) is an `Effect`. No raw `Promise` or `try/catch` in domain or application layers.
 
-**Auth**: Better Auth (JWT/Redis denylist), rotate tokens
+```ts
+import { Effect, Context, Layer, Data } from "effect"
 
-**Request Context**: AsyncLocalStorage with `headers()`/`cookies()` → tiny accessors (`getAuthSession()`, `getLocale()`) instead of passing context objects
+// Typed errors
+class UserNotFound extends Data.TaggedError("UserNotFound")<{ id: UserId }> {}
+class EmailTaken    extends Data.TaggedError("EmailTaken")<{ email: Email }> {}
 
-**ORM**: Drizzle (queries/migrations). **Never** raw SQL except unavoidable complex cases (use parameterized placeholders). Query builder methods (`eq`, `and`, `or`). Schemas/queries per domain: `src/domains/<domain>/data/`
-- `db.select().from(users).where(eq(users.id, userId))`
+// Service contract (in application layer)
+class UserRepo extends Context.Tag("UserRepo")<UserRepo, {
+  findByEmail: (email: Email) => Effect.Effect<User | null>
+  insert:      (input: NewUser) => Effect.Effect<User>
+}>() {}
 
-**Security**: @simplewebauthn/server, Redis limits
+// Use-case
+export const createUser = (input: NewUser) =>
+  Effect.gen(function* () {
+    const repo = yield* UserRepo
+    const exists = yield* repo.findByEmail(input.email)
+    if (exists) return yield* new EmailTaken({ email: input.email })
+    return yield* repo.insert(input)
+  })
 
-## Data Layer
+// Wire in infrastructure
+const UserRepoLive = Layer.effect(UserRepo, /* drizzle impl */)
+```
 
-**DB**: PostgreSQL (Neon/pgBouncer), RLS. Scale: Partition (logs/date)
+- Errors are **values in the `E` channel** — handled exhaustively via `Effect.catchTags` / `Match`
+- Dependencies are **values in the `R` channel** — provided by `Layer` at the edge
+- Tests swap real Layers for fake ones — zero module mocking
 
-**Cache/RT**: Upstash Redis (cache/pubsub/streams). TTL (24h), event streams
+## Stack
 
-## Payments
+| Layer | Choice | Why |
+|---|---|---|
+| **Runtime** | Bun | Native TS, fast, single toolchain |
+| **Framework** | Next.js 16+ App Router | RSC, streaming, edge-ready |
+| **Schema (SSOT)** | Effect Schema | One definition → types, validators, OpenAPI, DB codecs |
+| **Business logic** | Effect-TS | Typed errors, dependency injection, testability, composability |
+| **HTTP** | Hono | Battle-tested, stable, Effect-compatible |
+| **API contracts** | hono-openapi | Standard Schema — accepts Effect Schema directly |
+| **Type-safe client** | `hc` (split per entity, <100 routes each) | End-to-end types without code generation |
+| **Client data** | React Query | Server-state caching |
+| **DB queries** | Drizzle ORM | Typed query builder; queries only |
+| **DB schema/migrations** | Atlas | Declarative `schema.sql`/`.hcl` SSOT, automatic diffing |
+| **DB** | Neon PostgreSQL | Serverless Postgres, branching |
+| **Long-running** | Modal | Serverless containers |
+| **Workflows** | Upstash Workflow | Durable execution |
+| **Hosting** | Vercel | Next.js native |
+| **Blob** | Vercel Blob | Integrated storage |
+| **UI** | Base UI + Tailwind v4 (CSS-first) + Motion v12 | Headless primitives, atomic styling, animation |
+| **Forms** | React Hook Form + Effect Schema resolver | SSOT validation |
+| **Tables/Lists** | TanStack Table + TanStack Virtual | Virtualized at scale |
+| **Auth** | Better Auth | Passkey-first, 2FA |
+| **Email** | Resend | Modern, deliverable |
+| **i18n** | Next-intl (per-feature locale files, never one big bundle) | Tree-shakable |
+| **Logging** | Pino + Effect Tracer | Structured logs + native tracing |
+| **AI** | AI SDK v6+ | Provider-agnostic |
+| **Lint/Format** | Biome | One tool, fast |
+| **Build** | Bunup | Zero-config |
+| **Tests** | Bun test + TestClock/TestRandom | Deterministic, no flake |
 
-**Billing**: Stripe (Checkout/Portal/Invoices/webhooks idempotent). Wallet credit on session complete, 3x retry
+## Type Safety
 
-## DevOps
+- `strict: true`, `noUncheckedIndexedAccess: true`
+- Zero `any`. `as` only at parse boundaries (and only when `Schema.decodeUnknown` cannot express it)
+- Branded types for IDs and domain values (`UserId`, `Email`, `Money`)
+- Errors typed end-to-end: domain `TaggedError` → Effect `E` channel → mapped to HTTP at the boundary
 
-**Local**: Docker Compose (stack), bun, Biome (linting/formatting), Lefthook (Git hooks)
-- **Biome Ignore**: Tests (`__tests__/**`, `*.test.*`), generated (`*.generated.*`, `dist/**`), project-specific (`styled-system`, `*.gql.tada.ts`, `drizzle`, `.next`)
-- **Biome Config**: Recommended + custom flow, ignoreUnknown false
-- **Lefthook**: Pre-commit (Biome, type-check), pre-push (tests). `bun add -D lefthook`, `lefthook install`
-- **Entry**: `bun install && migrate && dev`, Lefthook auto-runs, `biome check .` in CI
+## Anti-Patterns — Forbidden
 
-**Deploy**: Serverless (Vercel), GraphQL BFF. CI: Actions, 99.9% SLO alerts
-
-## Framework Rules
-
-### GraphQL Standards
-- **IDs**: Use `ID` scalar (not `String`). Base64 for keys.
-- **Enums/Unions**: Enums for fixed (Role), unions for polymorphic (Result = Post | User). Limit depth 3-5.
-
-### GraphQL Document Placement
-Colocate operations in domain services (`src/features/<domain>/services/`), `src/graphql/<domain>/`
-- **Routes/pages**: Import from domain services for tree-shaking
-- **Components**: Queries/mutations in domain services, export typed helpers
-- **Stores**: GraphQL docs in domain services
-- **Fragments**: `src/features/<domain>/services/fragments/` with barrel exports
-- **Tests**: Colocate under `src/features/<domain>/`
-- **Typed modules**: `.gql.ts` stay domain-local, enriched by `graphql-env.d.ts`
-
-### Pothos Best Practices
-- **ID Handling**: `exposeId: false` by default (security), `exposeId: true` only when needed
-- **Subscription Ordering**: `subscribe` before `resolve` for TS inference
-- **Extensions**: `extendType` for modularity, integrate gql.tada for E2E types
-- **Errors**: Custom scalars (graphql-scalars), try-catch with GraphQLError
+- ❌ Parallel schemas (Zod + manual TS interface for the same shape)
+- ❌ Raw `try/catch` in domain or application
+- ❌ `any`, non-boundary `as` casts
+- ❌ Module mocking in tests (use Effect Layers instead)
+- ❌ Cross-feature reach-in (`import "../auth/internal/..."`)
+- ❌ Drizzle-kit for migrations (use Atlas)
+- ❌ Class-based services with hidden state (use `Context.Tag` + `Layer`)
+- ❌ Inheritance hierarchies (compose via `Layer.merge`)
