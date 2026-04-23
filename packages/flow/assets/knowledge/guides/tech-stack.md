@@ -67,15 +67,12 @@ Every effectful path (I/O, async, error, dependency, resource) is an `Effect`. N
 | **DB schema/migrations** | Atlas | Declarative `schema.sql`/`.hcl` SSOT, automatic diffing |
 | **DB** | Postgres | Standard SQL, mature ecosystem, Effect-compatible drivers |
 | **Cache / KV** | Valkey | Open-source Redis fork — never use Redis since the relicense |
-| **Long-running** | Modal | Serverless containers |
-| **Workflows** | Upstash Workflow | Durable execution |
 | **UI primitives** | Base UI | Headless, accessible, behavior-only — never shadcn/Radix/Mantine/MUI |
 | **Styling** | Tailwind v4 (CSS-first) | `@theme` in CSS, no `tailwind.config.js`, design tokens as CSS vars, Lightning CSS, container queries, OKLCH |
 | **Animation** | Motion v12 | All stateful animation; respects `prefers-reduced-motion` |
 | **Forms** | React Hook Form + Effect Schema resolver | SSOT validation |
 | **Tables/Lists** | TanStack Table + TanStack Virtual | Virtualized at scale |
 | **Auth** | Better Auth | Passkey-first, 2FA |
-| **Email** | Resend | Modern, deliverable |
 | **i18n** | Next-intl (per-feature locale files, never one big bundle) | Tree-shakable |
 | **Logging** | Pino + Effect Tracer | Structured logs + native tracing |
 | **AI** | AI SDK v6+ | Provider-agnostic |
