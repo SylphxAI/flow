@@ -28,19 +28,19 @@ packages/flow/assets/agent-os/
   skills/
 ```
 
-Tool-specific directories are projection adapters only:
+Tool-specific directories are runtime projection configuration only:
 
 ```text
 packages/flow/assets/adapters/
   codex/
-    AGENTS.md
+    projection.yaml
 ```
 
-Adapters may describe how a tool loads instructions, where runtime files are installed, and what syntax that tool supports. They must not fork standards, skills, or workflows unless the difference is forced by the target runtime.
+Adapters describe how a tool loads instructions, where runtime files are installed, and what syntax that tool supports. They are machine-readable projection rules, not second prompt files. They must not fork standards, skills, or workflows unless the difference is forced by the target runtime.
 
 The Codex installer projects:
 
-- `assets/adapters/codex/AGENTS.md` composed with `assets/agent-os/agents/builder.md` to `~/.codex/AGENTS.md`
+- `assets/agent-os/agents/builder.md` transformed by `assets/adapters/codex/projection.yaml` to `~/.codex/AGENTS.md`
 - `assets/agent-os/standards/` to `~/.codex/standards/`
 - `assets/agent-os/skills/` to `~/.codex/skills/`
 
@@ -66,12 +66,12 @@ Rejected. A loose library is useful for references, but it is not enough for rep
 - Runtime targets stay thin and replaceable.
 - Adding a new AI coding tool means adding an adapter, not rewriting the standards.
 - Prompt quality improvements land once and project everywhere.
-- Tool-specific unsupported syntax must stay inside adapters.
+- Tool-specific unsupported syntax must stay inside machine-readable projection configuration or installer code.
 
 ## Acceptance Criteria
 
 - Codex standards and skills come from `assets/agent-os`, not `assets/codex`.
 - Builder identity comes from `assets/agent-os/agents/builder.md`, not a copied Codex `AGENTS.md`.
-- Codex-specific files are limited to adapter concerns and composition instructions.
+- Codex-specific files are limited to projection configuration.
 - The CLI exposes install and doctor commands for Codex projection.
 - Documentation describes Flow as an Agent OS, not a Codex settings copier.

@@ -108,9 +108,9 @@ export function getAgentOsDir(): string {
 }
 
 /**
- * Get path to Codex projection adapter assets.
+ * Get path to Codex runtime projection assets.
  */
-export function getCodexAdapterDir(): string {
+export function getCodexProjectionDir(): string {
   return path.join(ASSETS_ROOT, 'adapters', 'codex');
 }
 
