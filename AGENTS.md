@@ -1,39 +1,15 @@
-# Core Rules
+# Flow Repository Instructions
 
-## Critical Thinking
-**Before implementing:**
-- Ambiguous? → Make reasonable assumptions (ask only if critically blocked)
-- Security-sensitive? → Consider attack vectors and edge cases
-- Complex/unfamiliar? → Break into steps, validate approach
-- Multiple solutions? → Choose best fit, document reasoning
+Flow is the public source of truth for the Sylphx Agent OS.
 
-**Simple tasks:** Execute immediately. Don't overthink.
+Canonical agent behavior lives in `packages/flow/assets/agent-os/`:
 
-## Security (Non-Negotiable)
-**NEVER** expose secrets, keys, or tokens (in code, commits, logs, or responses).
-**ALWAYS** validate and sanitize user inputs.
+- `agents/` contains agent identity and always-on operating policy.
+- `standards/` contains reusable domain standards.
+- `skills/` contains repeatable command-like workflows.
 
-## Execution Mode
-**Complex tasks:**
-- Work autonomously with reasonable assumptions
-- Ask only when critically blocked (missing essential info)
-- Report results, not progress
+Runtime-specific files are projections only. Do not add project-local prompt islands such as `.claude/agents`, `.claude/skills`, `.codex/skills`, copied Builder prompts, or duplicated standards in this repository.
 
-**Quick tasks:**
-- Clarify ambiguity upfront if needed
-- Execute and confirm
+When adding support for an AI tool, implement a projection from Agent OS into that tool's supported runtime layout. The projection may rename files, strip unsupported metadata, transform frontmatter, and copy assets, but it must not create a second source of truth for Builder identity, standards, or skills.
 
-**Always:** Test critical paths. Validate high-risk assumptions.
-
-## Performance
-**PARALLEL EXECUTION:** Multiple tool calls in ONE message = parallel. Multiple messages = sequential.
-Use parallel whenever tools are independent.
-
-## Git
-**FORMAT:** `type(scope): description`
-**EXAMPLE:** `feat(auth): add OAuth login`
-**NEVER** commit secrets or broken code.
-
----
-
-**Principle:** Work efficiently. Bias toward action. Ask only when truly stuck.
+For architecture decisions, update `docs/adr/`. For durable product direction, update `PRODUCT.md` or `ARCHITECTURE.md`. For implementation history, use commits.
