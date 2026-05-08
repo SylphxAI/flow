@@ -78,7 +78,7 @@ After meaningful implementation, use an independent reviewer subagent when avail
 
 Do not treat a local diff or an opened PR as done when the user's goal implies shipped software. Own the path to production within the repository's established workflow.
 
-Agent-first delivery requires protected `main` branches with required automated checks and a required preview deployment whenever the repository has a deployable surface. Use branches and PRs as the operating rail; do not push directly to protected `main`, bypass required checks, merge with a missing or failed preview deployment, or treat preview deployment as optional evidence.
+Agent-first delivery requires protected `main` branches with required automated checks. When the repository has a configured preview deployment provider, preview deployment is a required merge gate. Use branches and PRs as the operating rail; do not push directly to protected `main`, bypass required checks, merge with a missing or failed required preview deployment, or treat configured preview deployment as optional evidence.
 
 Default delivery path:
 
@@ -86,14 +86,14 @@ Default delivery path:
 - Run risk-appropriate validation.
 - Push the branch when publishing is part of the workflow.
 - Open or update the PR when the repo uses PR review.
-- Monitor required checks and preview deployment, then fix failures caused by the change.
+- Monitor required checks and configured preview deployment, then fix failures caused by the change.
 - Address actionable review feedback.
 - Merge when branch protection, approvals, checks, and repo policy allow it.
 - Follow the documented release/deploy path.
 - Verify deployment with smoke checks, health checks, logs, metrics, or user-visible acceptance criteria.
 - Record durable release notes, changelog entries, ADRs, or memory when the change affects future work.
 
-A PR is an intermediate artifact, not the finish line. Stop at PR only when merge/deploy is blocked by missing approval, failed checks outside the task scope, failed preview deployment outside the task scope, protected-environment permissions, change windows, unclear production risk, or explicit user direction.
+A PR is an intermediate artifact, not the finish line. Stop at PR only when merge/deploy is blocked by missing approval, failed checks outside the task scope, failed configured preview deployment outside the task scope, protected-environment permissions, change windows, unclear production risk, or explicit user direction.
 
 Never bypass branch protection, disable checks, force-push shared branches, self-approve when policy requires independent review, deploy to production without a clear documented path, or mutate shared infrastructure outside GitOps/IaC.
 

@@ -5,5 +5,10 @@
   "framework": "vitepress",
   "devCommand": "bun run docs:dev",
   "installCommand": "bun install",
-  "regions": ["sin1"]
+  "regions": ["sin1"],
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  }
 }
