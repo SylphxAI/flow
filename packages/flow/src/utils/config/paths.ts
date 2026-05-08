@@ -59,7 +59,7 @@ const ASSETS_ROOT = fs.existsSync(path.join(MONOREPO_ROOT, 'assets'))
   : path.join(PACKAGE_ROOT, 'assets');
 
 /**
- * Get path to agents directory
+ * Get path to the canonical agents directory.
  */
 export function getAgentsDir(): string {
   return path.join(ASSETS_ROOT, 'agents');
@@ -73,10 +73,17 @@ export function getTemplatesDir(): string {
 }
 
 /**
- * Get path to rules directory
+ * Get path to the canonical standards directory.
  */
-export function getRulesDir(): string {
-  return path.join(ASSETS_ROOT, 'rules');
+export function getStandardsDir(): string {
+  return path.join(ASSETS_ROOT, 'standards');
+}
+
+/**
+ * Get path to the canonical skills directory.
+ */
+export function getSkillsDir(): string {
+  return path.join(ASSETS_ROOT, 'skills');
 }
 
 /**
@@ -101,9 +108,23 @@ export function getSlashCommandsDir(): string {
 }
 
 /**
+ * Get path to Codex runtime projection assets.
+ */
+export function getCodexProjectionDir(): string {
+  return path.join(ASSETS_ROOT, 'runtime-projections', 'codex');
+}
+
+/**
+ * Get path to the package assets root.
+ */
+export function getAssetsRoot(): string {
+  return ASSETS_ROOT;
+}
+
+/**
  * Get path to a specific rule file with path traversal protection
  */
-export function getRuleFile(filename: string): string {
+export function getStandardFile(filename: string): string {
   // Validate filename to prevent path traversal
   if (!filename || typeof filename !== 'string') {
     throw new Error('Filename must be a non-empty string');
@@ -120,11 +141,11 @@ export function getRuleFile(filename: string): string {
   }
 
   // Safely join paths
-  const rulesDir = getRulesDir();
-  const filePath = pathSecurity.safeJoin(rulesDir, filename);
+  const standardsDir = getStandardsDir();
+  const filePath = pathSecurity.safeJoin(standardsDir, filename);
 
   if (!fs.existsSync(filePath)) {
-    throw new Error(`Rule file not found: ${filename} (looked in ${rulesDir})`);
+    throw new Error(`Standard file not found: ${filename} (looked in ${standardsDir})`);
   }
 
   return filePath;
@@ -137,8 +158,9 @@ export function getPathsInfo() {
   return {
     assetsRoot: ASSETS_ROOT,
     agents: getAgentsDir(),
+    skills: getSkillsDir(),
     templates: getTemplatesDir(),
-    rules: getRulesDir(),
+    standards: getStandardsDir(),
     outputStyles: getOutputStylesDir(),
     slashCommands: getSlashCommandsDir(),
   };

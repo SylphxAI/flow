@@ -4,14 +4,14 @@
  */
 
 /**
- * Simple agent definition from front matter (name, description, rules).
+ * Simple agent definition from front matter (name, description, standards).
  * Not to be confused with AgentMetadata in target-config.types.ts which is
  * a richer metadata structure for target configuration.
  */
 export interface AgentDefinition {
   name: string;
   description: string;
-  rules?: string[]; // Optional list of rule files to include (e.g., ['core', 'code-standards'])
+  standards?: string[];
 }
 
 /**

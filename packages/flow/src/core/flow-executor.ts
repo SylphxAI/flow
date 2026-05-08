@@ -277,10 +277,10 @@ export class FlowExecutor {
 
     // 6. Clear rules file if target has one defined (for targets like OpenCode)
     // Claude Code puts AGENTS.md in agents directory, handled above
-    if (target.config.rulesFile) {
-      const rulesPath = path.join(projectPath, target.config.rulesFile);
-      if (existsSync(rulesPath)) {
-        await fs.unlink(rulesPath);
+    if (target.config.instructionFile) {
+      const instructionsPath = path.join(projectPath, target.config.instructionFile);
+      if (existsSync(instructionsPath)) {
+        await fs.unlink(instructionsPath);
       }
     }
 

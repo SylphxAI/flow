@@ -61,7 +61,7 @@ async function showMainMenu(configService: GlobalConfigService): Promise<void> {
     const menuOptions: SelectOption<string>[] = [
       // Content Configuration
       { label: '🤖 Agents & Default Agent', value: 'agents', hint: 'content' },
-      { label: '📋 Rules', value: 'rules', hint: 'content' },
+      { label: '📋 Standards', value: 'standards', hint: 'content' },
       { label: '🎨 Output Styles', value: 'outputStyles', hint: 'content' },
       // Infrastructure Configuration
       { label: '📡 MCP Servers', value: 'mcp', hint: 'infra' },
@@ -95,7 +95,8 @@ async function openSection(section: string, configService: GlobalConfigService):
       await configureAgents(configService);
       break;
     case 'rules':
-      await configureRules(configService);
+    case 'standards':
+      await configureStandards(configService);
       break;
     case 'outputStyles':
       await configureOutputStyles(configService);
@@ -126,9 +127,6 @@ async function configureAgents(configService: GlobalConfigService): Promise<void
 
   const availableAgents = {
     builder: 'Builder - Autonomous product builder (default)',
-    coder: 'Coder - Task-focused code execution',
-    writer: 'Writer - Documentation and explanation',
-    reviewer: 'Reviewer - Code review and critique',
   };
 
   const { selected, updated } = await handleCheckboxConfig({
@@ -162,22 +160,26 @@ async function configureAgents(configService: GlobalConfigService): Promise<void
 /**
  * Configure Rules - uses shared checkbox handler
  */
-async function configureRules(configService: GlobalConfigService): Promise<void> {
+async function configureStandards(configService: GlobalConfigService): Promise<void> {
   const flowConfig = await configService.loadFlowConfig();
 
   const { updated } = await handleCheckboxConfig({
-    title: 'Rules Configuration',
+    title: 'Standards Configuration',
     icon: '📋',
-    message: 'Select rules to enable:',
+    message: 'Select standards to enable:',
     available: {
-      core: 'Core - Identity, personality, execution',
-      'code-standards': 'Code Standards - Quality, patterns, anti-patterns',
+      'agent-native-standard': 'Agent Native - Documentation first, test first, delegation, memory',
+      'engineering-standard': 'Engineering - SOTA, SSOT, SoC, Effect, architecture, testing, naming',
+      'delivery-standard': 'Delivery - PR, CI, merge, release, deploy, production verification',
+      'prompt-architecture': 'Prompt Architecture - MEP, instruction hierarchy, prompt refactoring',
+      'frontend-standard': 'Frontend - Product UI, accessibility, i18n, responsive behavior',
+      'ai-architecture': 'AI Architecture - SDK boundaries, evals, tracing, tools, guardrails',
     },
-    current: flowConfig.rules || {},
-    itemType: 'Rules',
+    current: flowConfig.standards || {},
+    itemType: 'standards',
   });
 
-  flowConfig.rules = updated;
+  flowConfig.standards = updated;
   await configService.saveFlowConfig(flowConfig);
 }
 

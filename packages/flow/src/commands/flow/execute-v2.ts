@@ -218,15 +218,15 @@ async function loadAgent(
     agent = enabledAgents.length > 0 ? enabledAgents[0] : 'builder';
   }
 
-  const [enabledRules, enabledOutputStyles] = await Promise.all([
-    configService.getEnabledRules(),
+  const [enabledStandards, enabledOutputStyles] = await Promise.all([
+    configService.getEnabledStandards(),
     configService.getEnabledOutputStyles(),
   ]);
 
   const agentContent = await loadAgentContent(
     agent,
     options.agentFile,
-    enabledRules,
+    enabledStandards,
     enabledOutputStyles
   );
   const agentInstructions = extractAgentInstructions(agentContent);

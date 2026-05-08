@@ -29,8 +29,8 @@ export interface TargetConfig {
   configSchema: string | null;
   /** Path to MCP configuration in config file */
   mcpConfigPath: string;
-  /** Rules file path (optional, relative to project root) */
-  rulesFile?: string;
+  /** Instruction file path (optional, relative to project root) */
+  instructionFile?: string;
   /** Output styles directory (optional, relative to project root) */
   outputStylesDir?: string;
   /** Slash commands directory (optional, relative to project root) */
@@ -117,7 +117,7 @@ export interface Target {
   /** Approve MCP servers in target-specific configuration (optional - only for targets that need approval) */
   approveMCPServers?(cwd: string, serverNames: string[]): Promise<void>;
 
-  /** Transform rules content for the target (optional - defaults to no transformation) */
+  /** Transform instruction content for the target (optional - defaults to no transformation) */
   transformRulesContent?(content: string): Promise<string>;
 
   /** Apply target-specific settings to config (attribution, hooks, env, thinking mode) */

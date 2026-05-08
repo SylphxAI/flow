@@ -59,7 +59,7 @@ export const claudeCodeTarget: Target = {
     configFile: '.mcp.json',
     configSchema: null,
     mcpConfigPath: 'mcpServers',
-    rulesFile: undefined, // Rules are included in agent files
+    instructionFile: undefined, // 
     outputStylesDir: undefined, // Output styles are included in agent files
     slashCommandsDir: '.claude/commands',
     skillsDir: '.claude/skills',
@@ -396,8 +396,8 @@ Please begin your response with a comprehensive summary of all the instructions 
   },
 
   /**
-   * Transform rules content for Claude Code
-   * Claude Code doesn't need front matter in rules files (CLAUDE.md)
+   * Transform instruction content for Claude Code
+   * Claude Code doesn't need front matter in instruction files (CLAUDE.md)
    */
   transformRulesContent: stripFrontMatter,
 

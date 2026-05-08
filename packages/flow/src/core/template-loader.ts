@@ -1,7 +1,7 @@
 /**
  * Template Loader
- * Loads Flow templates from assets directory
- * Supports any target with consistent template structure
+ * Loads Flow templates from the package assets directory.
+ * Runtime targets project these canonical assets into their supported file layout.
  */
 
 import { existsSync } from 'node:fs';
@@ -22,46 +22,68 @@ export class TemplateLoader {
   }
 
   /**
-   * Load all templates for target (parallel loading for performance)
-   * Uses flat assets directory structure (no target-specific subdirectories)
+   * Load all templates for target (parallel loading for performance).
+   * Agent identity, standards, and skills come from assets/ as the SSOT.
    */
   async loadTemplates(_target: Target | string): Promise<FlowTemplates> {
     const agentsDir = path.join(this.assetsDir, 'agents');
-    const commandsDir = path.join(this.assetsDir, 'slash-commands');
+    const standardsDir = path.join(this.assetsDir, 'standards');
     const skillsDir = path.join(this.assetsDir, 'skills');
+    const commandsDir = path.join(this.assetsDir, 'slash-commands');
     const mcpConfigPath = path.join(this.assetsDir, 'mcp-servers.json');
 
     // Load all directories in parallel
-    const [agents, commands, skills, mcpServers, rules] = await Promise.all([
+    const [agents, commands, skills, mcpServers, instructions] = await Promise.all([
       existsSync(agentsDir) ? this.loadAgents(agentsDir) : [],
       existsSync(commandsDir) ? this.loadCommands(commandsDir) : [],
       existsSync(skillsDir) ? this.loadSkills(skillsDir) : [],
       existsSync(mcpConfigPath) ? this.loadMCPServers(mcpConfigPath) : [],
-      this.loadRules(),
+      existsSync(standardsDir) ? this.loadStandards(standardsDir) : this.loadLegacyInstructions(),
     ]);
 
     return {
       agents,
       commands,
       skills,
-      rules,
+      instructions,
       mcpServers,
       singleFiles: [],
     };
   }
 
   /**
-   * Load rules from possible locations
+   * Load canonical standards as a target instructions document.
    */
-  private async loadRules(): Promise<string | undefined> {
+  private async loadStandards(standardsDir: string): Promise<string | undefined> {
+    const files = await fs.readdir(standardsDir);
+    const markdownFiles = files.filter((file) => file.endsWith('.md')).sort();
+
+    if (markdownFiles.length === 0) {
+      return undefined;
+    }
+
+    const standards = await Promise.all(
+      markdownFiles.map(async (file) => {
+        const content = await fs.readFile(path.join(standardsDir, file), 'utf-8');
+        return `<!-- Source: standards/${file} -->\n\n${content.trim()}`;
+      })
+    );
+
+    return `# Flow Standards\n\n${standards.join('\n\n---\n\n')}\n`;
+  }
+
+  /**
+   * Load pre-canonical-asset instructions from possible legacy locations.
+   */
+  private async loadLegacyInstructions(): Promise<string | undefined> {
     const rulesLocations = [
-      path.join(this.assetsDir, 'rules', 'AGENTS.md'),
+      path.join(this.assetsDir, 'instructions', 'AGENTS.md'),
       path.join(this.assetsDir, 'AGENTS.md'),
     ];
 
-    for (const rulesPath of rulesLocations) {
-      if (existsSync(rulesPath)) {
-        return fs.readFile(rulesPath, 'utf-8');
+    for (const instructionsPath of rulesLocations) {
+      if (existsSync(instructionsPath)) {
+        return fs.readFile(instructionsPath, 'utf-8');
       }
     }
     return undefined;
@@ -153,12 +175,12 @@ export class TemplateLoader {
   }
 
   /**
-   * Check if templates exist (uses flat directory structure)
+   * Check if canonical templates exist.
    */
   async hasTemplates(_target: Target | string): Promise<boolean> {
-    // Check if any template directories exist
     const agentsDir = path.join(this.assetsDir, 'agents');
+    const skillsDir = path.join(this.assetsDir, 'skills');
     const commandsDir = path.join(this.assetsDir, 'slash-commands');
-    return existsSync(agentsDir) || existsSync(commandsDir);
+    return existsSync(agentsDir) || existsSync(skillsDir) || existsSync(commandsDir);
   }
 }

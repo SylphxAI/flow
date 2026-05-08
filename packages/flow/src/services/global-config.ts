@@ -25,7 +25,7 @@ export interface AgentConfig {
   enabled: boolean;
 }
 
-export interface RuleConfig {
+export interface StandardConfig {
   enabled: boolean;
 }
 
@@ -36,7 +36,7 @@ export interface OutputStyleConfig {
 export interface FlowConfig {
   version: string;
   agents: Record<string, AgentConfig>; // e.g., { coder: { enabled: true }, writer: { enabled: false } }
-  rules: Record<string, RuleConfig>; // e.g., { core: { enabled: true }, 'code-standards': { enabled: true } }
+  standards: Record<string, StandardConfig>;
   outputStyles: Record<string, OutputStyleConfig>; // Currently unused, merged into core.md
 }
 
@@ -259,7 +259,7 @@ export class GlobalConfigService {
   }
 
   /**
-   * Load Flow config (agents, rules, output styles)
+   * Load Flow config (agents, standards, output styles)
    * Cached for performance - call invalidateFlowConfigCache() after saving
    */
   async loadFlowConfig(): Promise<FlowConfig> {
@@ -270,18 +270,19 @@ export class GlobalConfigService {
     const configPath = this.getFlowConfigPath();
 
     if (!existsSync(configPath)) {
-      // Default: all agents, all rules, all output styles enabled
+      // Default: all canonical agents and standards enabled.
       this.flowConfigCache = {
         version: '1.0.0',
         agents: {
           builder: { enabled: true },
-          coder: { enabled: true },
-          writer: { enabled: true },
-          reviewer: { enabled: true },
         },
-        rules: {
-          core: { enabled: true },
-          'code-standards': { enabled: true },
+        standards: {
+          'agent-native-standard': { enabled: true },
+          'engineering-standard': { enabled: true },
+          'delivery-standard': { enabled: true },
+          'prompt-architecture': { enabled: true },
+          'frontend-standard': { enabled: true },
+          'ai-architecture': { enabled: true },
         },
         outputStyles: {},
       };
@@ -289,7 +290,15 @@ export class GlobalConfigService {
     }
 
     const data = await fs.readFile(configPath, 'utf-8');
-    this.flowConfigCache = JSON.parse(data);
+    const parsedConfig = JSON.parse(data) as Partial<FlowConfig> & {
+      rules?: Record<string, StandardConfig>;
+    };
+    this.flowConfigCache = {
+      version: parsedConfig.version ?? '1.0.0',
+      agents: parsedConfig.agents ?? { builder: { enabled: true } },
+      standards: parsedConfig.standards ?? parsedConfig.rules ?? {},
+      outputStyles: parsedConfig.outputStyles ?? {},
+    };
     return this.flowConfigCache;
   }
 
@@ -321,12 +330,12 @@ export class GlobalConfigService {
   }
 
   /**
-   * Get enabled rules
+   * Get enabled standards
    */
-  async getEnabledRules(): Promise<string[]> {
+  async getEnabledStandards(): Promise<string[]> {
     const config = await this.loadFlowConfig();
-    return Object.entries(config.rules)
-      .filter(([_, ruleConfig]) => ruleConfig.enabled)
+    return Object.entries(config.standards)
+      .filter(([_, standardConfig]) => standardConfig.enabled)
       .map(([name]) => name);
   }
 

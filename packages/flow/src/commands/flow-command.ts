@@ -266,7 +266,7 @@ export const upgradeCommand = new Command('upgrade')
   .description('Upgrade Sylphx Flow and components')
   .option('--check', 'Only check for updates, do not upgrade')
   .option('--auto', 'Automatically install updates via npm')
-  .option('--components', 'Upgrade components (agents, rules, etc)', true)
+  .option('--components', 'Upgrade components (agents, standards, etc)', true)
   .option('--target', 'Upgrade target platform (Claude Code/OpenCode)')
   .option('--verbose', 'Show detailed output')
   .action(async (options) => {

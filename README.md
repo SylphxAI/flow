@@ -45,6 +45,19 @@ sylphx-flow "build the future"
 ✅ One CLI, infinite possibilities
 ```
 
+### Codex Setup
+
+Flow ships canonical agent assets and projects them into each supported AI coding tool. Codex is one projection target:
+
+```bash
+sylphx-flow codex install
+sylphx-flow codex doctor
+```
+
+`install` projects Flow assets into `~/.codex`: the canonical Builder agent is transformed into Codex's `AGENTS.md`, while standards and skills come from the same assets used by every supported tool. `doctor` verifies the local machine is synchronized.
+
+Flow's runtime attach path uses the same canonical asset source for supported CLI targets: agents, standards, and skills are read from `packages/flow/assets/` and projected into the target's supported file layout.
+
 ---
 
 ## Philosophy: Transcendent Simplicity
@@ -384,7 +397,7 @@ All settings are stored in `~/.sylphx-flow/`:
 ```
 ~/.sylphx-flow/
 ├── settings.json        # General settings (default agent, target)
-├── flow-config.json     # Agents, rules, output styles
+├── flow-config.json     # Agents, standards, output styles
 ├── provider-config.json # Provider settings (Anthropic, Kimi, Z.AI)
 └── mcp-config.json      # MCP server configurations
 ```
@@ -787,7 +800,7 @@ sylphx-flow "review PR #123 for security" --agent reviewer
 sylphx-flow "document all API endpoints" --agent writer
 
 # Consistency enforcement
-# (Settings ensure everyone uses same rules/agents)
+# (Settings ensure everyone uses same standards/agents)
 sylphx-flow settings
 → Team admin configures standards
 → All developers inherit settings

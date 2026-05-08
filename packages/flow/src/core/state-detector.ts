@@ -17,7 +17,7 @@ export interface ProjectState {
   targetLatestVersion: string | null;
   components: {
     agents: { installed: boolean; count: number; version: string | null };
-    rules: { installed: boolean; count: number; version: string | null };
+    instructions: { installed: boolean; count: number; version: string | null };
     hooks: { installed: boolean; version: string | null };
     mcp: { installed: boolean; serverCount: number; version: string | null };
     outputStyles: { installed: boolean; version: string | null };
@@ -53,7 +53,7 @@ export class StateDetector {
       targetLatestVersion: null,
       components: {
         agents: { installed: false, count: 0, version: null },
-        rules: { installed: false, count: 0, version: null },
+        instructions: { installed: false, count: 0, version: null },
         hooks: { installed: false, version: null },
         mcp: { installed: false, serverCount: 0, version: null },
         outputStyles: { installed: false, version: null },
@@ -121,17 +121,17 @@ export class StateDetector {
     await this.checkComponent('agents', target.config.agentDir, '*.md', state);
 
     // Check rules based on target config
-    if (target.config.rulesFile) {
+    if (target.config.instructionFile) {
       // Target has separate rules file (e.g., OpenCode's AGENTS.md)
-      await this.checkFileComponent('rules', target.config.rulesFile, state);
+      await this.checkFileComponent('instructions', target.config.instructionFile, state);
       // Check output styles in rules file
       state.components.outputStyles.installed = await this.checkOutputStylesInFile(
-        target.config.rulesFile
+        target.config.instructionFile
       );
     } else {
-      // Rules are included in agent files (e.g., Claude Code)
-      state.components.rules.installed = state.components.agents.installed;
-      state.components.rules.count = state.components.agents.count;
+      //  (e.g., Claude Code)
+      state.components.instructions.installed = state.components.agents.installed;
+      state.components.instructions.count = state.components.agents.count;
       state.components.outputStyles.installed = state.components.agents.installed;
     }
 
@@ -257,7 +257,7 @@ export class StateDetector {
       if (
         componentName === 'agents' ||
         componentName === 'slashCommands' ||
-        componentName === 'rules'
+        componentName === 'instructions'
       ) {
         state.components[componentName].count = count;
       }
@@ -290,7 +290,7 @@ export class StateDetector {
 
       state.components[componentName].installed = exists;
 
-      if (exists && componentName === 'rules') {
+      if (exists && componentName === 'instructions') {
         // For AGENTS.md, count is always 1
         state.components[componentName].count = 1;
       }
