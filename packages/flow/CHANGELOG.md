@@ -1,5 +1,11 @@
 # @sylphx/flow
 
+## 3.30.0 (2026-05-08)
+
+### ✨ Features
+
+- unify Codex setup ([609cd8c](https://github.com/SylphxAI/flow/commit/609cd8c47f1cbf6e925ab8aa8f86a861920bf40f))
+
 ## 3.29.1 (2026-04-23)
 
 ### ♻️ Refactoring
