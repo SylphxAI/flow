@@ -12,7 +12,7 @@ import { MCP_SERVER_REGISTRY, type MCPServerID } from '../config/servers.js';
 import { GlobalConfigService } from '../services/global-config.js';
 import type { MCPServerConfigUnion } from '../types/mcp.types.js';
 import type { Target } from '../types/target.types.js';
-import { attachItemsToDir, attachRulesFile } from './attach/index.js';
+import { attachItemsToDir, attachInstructionsFile } from './attach/index.js';
 import type { BackupManifest } from './backup-manager.js';
 import { resolveTargetOrId } from './target-resolver.js';
 
@@ -23,7 +23,7 @@ export interface AttachResult {
   commandsOverridden: string[];
   skillsAdded: string[];
   skillsOverridden: string[];
-  rulesAppended: boolean;
+  instructionsAppended: boolean;
   mcpServersAdded: string[];
   mcpServersOverridden: string[];
   singleFilesMerged: string[];
@@ -41,7 +41,7 @@ export interface FlowTemplates {
   agents: Array<{ name: string; content: string }>;
   commands: Array<{ name: string; content: string }>;
   skills: Array<{ name: string; content: string }>;
-  rules?: string;
+  instructions?: string;
   mcpServers: Array<{ name: string; config: Record<string, unknown> }>;
   singleFiles: Array<{ path: string; content: string }>;
 }
@@ -126,7 +126,7 @@ export class AttachManager {
       commandsOverridden: [],
       skillsAdded: [],
       skillsOverridden: [],
-      rulesAppended: false,
+      instructionsAppended: false,
       mcpServersAdded: [],
       mcpServersOverridden: [],
       singleFilesMerged: [],
@@ -146,9 +146,9 @@ export class AttachManager {
       await this.attachSkills(projectPath, target, templates.skills, result, manifest);
     }
 
-    // 4. Attach rules (if applicable)
-    if (templates.rules) {
-      await this.attachRules(projectPath, target, templates.rules, result, manifest);
+    // 4. Attach instructions (if applicable)
+    if (templates.instructions) {
+      await this.attachInstructions(projectPath, target, templates.instructions, result, manifest);
     }
 
     // 5. Attach MCP servers (merge global + template servers)
@@ -259,29 +259,29 @@ export class AttachManager {
   }
 
   /**
-   * Attach rules (append strategy for AGENTS.md)
-   * Uses shared attachRulesFile function
+   * Attach instructions (append strategy for AGENTS.md)
+   * Uses shared attachInstructionsFile function
    */
-  private async attachRules(
+  private async attachInstructions(
     projectPath: string,
     target: Target,
-    rules: string,
+    instructions: string,
     result: AttachResult,
     manifest: BackupManifest
   ): Promise<void> {
-    const rulesPath = target.config.rulesFile
-      ? path.join(projectPath, target.config.rulesFile)
+    const instructionsPath = target.config.instructionFile
+      ? path.join(projectPath, target.config.instructionFile)
       : path.join(projectPath, target.config.agentDir, 'AGENTS.md');
 
-    const { originalSize, flowContentAdded } = await attachRulesFile(rulesPath, rules);
+    const { originalSize, flowContentAdded } = await attachInstructionsFile(instructionsPath, instructions);
 
     if (flowContentAdded) {
-      manifest.backup.rules = {
-        path: rulesPath,
+      manifest.backup.instructions = {
+        path: instructionsPath,
         originalSize,
         flowContentAdded: true,
       };
-      result.rulesAppended = true;
+      result.instructionsAppended = true;
     }
   }
 

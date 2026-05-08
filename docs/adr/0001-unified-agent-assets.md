@@ -44,7 +44,7 @@ The Codex installer projects:
 - `assets/standards/` to `~/.codex/standards/`
 - `assets/skills/` to `~/.codex/skills/`
 
-Flow's main execution path and future Claude Code, OpenCode, Cursor, and other target support must follow the same pattern: target-specific projection, shared Agent OS core.
+Flow's main execution path and future Claude Code, OpenCode, Cursor, and other target support must follow the same pattern: target-specific projection, shared canonical asset core.
 
 ## Alternatives Considered
 
@@ -58,7 +58,7 @@ Rejected. Flow is the public setup and orchestration product. Dotfiles can be a 
 
 ### Flow prompt library as loose source material
 
-Rejected. A loose library is useful for references, but it is not enough for reproducible setup. Flow needs installable, inspectable, versioned Agent OS assets.
+Rejected. A loose library is useful for references, but it is not enough for reproducible setup. Flow needs installable, inspectable, versioned agent assets.
 
 ## Consequences
 
@@ -75,4 +75,4 @@ Rejected. A loose library is useful for references, but it is not enough for rep
 - Codex-specific files are limited to projection configuration.
 - Flow runtime templates load agents, standards, and skills from the canonical `assets/` directories.
 - The CLI exposes install and doctor commands for Codex projection.
-- Documentation describes Flow as an Agent OS, not a Codex settings copier.
+- Documentation describes Flow as the canonical source for agent assets and runtime projections, not a Codex settings copier.

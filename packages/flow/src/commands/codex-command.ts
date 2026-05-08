@@ -53,21 +53,55 @@ const BACKUP_TIMESTAMP = new Date()
 export const codexCommand = new Command('codex')
   .description('Install and verify Flow-managed Codex runtime assets');
 
-codexCommand
+const codexInstallCommand = codexCommand
   .command('install')
   .description('Install Flow-managed AGENTS.md, standards, and skills into CODEX_HOME')
   .option('--dry-run', 'Print planned changes without writing files', false)
-  .action(async (options: CodexInstallOptions) => {
-    await installCodexAssets(options);
+  .action(async (...args: unknown[]) => {
+    const options = getCommandOptions<CodexInstallOptions>(args, codexInstallCommand);
+    await installCodexAssets({
+      ...options,
+      dryRun: options.dryRun || hasCliFlag('--dry-run'),
+    });
   });
 
-codexCommand
+const codexDoctorCommand = codexCommand
   .command('doctor')
   .description('Verify that Flow-managed Codex assets are available and installed')
   .option('--json', 'Print machine-readable JSON output', false)
-  .action(async (options: CodexDoctorOptions) => {
-    await runCodexDoctor(options);
+  .action(async (...args: unknown[]) => {
+    const options = getCommandOptions<CodexDoctorOptions>(args, codexDoctorCommand);
+    await runCodexDoctor({
+      ...options,
+      json: options.json || hasCliFlag('--json'),
+    });
   });
+
+function getCommandOptions<TOptions extends object>(
+  actionArgs: unknown[],
+  fallbackCommand: Command
+): TOptions {
+  const optionsArg = actionArgs.find(isOptionsObject);
+  if (optionsArg) {
+    return optionsArg as TOptions;
+  }
+
+  const commandArg = actionArgs.find((arg): arg is Command => arg instanceof Command);
+  return (commandArg ?? fallbackCommand).optsWithGlobals<TOptions>();
+}
+
+function isOptionsObject(value: unknown): value is Record<string, unknown> {
+  return (
+    Boolean(value) &&
+    typeof value === 'object' &&
+    !(value instanceof Command) &&
+    ('dryRun' in value || 'json' in value)
+  );
+}
+
+function hasCliFlag(flag: string): boolean {
+  return process.argv.includes(flag);
+}
 
 async function installCodexAssets(options: CodexInstallOptions): Promise<void> {
   const codexProjectionDir = getCodexProjectionDir();
@@ -133,7 +167,7 @@ async function runCodexDoctor(options: CodexDoctorOptions): Promise<void> {
       !agentsContent.includes('# Codex Adapter') &&
       !agentsContent.includes('flow-prompt-library.md'),
     message: agentsContent
-      ? 'Installed AGENTS.md is projected directly from the Agent OS Builder'
+      ? 'Installed AGENTS.md is projected directly from the canonical Builder agent'
       : 'Installed AGENTS.md is missing or unreadable',
   });
 
@@ -211,7 +245,7 @@ async function assertCodexProjection(
   for (const copy of projection.copies) {
     const entryPath = path.join(assetsRoot, copy.source);
     if (!(await pathExists(entryPath))) {
-      throw new Error(`Missing Flow Agent OS asset: ${entryPath}`);
+      throw new Error(`Missing Flow asset: ${entryPath}`);
     }
   }
 }

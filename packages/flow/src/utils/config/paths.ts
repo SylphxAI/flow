@@ -73,9 +73,9 @@ export function getTemplatesDir(): string {
 }
 
 /**
- * Get path to the canonical Agent OS standards directory.
+ * Get path to the canonical standards directory.
  */
-export function getRulesDir(): string {
+export function getStandardsDir(): string {
   return path.join(ASSETS_ROOT, 'standards');
 }
 
@@ -124,7 +124,7 @@ export function getAssetsRoot(): string {
 /**
  * Get path to a specific rule file with path traversal protection
  */
-export function getRuleFile(filename: string): string {
+export function getStandardFile(filename: string): string {
   // Validate filename to prevent path traversal
   if (!filename || typeof filename !== 'string') {
     throw new Error('Filename must be a non-empty string');
@@ -141,11 +141,11 @@ export function getRuleFile(filename: string): string {
   }
 
   // Safely join paths
-  const rulesDir = getRulesDir();
-  const filePath = pathSecurity.safeJoin(rulesDir, filename);
+  const standardsDir = getStandardsDir();
+  const filePath = pathSecurity.safeJoin(standardsDir, filename);
 
   if (!fs.existsSync(filePath)) {
-    throw new Error(`Rule file not found: ${filename} (looked in ${rulesDir})`);
+    throw new Error(`Standard file not found: ${filename} (looked in ${standardsDir})`);
   }
 
   return filePath;
@@ -160,7 +160,7 @@ export function getPathsInfo() {
     agents: getAgentsDir(),
     skills: getSkillsDir(),
     templates: getTemplatesDir(),
-    standards: getRulesDir(),
+    standards: getStandardsDir(),
     outputStyles: getOutputStylesDir(),
     slashCommands: getSlashCommandsDir(),
   };

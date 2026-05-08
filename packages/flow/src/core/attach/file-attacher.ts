@@ -120,51 +120,51 @@ export const attachItemsToDir = async (
 };
 
 // ============================================================================
-// Rules Attachment (Append Strategy)
+// Instructions Attachment (Append Strategy)
 // ============================================================================
 
-const FLOW_RULES_START = '<!-- ========== Sylphx Flow Rules (Auto-injected) ========== -->';
-const FLOW_RULES_END = '<!-- ========== End of Sylphx Flow Rules ========== -->';
-const FLOW_RULES_MARKER = '<!-- Sylphx Flow Rules -->';
+const FLOW_INSTRUCTIONS_START = '<!-- ========== Sylphx Flow Instructions (Auto-injected) ========== -->';
+const FLOW_INSTRUCTIONS_END = '<!-- ========== End of Sylphx Flow Instructions ========== -->';
+const FLOW_INSTRUCTIONS_MARKER = '<!-- Sylphx Flow Instructions -->';
 
 /**
- * Check if content already has Flow rules appended
+ * Check if content already has Flow instructions appended
  */
-export const hasFlowRules = (content: string): boolean => content.includes(FLOW_RULES_MARKER);
+export const hasFlowInstructions = (content: string): boolean => content.includes(FLOW_INSTRUCTIONS_MARKER);
 
 /**
- * Wrap rules content with markers
+ * Wrap instructions content with markers
  */
-export const wrapRulesContent = (rules: string): string =>
-  `\n\n${FLOW_RULES_START}\n\n${rules}\n\n${FLOW_RULES_END}\n`;
+export const wrapInstructionsContent = (instructions: string): string =>
+  `\n\n${FLOW_INSTRUCTIONS_START}\n\n${instructions}\n\n${FLOW_INSTRUCTIONS_END}\n`;
 
 /**
- * Append rules to existing content
+ * Append instructions to existing content
  */
-export const appendRules = (existingContent: string, rules: string): string =>
-  existingContent + wrapRulesContent(rules);
+export const appendInstructions = (existingContent: string, instructions: string): string =>
+  existingContent + wrapInstructionsContent(instructions);
 
 /**
- * Attach rules file with append strategy
+ * Attach instructions file with append strategy
  */
-export const attachRulesFile = async (
-  rulesPath: string,
-  rules: string
+export const attachInstructionsFile = async (
+  instructionsPath: string,
+  instructions: string
 ): Promise<{ originalSize: number; flowContentAdded: boolean }> => {
-  if (fileExists(rulesPath)) {
-    const existingContent = await readFile(rulesPath);
+  if (fileExists(instructionsPath)) {
+    const existingContent = await readFile(instructionsPath);
 
     // Skip if already appended
-    if (hasFlowRules(existingContent)) {
+    if (hasFlowInstructions(existingContent)) {
       return { originalSize: existingContent.length, flowContentAdded: false };
     }
 
-    await writeFile(rulesPath, appendRules(existingContent, rules));
+    await writeFile(instructionsPath, appendInstructions(existingContent, instructions));
     return { originalSize: existingContent.length, flowContentAdded: true };
   }
 
   // Create new file
-  await ensureDir(path.dirname(rulesPath));
-  await writeFile(rulesPath, rules);
+  await ensureDir(path.dirname(instructionsPath));
+  await writeFile(instructionsPath, instructions);
   return { originalSize: 0, flowContentAdded: true };
 };

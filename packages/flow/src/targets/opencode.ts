@@ -80,7 +80,7 @@ export const opencodeTarget: Target = {
     configFile: 'opencode.jsonc',
     configSchema: 'https://opencode.ai/config.json',
     mcpConfigPath: 'mcp',
-    rulesFile: 'AGENTS.md',
+    instructionFile: 'AGENTS.md',
     outputStylesDir: undefined, // OpenCode doesn't support output styles as separate files
     slashCommandsDir: '.opencode/command', // OpenCode uses singular 'command', not 'commands'
     installation: {
@@ -209,8 +209,8 @@ export const opencodeTarget: Target = {
   },
 
   /**
-   * Transform rules content for OpenCode
-   * OpenCode doesn't need front matter in rules files (AGENTS.md)
+   * Transform instruction content for OpenCode
+   * OpenCode doesn't need front matter in instruction files (AGENTS.md)
    */
   transformRulesContent: stripFrontMatter,
 

@@ -3,7 +3,7 @@ import path from 'node:path';
 import chalk from 'chalk';
 import { MCP_SERVER_REGISTRY } from '../../config/servers.js';
 import type { Target } from '../../types.js';
-import { getAgentsDir, getRulesDir, getSlashCommandsDir } from '../config/paths.js';
+import { getAgentsDir, getSlashCommandsDir, getStandardsDir } from '../config/paths.js';
 
 /**
  * Scan directory for .md files and return basenames
@@ -28,7 +28,7 @@ function scanTemplateDir(dir: string): string[] {
  */
 const FLOW_AGENTS = scanTemplateDir(getAgentsDir());
 const FLOW_SLASH_COMMANDS = scanTemplateDir(getSlashCommandsDir());
-const FLOW_RULES = scanTemplateDir(getRulesDir());
+const FLOW_STANDARDS = scanTemplateDir(getStandardsDir());
 
 /**
  * Categorized files for sync
@@ -45,7 +45,7 @@ interface CategorizedFiles {
 interface SyncManifest {
   agents: CategorizedFiles;
   slashCommands: CategorizedFiles;
-  rules: CategorizedFiles;
+  instructions: CategorizedFiles;
   mcpServers: {
     inRegistry: string[];
     notInRegistry: string[];
@@ -87,7 +87,7 @@ export async function buildSyncManifest(cwd: string, target: Target): Promise<Sy
   const manifest: SyncManifest = {
     agents: { inFlow: [], unknown: [], missing: [] },
     slashCommands: { inFlow: [], unknown: [], missing: [] },
-    rules: { inFlow: [], unknown: [], missing: [] },
+    instructions: { inFlow: [], unknown: [], missing: [] },
     mcpServers: { inRegistry: [], notInRegistry: [] },
     hooks: { inConfig: [], orphaned: [] },
     preserve: [],
@@ -119,26 +119,26 @@ export async function buildSyncManifest(cwd: string, target: Target): Promise<Sy
     }
   }
 
-  // Rules files - only for targets with separate rules directory
-  // Claude Code has rules in agent files, so skip
-  if (target.config.rulesFile) {
-    const rulesPath = path.join(cwd, target.config.rulesFile);
+  // Instructions files - only for targets with separate instructions directory
+  // Claude Code has instructions in agent files, so skip
+  if (target.config.instructionFile) {
+    const instructionsPath = path.join(cwd, target.config.instructionFile);
 
     // Check if it's a directory or file
-    if (fs.existsSync(rulesPath)) {
-      const stat = fs.statSync(rulesPath);
+    if (fs.existsSync(instructionsPath)) {
+      const stat = fs.statSync(instructionsPath);
 
       if (stat.isDirectory()) {
-        // Scan directory for rule files
-        const files = fs.readdirSync(rulesPath, { withFileTypes: true });
+        // Scan directory for instruction files
+        const files = fs.readdirSync(instructionsPath, { withFileTypes: true });
         const ruleFiles = files
           .filter((f) => f.isFile() && f.name.endsWith('.md'))
-          .map((f) => path.join(rulesPath, f.name));
+          .map((f) => path.join(instructionsPath, f.name));
 
-        manifest.rules = categorizeFiles(ruleFiles, FLOW_RULES);
+        manifest.instructions = categorizeFiles(ruleFiles, FLOW_STANDARDS);
       } else {
-        // Single rules file - check if it matches Flow templates
-        manifest.rules = categorizeFiles([rulesPath], FLOW_RULES);
+        // Single instructions file - check if it matches Flow templates
+        manifest.instructions = categorizeFiles([instructionsPath], FLOW_STANDARDS);
       }
     }
   }
@@ -212,7 +212,7 @@ export function showSyncPreview(manifest: SyncManifest, cwd: string, target?: Ta
   const hasFlowFiles =
     manifest.agents.inFlow.length > 0 ||
     manifest.slashCommands.inFlow.length > 0 ||
-    manifest.rules.inFlow.length > 0 ||
+    manifest.instructions.inFlow.length > 0 ||
     manifest.mcpServers.inRegistry.length > 0;
 
   const hasSettingsSupport = target?.applySettings !== undefined;
@@ -236,9 +236,9 @@ export function showSyncPreview(manifest: SyncManifest, cwd: string, target?: Ta
       console.log('');
     }
 
-    if (manifest.rules.inFlow.length > 0) {
-      console.log(chalk.dim('  Rules:'));
-      manifest.rules.inFlow.forEach((file) => {
+    if (manifest.instructions.inFlow.length > 0) {
+      console.log(chalk.dim('  Instructions:'));
+      manifest.instructions.inFlow.forEach((file) => {
         console.log(chalk.dim(`    ✓ ${path.basename(file)}`));
       });
       console.log('');
@@ -271,7 +271,7 @@ export function showSyncPreview(manifest: SyncManifest, cwd: string, target?: Ta
   const hasMissingFiles =
     manifest.agents.missing.length > 0 ||
     manifest.slashCommands.missing.length > 0 ||
-    manifest.rules.missing.length > 0;
+    manifest.instructions.missing.length > 0;
 
   if (hasMissingFiles) {
     console.log(chalk.green('Will install (new templates):\n'));
@@ -292,9 +292,9 @@ export function showSyncPreview(manifest: SyncManifest, cwd: string, target?: Ta
       console.log('');
     }
 
-    if (manifest.rules.missing.length > 0) {
-      console.log(chalk.dim('  Rules:'));
-      manifest.rules.missing.forEach((file) => {
+    if (manifest.instructions.missing.length > 0) {
+      console.log(chalk.dim('  Instructions:'));
+      manifest.instructions.missing.forEach((file) => {
         console.log(chalk.dim(`    + ${file}`));
       });
       console.log('');
@@ -305,7 +305,7 @@ export function showSyncPreview(manifest: SyncManifest, cwd: string, target?: Ta
   const hasUnknownFiles =
     manifest.agents.unknown.length > 0 ||
     manifest.slashCommands.unknown.length > 0 ||
-    manifest.rules.unknown.length > 0 ||
+    manifest.instructions.unknown.length > 0 ||
     manifest.mcpServers.notInRegistry.length > 0 ||
     manifest.hooks.orphaned.length > 0;
 
@@ -328,9 +328,9 @@ export function showSyncPreview(manifest: SyncManifest, cwd: string, target?: Ta
       console.log('');
     }
 
-    if (manifest.rules.unknown.length > 0) {
-      console.log(chalk.dim('  Rules:'));
-      manifest.rules.unknown.forEach((file) => {
+    if (manifest.instructions.unknown.length > 0) {
+      console.log(chalk.dim('  Instructions:'));
+      manifest.instructions.unknown.forEach((file) => {
         console.log(chalk.dim(`    ? ${path.basename(file)}`));
       });
       console.log('');
@@ -400,11 +400,11 @@ export async function selectUnknownFilesToRemove(
     });
   });
 
-  manifest.rules.unknown.forEach((file) => {
+  manifest.instructions.unknown.forEach((file) => {
     unknownFiles.push({
-      name: `Rules: ${path.basename(file)}`,
+      name: `Instructions: ${path.basename(file)}`,
       value: file,
-      type: 'rule',
+      type: 'instruction',
     });
   });
 
@@ -471,7 +471,7 @@ export function showFinalSummary(manifest: SyncManifest, selectedUnknowns: Selec
   const flowFiles = [
     ...manifest.agents.inFlow,
     ...manifest.slashCommands.inFlow,
-    ...manifest.rules.inFlow,
+    ...manifest.instructions.inFlow,
   ];
 
   if (flowFiles.length > 0 || manifest.mcpServers.inRegistry.length > 0) {
@@ -515,7 +515,7 @@ export function showFinalSummary(manifest: SyncManifest, selectedUnknowns: Selec
   const preservedUnknowns = [
     ...manifest.agents.unknown,
     ...manifest.slashCommands.unknown,
-    ...manifest.rules.unknown,
+    ...manifest.instructions.unknown,
     ...manifest.mcpServers.notInRegistry,
     ...manifest.hooks.orphaned,
   ].filter((file) => !allSelected.includes(file));
@@ -540,7 +540,7 @@ export async function executeSyncDelete(
   const flowFiles = [
     ...manifest.agents.inFlow,
     ...manifest.slashCommands.inFlow,
-    ...manifest.rules.inFlow,
+    ...manifest.instructions.inFlow,
   ];
 
   let templatesDeleted = 0;

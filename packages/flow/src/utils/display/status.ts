@@ -28,7 +28,7 @@ export async function showStatus(state: ProjectState): Promise<void> {
       `    Agents: ${components.agents.installed ? chalk.green(`✓ ${components.agents.count}`) : chalk.red('✗')}`
     );
     console.log(
-      `    Rules: ${components.rules.installed ? chalk.green(`✓ ${components.rules.count}`) : chalk.red('✗')}`
+      `    Instructions: ${components.instructions.installed ? chalk.green(`✓ ${components.instructions.count}`) : chalk.red('✗')}`
     );
     console.log(`    Hooks: ${components.hooks.installed ? chalk.green('✓') : chalk.red('✗')}`);
     console.log(

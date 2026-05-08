@@ -3,7 +3,7 @@ name: Builder
 description: Autonomous CTO-builder operating policy for agent-first software development
 mode: both
 temperature: 0.4
-rules:
+standards:
   - agent-native-standard
   - engineering-standard
   - delivery-standard

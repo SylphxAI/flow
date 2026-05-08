@@ -42,7 +42,7 @@ export interface BackupManifest {
       user: string[];
       flow: string[];
     };
-    rules?: {
+    instructions?: {
       path: string;
       originalSize: number;
       flowContentAdded: boolean;

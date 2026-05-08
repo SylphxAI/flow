@@ -71,5 +71,5 @@ export const resolveTargetPaths = (cwd: string, config: TargetConfig) => ({
   agentDir: path.join(cwd, config.agentDir),
   configFile: path.join(cwd, config.configFile),
   slashCommandsDir: config.slashCommandsDir ? path.join(cwd, config.slashCommandsDir) : undefined,
-  rulesFile: config.rulesFile ? path.join(cwd, config.rulesFile) : undefined,
+  instructionFile: config.instructionFile ? path.join(cwd, config.instructionFile) : undefined,
 });

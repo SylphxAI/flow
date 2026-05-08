@@ -33,26 +33,26 @@ export class TemplateLoader {
     const mcpConfigPath = path.join(this.assetsDir, 'mcp-servers.json');
 
     // Load all directories in parallel
-    const [agents, commands, skills, mcpServers, rules] = await Promise.all([
+    const [agents, commands, skills, mcpServers, instructions] = await Promise.all([
       existsSync(agentsDir) ? this.loadAgents(agentsDir) : [],
       existsSync(commandsDir) ? this.loadCommands(commandsDir) : [],
       existsSync(skillsDir) ? this.loadSkills(skillsDir) : [],
       existsSync(mcpConfigPath) ? this.loadMCPServers(mcpConfigPath) : [],
-      existsSync(standardsDir) ? this.loadStandards(standardsDir) : this.loadLegacyRules(),
+      existsSync(standardsDir) ? this.loadStandards(standardsDir) : this.loadLegacyInstructions(),
     ]);
 
     return {
       agents,
       commands,
       skills,
-      rules,
+      instructions,
       mcpServers,
       singleFiles: [],
     };
   }
 
   /**
-   * Load canonical standards as a target rules document.
+   * Load canonical standards as a target instructions document.
    */
   private async loadStandards(standardsDir: string): Promise<string | undefined> {
     const files = await fs.readdir(standardsDir);
@@ -73,17 +73,17 @@ export class TemplateLoader {
   }
 
   /**
-   * Load pre-Agent OS rules from possible legacy locations.
+   * Load pre-canonical-asset instructions from possible legacy locations.
    */
-  private async loadLegacyRules(): Promise<string | undefined> {
+  private async loadLegacyInstructions(): Promise<string | undefined> {
     const rulesLocations = [
-      path.join(this.assetsDir, 'rules', 'AGENTS.md'),
+      path.join(this.assetsDir, 'instructions', 'AGENTS.md'),
       path.join(this.assetsDir, 'AGENTS.md'),
     ];
 
-    for (const rulesPath of rulesLocations) {
-      if (existsSync(rulesPath)) {
-        return fs.readFile(rulesPath, 'utf-8');
+    for (const instructionsPath of rulesLocations) {
+      if (existsSync(instructionsPath)) {
+        return fs.readFile(instructionsPath, 'utf-8');
       }
     }
     return undefined;
