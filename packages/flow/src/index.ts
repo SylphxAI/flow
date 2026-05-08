@@ -7,6 +7,7 @@
 import { Command } from 'commander';
 // @ts-expect-error - Bun resolves JSON imports
 import pkg from '../package.json';
+import { codexCommand } from './commands/codex-command.js';
 import { executeFlow } from './commands/flow/execute-v2.js';
 import {
   doctorCommand,
@@ -73,6 +74,7 @@ export function createCLI(): Command {
   program.addCommand(statusCommand);
   program.addCommand(doctorCommand);
   program.addCommand(upgradeCommand);
+  program.addCommand(codexCommand);
   program.addCommand(hookCommand);
   program.addCommand(sessionsCommand);
   program.addCommand(settingsCommand);

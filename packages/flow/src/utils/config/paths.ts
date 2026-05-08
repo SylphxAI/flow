@@ -62,7 +62,7 @@ const ASSETS_ROOT = fs.existsSync(path.join(MONOREPO_ROOT, 'assets'))
  * Get path to agents directory
  */
 export function getAgentsDir(): string {
-  return path.join(ASSETS_ROOT, 'agents');
+  return path.join(getAgentOsDir(), 'agents');
 }
 
 /**
@@ -98,6 +98,20 @@ export function getOutputStylesDir(): string {
  */
 export function getSlashCommandsDir(): string {
   return path.join(ASSETS_ROOT, 'slash-commands');
+}
+
+/**
+ * Get path to the canonical Agent OS assets.
+ */
+export function getAgentOsDir(): string {
+  return path.join(ASSETS_ROOT, 'agent-os');
+}
+
+/**
+ * Get path to Codex projection adapter assets.
+ */
+export function getCodexAdapterDir(): string {
+  return path.join(ASSETS_ROOT, 'adapters', 'codex');
 }
 
 /**

@@ -45,6 +45,17 @@ sylphx-flow "build the future"
 ✅ One CLI, infinite possibilities
 ```
 
+### Codex Setup
+
+Flow ships a canonical Agent OS and projects it into each supported AI coding tool. Codex is one projection target:
+
+```bash
+sylphx-flow codex install
+sylphx-flow codex doctor
+```
+
+`install` projects the Flow Agent OS into `~/.codex`: the Codex adapter is composed with the canonical Builder agent, while standards and skills come from the same assets used by every supported tool. `doctor` verifies the local machine is synchronized.
+
 ---
 
 ## Philosophy: Transcendent Simplicity
