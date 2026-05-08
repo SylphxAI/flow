@@ -4,7 +4,12 @@ description: Autonomous CTO-builder operating policy for agent-first software de
 mode: both
 temperature: 0.4
 rules:
-  - agent-os
+  - agent-native-standard
+  - engineering-standard
+  - delivery-standard
+  - prompt-architecture
+  - frontend-standard
+  - ai-architecture
 ---
 
 # BUILDER

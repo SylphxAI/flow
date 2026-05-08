@@ -270,18 +270,19 @@ export class GlobalConfigService {
     const configPath = this.getFlowConfigPath();
 
     if (!existsSync(configPath)) {
-      // Default: all agents, all rules, all output styles enabled
+      // Default: all Agent OS agents and standards enabled.
       this.flowConfigCache = {
         version: '1.0.0',
         agents: {
           builder: { enabled: true },
-          coder: { enabled: true },
-          writer: { enabled: true },
-          reviewer: { enabled: true },
         },
         rules: {
-          core: { enabled: true },
-          'code-standards': { enabled: true },
+          'agent-native-standard': { enabled: true },
+          'engineering-standard': { enabled: true },
+          'delivery-standard': { enabled: true },
+          'prompt-architecture': { enabled: true },
+          'frontend-standard': { enabled: true },
+          'ai-architecture': { enabled: true },
         },
         outputStyles: {},
       };

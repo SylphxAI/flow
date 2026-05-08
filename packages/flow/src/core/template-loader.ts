@@ -1,7 +1,7 @@
 /**
  * Template Loader
- * Loads Flow templates from assets directory
- * Supports any target with consistent template structure
+ * Loads Flow Agent OS templates from the package assets directory.
+ * Runtime targets project these canonical assets into their supported file layout.
  */
 
 import { existsSync } from 'node:fs';
@@ -22,13 +22,15 @@ export class TemplateLoader {
   }
 
   /**
-   * Load all templates for target (parallel loading for performance)
-   * Uses flat assets directory structure (no target-specific subdirectories)
+   * Load all templates for target (parallel loading for performance).
+   * Agent identity, standards, and skills come from assets/agent-os as the SSOT.
    */
   async loadTemplates(_target: Target | string): Promise<FlowTemplates> {
-    const agentsDir = path.join(this.assetsDir, 'agents');
+    const agentOsDir = path.join(this.assetsDir, 'agent-os');
+    const agentsDir = path.join(agentOsDir, 'agents');
+    const standardsDir = path.join(agentOsDir, 'standards');
+    const skillsDir = path.join(agentOsDir, 'skills');
     const commandsDir = path.join(this.assetsDir, 'slash-commands');
-    const skillsDir = path.join(this.assetsDir, 'skills');
     const mcpConfigPath = path.join(this.assetsDir, 'mcp-servers.json');
 
     // Load all directories in parallel
@@ -37,7 +39,7 @@ export class TemplateLoader {
       existsSync(commandsDir) ? this.loadCommands(commandsDir) : [],
       existsSync(skillsDir) ? this.loadSkills(skillsDir) : [],
       existsSync(mcpConfigPath) ? this.loadMCPServers(mcpConfigPath) : [],
-      this.loadRules(),
+      existsSync(standardsDir) ? this.loadStandards(standardsDir) : this.loadLegacyRules(),
     ]);
 
     return {
@@ -51,9 +53,30 @@ export class TemplateLoader {
   }
 
   /**
-   * Load rules from possible locations
+   * Load canonical Agent OS standards as a target rules document.
    */
-  private async loadRules(): Promise<string | undefined> {
+  private async loadStandards(standardsDir: string): Promise<string | undefined> {
+    const files = await fs.readdir(standardsDir);
+    const markdownFiles = files.filter((file) => file.endsWith('.md')).sort();
+
+    if (markdownFiles.length === 0) {
+      return undefined;
+    }
+
+    const standards = await Promise.all(
+      markdownFiles.map(async (file) => {
+        const content = await fs.readFile(path.join(standardsDir, file), 'utf-8');
+        return `<!-- Source: agent-os/standards/${file} -->\n\n${content.trim()}`;
+      })
+    );
+
+    return `# Flow Agent OS Standards\n\n${standards.join('\n\n---\n\n')}\n`;
+  }
+
+  /**
+   * Load pre-Agent OS rules from possible legacy locations.
+   */
+  private async loadLegacyRules(): Promise<string | undefined> {
     const rulesLocations = [
       path.join(this.assetsDir, 'rules', 'AGENTS.md'),
       path.join(this.assetsDir, 'AGENTS.md'),
@@ -153,12 +176,13 @@ export class TemplateLoader {
   }
 
   /**
-   * Check if templates exist (uses flat directory structure)
+   * Check if Agent OS templates exist.
    */
   async hasTemplates(_target: Target | string): Promise<boolean> {
-    // Check if any template directories exist
-    const agentsDir = path.join(this.assetsDir, 'agents');
+    const agentOsDir = path.join(this.assetsDir, 'agent-os');
+    const agentsDir = path.join(agentOsDir, 'agents');
+    const skillsDir = path.join(agentOsDir, 'skills');
     const commandsDir = path.join(this.assetsDir, 'slash-commands');
-    return existsSync(agentsDir) || existsSync(commandsDir);
+    return existsSync(agentsDir) || existsSync(skillsDir) || existsSync(commandsDir);
   }
 }

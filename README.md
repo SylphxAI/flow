@@ -56,6 +56,8 @@ sylphx-flow codex doctor
 
 `install` projects the Flow Agent OS into `~/.codex`: the canonical Builder agent is transformed into Codex's `AGENTS.md`, while standards and skills come from the same assets used by every supported tool. `doctor` verifies the local machine is synchronized.
 
+Flow's runtime attach path uses the same Agent OS source for supported CLI targets: agents, standards, and skills are read from `packages/flow/assets/agent-os/` and projected into the target's supported file layout.
+
 ---
 
 ## Philosophy: Transcendent Simplicity

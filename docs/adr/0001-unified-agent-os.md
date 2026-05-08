@@ -44,7 +44,7 @@ The Codex installer projects:
 - `assets/agent-os/standards/` to `~/.codex/standards/`
 - `assets/agent-os/skills/` to `~/.codex/skills/`
 
-Future Claude Code, OpenCode, Cursor, and other target support must follow the same pattern: adapter-specific shell, shared Agent OS core.
+Flow's main execution path and future Claude Code, OpenCode, Cursor, and other target support must follow the same pattern: target-specific projection, shared Agent OS core.
 
 ## Alternatives Considered
 
@@ -73,5 +73,6 @@ Rejected. A loose library is useful for references, but it is not enough for rep
 - Codex standards and skills come from `assets/agent-os`, not `assets/codex`.
 - Builder identity comes from `assets/agent-os/agents/builder.md`, not a copied Codex `AGENTS.md`.
 - Codex-specific files are limited to projection configuration.
+- Flow runtime templates load agents, standards, and skills from `assets/agent-os`.
 - The CLI exposes install and doctor commands for Codex projection.
 - Documentation describes Flow as an Agent OS, not a Codex settings copier.

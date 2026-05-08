@@ -5,13 +5,18 @@
 import { getRuleFile } from '../utils/config/paths.js';
 
 export const CORE_RULES = {
-  core: 'core.md',
+  'agent-native-standard': 'agent-native-standard.md',
+  'engineering-standard': 'engineering-standard.md',
+  'delivery-standard': 'delivery-standard.md',
+  'prompt-architecture': 'prompt-architecture.md',
+  'frontend-standard': 'frontend-standard.md',
+  'ai-architecture': 'ai-architecture.md',
 } as const;
 
 /**
  * Get the path to a specific core rules file
  */
-export function getRulesPath(ruleType: keyof typeof CORE_RULES = 'core'): string {
+export function getRulesPath(ruleType: keyof typeof CORE_RULES = 'engineering-standard'): string {
   return getRuleFile(CORE_RULES[ruleType]);
 }
 

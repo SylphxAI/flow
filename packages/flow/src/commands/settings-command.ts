@@ -126,9 +126,6 @@ async function configureAgents(configService: GlobalConfigService): Promise<void
 
   const availableAgents = {
     builder: 'Builder - Autonomous product builder (default)',
-    coder: 'Coder - Task-focused code execution',
-    writer: 'Writer - Documentation and explanation',
-    reviewer: 'Reviewer - Code review and critique',
   };
 
   const { selected, updated } = await handleCheckboxConfig({
@@ -168,13 +165,17 @@ async function configureRules(configService: GlobalConfigService): Promise<void>
   const { updated } = await handleCheckboxConfig({
     title: 'Rules Configuration',
     icon: '📋',
-    message: 'Select rules to enable:',
+    message: 'Select Agent OS standards to enable:',
     available: {
-      core: 'Core - Identity, personality, execution',
-      'code-standards': 'Code Standards - Quality, patterns, anti-patterns',
+      'agent-native-standard': 'Agent Native - Documentation first, test first, delegation, memory',
+      'engineering-standard': 'Engineering - SOTA, SSOT, SoC, Effect, architecture, testing, naming',
+      'delivery-standard': 'Delivery - PR, CI, merge, release, deploy, production verification',
+      'prompt-architecture': 'Prompt Architecture - MEP, instruction hierarchy, prompt refactoring',
+      'frontend-standard': 'Frontend - Product UI, accessibility, i18n, responsive behavior',
+      'ai-architecture': 'AI Architecture - SDK boundaries, evals, tracing, tools, guardrails',
     },
     current: flowConfig.rules || {},
-    itemType: 'Rules',
+    itemType: 'Agent OS standards',
   });
 
   flowConfig.rules = updated;

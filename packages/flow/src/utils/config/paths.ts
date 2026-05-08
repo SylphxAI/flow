@@ -73,10 +73,10 @@ export function getTemplatesDir(): string {
 }
 
 /**
- * Get path to rules directory
+ * Get path to the canonical Agent OS standards directory.
  */
 export function getRulesDir(): string {
-  return path.join(ASSETS_ROOT, 'rules');
+  return path.join(getAgentOsDir(), 'standards');
 }
 
 /**
@@ -152,7 +152,7 @@ export function getPathsInfo() {
     assetsRoot: ASSETS_ROOT,
     agents: getAgentsDir(),
     templates: getTemplatesDir(),
-    rules: getRulesDir(),
+    standards: getRulesDir(),
     outputStyles: getOutputStylesDir(),
     slashCommands: getSlashCommandsDir(),
   };

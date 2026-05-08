@@ -1,12 +1,12 @@
 /**
- * Agent Enhancer - Append rules and output styles to agent content
+ * Agent Enhancer - Append Agent OS standards and output styles to agent content
  *
  * This module provides utilities to enhance agent files with:
- * - Rules (from assets/rules/core.md)
+ * - Standards (from assets/agent-os/standards/*.md)
  * - Output Styles (from assets/output-styles/*.md)
  *
  * These are appended to agent content to ensure every agent has
- * access to the same rules and output styles without duplicating
+ * access to the same standards and output styles without duplicating
  * them in CLAUDE.md or other system prompts.
  */
 
@@ -41,13 +41,23 @@ export async function loadRulesAndStyles(
 }
 
 /**
- * Load rules from assets/rules/*.md
- * @param ruleNames - Array of rule file names (without .md extension). Defaults to ['core']
+ * Load standards from assets/agent-os/standards/*.md
+ * @param ruleNames - Array of standard file names (without .md extension). Defaults to all Agent OS standards.
  */
 async function loadRules(ruleNames?: string[]): Promise<string> {
   try {
     const rulesDir = getRulesDir();
-    const rulesToLoad = ruleNames && ruleNames.length > 0 ? ruleNames : ['core'];
+    const rulesToLoad =
+      ruleNames && ruleNames.length > 0
+        ? ruleNames
+        : [
+            'agent-native-standard',
+            'engineering-standard',
+            'delivery-standard',
+            'prompt-architecture',
+            'frontend-standard',
+            'ai-architecture',
+          ];
     const sections: string[] = [];
 
     for (const ruleName of rulesToLoad) {
@@ -59,13 +69,13 @@ async function loadRules(ruleNames?: string[]): Promise<string> {
         const stripped = await yamlUtils.stripFrontMatter(content);
         sections.push(stripped);
       } catch (_error) {
-        // Silent - rule file not found, continue with other rules
+        // Silent - standard file not found, continue with other standards
       }
     }
 
     return sections.join('\n\n---\n\n');
   } catch (_error) {
-    // If rules directory doesn't exist, return empty string
+    // If standards directory doesn't exist, return empty string
     return '';
   }
 }
@@ -132,7 +142,7 @@ export async function enhanceAgentContent(
 }
 
 /**
- * Filter rules: intersection of agent's required rules and globally enabled rules
+ * Filter standards: intersection of agent's required standards and globally enabled standards
  * @param agentRules - Rules defined in agent frontmatter
  * @param enabledRules - Globally enabled rules from user settings
  * @returns Intersection of both arrays (rules that are both required by agent AND enabled globally)
