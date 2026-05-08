@@ -9,7 +9,7 @@ import path from 'node:path';
 import chalk from 'chalk';
 import { Command } from 'commander';
 import { parse as parseYaml } from 'yaml';
-import { getAgentOsDir, getCodexProjectionDir } from '../utils/config/paths.js';
+import { getAssetsRoot, getCodexProjectionDir } from '../utils/config/paths.js';
 
 interface CodexInstallOptions {
   dryRun?: boolean;
@@ -71,24 +71,24 @@ codexCommand
 
 async function installCodexAssets(options: CodexInstallOptions): Promise<void> {
   const codexProjectionDir = getCodexProjectionDir();
-  const agentOsDir = getAgentOsDir();
+  const assetsRoot = getAssetsRoot();
   const codexHome = getCodexHome();
   const projection = await loadCodexProjection(codexProjectionDir);
 
-  await assertCodexProjection(codexProjectionDir, agentOsDir, projection);
+  await assertCodexProjection(codexProjectionDir, assetsRoot, projection);
 
   if (options.dryRun) {
     console.log(chalk.cyan(`Would use Codex projection from ${codexProjectionDir}`));
-    console.log(chalk.cyan(`Would install Agent OS assets from ${agentOsDir}`));
+    console.log(chalk.cyan(`Would install Flow assets from ${assetsRoot}`));
     console.log(chalk.cyan(`Would write Codex runtime files to ${codexHome}`));
     return;
   }
 
   await mkdir(codexHome, { recursive: true });
 
-  await installProjectedAgentFile(agentOsDir, projection, codexHome);
+  await installProjectedAgentFile(assetsRoot, projection, codexHome);
   for (const copy of projection.copies) {
-    const sourcePath = path.join(path.dirname(agentOsDir), copy.source);
+    const sourcePath = path.join(assetsRoot, copy.source);
     const targetPath = path.join(codexHome, copy.destination);
 
     if (copy.destination === 'skills' && projection.preserveSkillSystemDirectory) {
@@ -98,24 +98,24 @@ async function installCodexAssets(options: CodexInstallOptions): Promise<void> {
     }
   }
 
-  console.log(chalk.green(`Agent OS assets installed for Codex at ${codexHome}`));
+  console.log(chalk.green(`Flow assets installed for Codex at ${codexHome}`));
 }
 
 async function runCodexDoctor(options: CodexDoctorOptions): Promise<void> {
   const codexProjectionDir = getCodexProjectionDir();
-  const agentOsDir = getAgentOsDir();
+  const assetsRoot = getAssetsRoot();
   const codexHome = getCodexHome();
   const projection = await loadCodexProjection(codexProjectionDir);
   const checks: DoctorCheck[] = [];
 
-  checks.push(await checkPath('Flow Agent OS assets', agentOsDir));
+  checks.push(await checkPath('Flow assets', assetsRoot));
   checks.push(await checkPath('Flow Codex projection', codexProjectionDir));
 
   checks.push(await checkPath('Codex projection config', path.join(codexProjectionDir, CODEX_PROJECTION_FILENAME)));
-  checks.push(await checkPath('Agent OS builder agent', path.join(path.dirname(agentOsDir), projection.agent.source)));
+  checks.push(await checkPath('Builder agent', path.join(assetsRoot, projection.agent.source)));
 
   for (const copy of projection.copies) {
-    checks.push(await checkPath(`Agent OS asset: ${copy.destination}`, path.join(path.dirname(agentOsDir), copy.source)));
+    checks.push(await checkPath(`Flow asset: ${copy.destination}`, path.join(assetsRoot, copy.source)));
   }
 
   checks.push(await checkPath('Installed AGENTS.md', path.join(codexHome, projection.agent.destination)));
@@ -138,10 +138,10 @@ async function runCodexDoctor(options: CodexDoctorOptions): Promise<void> {
   });
 
   if (options.json) {
-    console.log(JSON.stringify({ codexHome, codexProjectionDir, agentOsDir, projection, checks }, null, 2));
+    console.log(JSON.stringify({ codexHome, codexProjectionDir, assetsRoot, projection, checks }, null, 2));
   } else {
     console.log(chalk.cyan(`Codex home: ${codexHome}`));
-    console.log(chalk.cyan(`Flow Agent OS assets: ${agentOsDir}`));
+    console.log(chalk.cyan(`Flow assets: ${assetsRoot}`));
     console.log(chalk.cyan(`Flow Codex projection: ${codexProjectionDir}`));
     for (const check of checks) {
       const symbol = check.ok ? 'OK' : 'FAIL';
@@ -195,7 +195,7 @@ function isCodexProjection(value: unknown): value is CodexProjection {
 
 async function assertCodexProjection(
   codexProjectionDir: string,
-  agentOsDir: string,
+  assetsRoot: string,
   projection: CodexProjection
 ): Promise<void> {
   const projectionPath = path.join(codexProjectionDir, CODEX_PROJECTION_FILENAME);
@@ -203,13 +203,13 @@ async function assertCodexProjection(
     throw new Error(`Missing Flow Codex projection config: ${projectionPath}`);
   }
 
-  const agentPath = path.join(path.dirname(agentOsDir), projection.agent.source);
+  const agentPath = path.join(assetsRoot, projection.agent.source);
   if (!(await pathExists(agentPath))) {
-    throw new Error(`Missing Flow Agent OS builder: ${agentPath}`);
+    throw new Error(`Missing Flow Builder agent: ${agentPath}`);
   }
 
   for (const copy of projection.copies) {
-    const entryPath = path.join(path.dirname(agentOsDir), copy.source);
+    const entryPath = path.join(assetsRoot, copy.source);
     if (!(await pathExists(entryPath))) {
       throw new Error(`Missing Flow Agent OS asset: ${entryPath}`);
     }
@@ -217,11 +217,11 @@ async function assertCodexProjection(
 }
 
 async function installProjectedAgentFile(
-  agentOsDir: string,
+  assetsRoot: string,
   projection: CodexProjection,
   codexHome: string
 ): Promise<void> {
-  const sourcePath = path.join(path.dirname(agentOsDir), projection.agent.source);
+  const sourcePath = path.join(assetsRoot, projection.agent.source);
   const targetPath = path.join(codexHome, projection.agent.destination);
   const sourceContent = await readFile(sourcePath, 'utf-8');
   const projectedContent = projection.agent.stripFrontmatter

@@ -2,7 +2,7 @@
  * Agent Enhancer - Append Agent OS standards and output styles to agent content
  *
  * This module provides utilities to enhance agent files with:
- * - Standards (from assets/agent-os/standards/*.md)
+ * - Standards (from assets/standards/*.md)
  * - Output Styles (from assets/output-styles/*.md)
  *
  * These are appended to agent content to ensure every agent has

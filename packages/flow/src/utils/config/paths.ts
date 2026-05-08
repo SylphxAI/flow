@@ -59,10 +59,10 @@ const ASSETS_ROOT = fs.existsSync(path.join(MONOREPO_ROOT, 'assets'))
   : path.join(PACKAGE_ROOT, 'assets');
 
 /**
- * Get path to agents directory
+ * Get path to the canonical agents directory.
  */
 export function getAgentsDir(): string {
-  return path.join(getAgentOsDir(), 'agents');
+  return path.join(ASSETS_ROOT, 'agents');
 }
 
 /**
@@ -76,7 +76,14 @@ export function getTemplatesDir(): string {
  * Get path to the canonical Agent OS standards directory.
  */
 export function getRulesDir(): string {
-  return path.join(getAgentOsDir(), 'standards');
+  return path.join(ASSETS_ROOT, 'standards');
+}
+
+/**
+ * Get path to the canonical skills directory.
+ */
+export function getSkillsDir(): string {
+  return path.join(ASSETS_ROOT, 'skills');
 }
 
 /**
@@ -101,17 +108,17 @@ export function getSlashCommandsDir(): string {
 }
 
 /**
- * Get path to the canonical Agent OS assets.
- */
-export function getAgentOsDir(): string {
-  return path.join(ASSETS_ROOT, 'agent-os');
-}
-
-/**
  * Get path to Codex runtime projection assets.
  */
 export function getCodexProjectionDir(): string {
-  return path.join(ASSETS_ROOT, 'adapters', 'codex');
+  return path.join(ASSETS_ROOT, 'runtime-projections', 'codex');
+}
+
+/**
+ * Get path to the package assets root.
+ */
+export function getAssetsRoot(): string {
+  return ASSETS_ROOT;
 }
 
 /**
@@ -151,6 +158,7 @@ export function getPathsInfo() {
   return {
     assetsRoot: ASSETS_ROOT,
     agents: getAgentsDir(),
+    skills: getSkillsDir(),
     templates: getTemplatesDir(),
     standards: getRulesDir(),
     outputStyles: getOutputStylesDir(),

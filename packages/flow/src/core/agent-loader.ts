@@ -89,10 +89,10 @@ export async function getSystemAgentsPath(): Promise<string> {
   const currentFile = fileURLToPath(import.meta.url);
   const currentDir = dirname(currentFile);
 
-  // In production (dist), assets are at dist/assets/agent-os/agents.
+  // In production (dist), assets are at dist/assets/agents.
   // In development (src), go up to project root: src/core -> project root.
-  const distPath = join(currentDir, '..', 'assets', 'agent-os', 'agents');
-  const devPath = join(currentDir, '..', '..', 'assets', 'agent-os', 'agents');
+  const distPath = join(currentDir, '..', 'assets', 'agents');
+  const devPath = join(currentDir, '..', '..', 'assets', 'agents');
 
   // Check which one exists (try dist first, then dev)
   try {

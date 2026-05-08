@@ -1,14 +1,14 @@
 target: codex
 
 agent:
-  source: agent-os/agents/builder.md
+  source: agents/builder.md
   destination: AGENTS.md
   stripFrontmatter: true
 
 copies:
-  - source: agent-os/standards
+  - source: standards
     destination: standards
-  - source: agent-os/skills
+  - source: skills
     destination: skills
 
 preserveSkillSystemDirectory: true

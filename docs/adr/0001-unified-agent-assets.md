@@ -7,7 +7,7 @@ decision_drivers:
   - Codex, Claude Code, OpenCode, Cursor, and future tools need the same standards, skills, and workflows with only thin adapter differences.
 ---
 
-# ADR 0001: Unified Agent OS
+# ADR 0001: Unified Agent Assets
 
 ## Context
 
@@ -19,19 +19,19 @@ That design is not strong enough for Flow's product goal.
 
 ## Decision
 
-Flow has one canonical Agent OS:
+Flow has one canonical asset layer:
 
 ```text
-packages/flow/assets/agent-os/
+packages/flow/assets/
   agents/
   standards/
   skills/
 ```
 
-Tool-specific directories are runtime projection configuration only:
+Tool-specific runtime projection directories are configuration only:
 
 ```text
-packages/flow/assets/adapters/
+packages/flow/assets/runtime-projections/
   codex/
     projection.yaml
 ```
@@ -40,9 +40,9 @@ Adapters describe how a tool loads instructions, where runtime files are install
 
 The Codex installer projects:
 
-- `assets/agent-os/agents/builder.md` transformed by `assets/adapters/codex/projection.yaml` to `~/.codex/AGENTS.md`
-- `assets/agent-os/standards/` to `~/.codex/standards/`
-- `assets/agent-os/skills/` to `~/.codex/skills/`
+- `assets/agents/builder.md` transformed by `assets/runtime-projections/codex/projection.yaml` to `~/.codex/AGENTS.md`
+- `assets/standards/` to `~/.codex/standards/`
+- `assets/skills/` to `~/.codex/skills/`
 
 Flow's main execution path and future Claude Code, OpenCode, Cursor, and other target support must follow the same pattern: target-specific projection, shared Agent OS core.
 
@@ -70,9 +70,9 @@ Rejected. A loose library is useful for references, but it is not enough for rep
 
 ## Acceptance Criteria
 
-- Codex standards and skills come from `assets/agent-os`, not `assets/codex`.
-- Builder identity comes from `assets/agent-os/agents/builder.md`, not a copied Codex `AGENTS.md`.
+- Codex standards and skills come from `assets/standards` and `assets/skills`, not `assets/codex`.
+- Builder identity comes from `assets/agents/builder.md`, not a copied Codex `AGENTS.md`.
 - Codex-specific files are limited to projection configuration.
-- Flow runtime templates load agents, standards, and skills from `assets/agent-os`.
+- Flow runtime templates load agents, standards, and skills from the canonical `assets/` directories.
 - The CLI exposes install and doctor commands for Codex projection.
 - Documentation describes Flow as an Agent OS, not a Codex settings copier.

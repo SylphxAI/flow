@@ -1,6 +1,6 @@
 /**
  * Template Loader
- * Loads Flow Agent OS templates from the package assets directory.
+ * Loads Flow templates from the package assets directory.
  * Runtime targets project these canonical assets into their supported file layout.
  */
 
@@ -23,13 +23,12 @@ export class TemplateLoader {
 
   /**
    * Load all templates for target (parallel loading for performance).
-   * Agent identity, standards, and skills come from assets/agent-os as the SSOT.
+   * Agent identity, standards, and skills come from assets/ as the SSOT.
    */
   async loadTemplates(_target: Target | string): Promise<FlowTemplates> {
-    const agentOsDir = path.join(this.assetsDir, 'agent-os');
-    const agentsDir = path.join(agentOsDir, 'agents');
-    const standardsDir = path.join(agentOsDir, 'standards');
-    const skillsDir = path.join(agentOsDir, 'skills');
+    const agentsDir = path.join(this.assetsDir, 'agents');
+    const standardsDir = path.join(this.assetsDir, 'standards');
+    const skillsDir = path.join(this.assetsDir, 'skills');
     const commandsDir = path.join(this.assetsDir, 'slash-commands');
     const mcpConfigPath = path.join(this.assetsDir, 'mcp-servers.json');
 
@@ -53,7 +52,7 @@ export class TemplateLoader {
   }
 
   /**
-   * Load canonical Agent OS standards as a target rules document.
+   * Load canonical standards as a target rules document.
    */
   private async loadStandards(standardsDir: string): Promise<string | undefined> {
     const files = await fs.readdir(standardsDir);
@@ -66,11 +65,11 @@ export class TemplateLoader {
     const standards = await Promise.all(
       markdownFiles.map(async (file) => {
         const content = await fs.readFile(path.join(standardsDir, file), 'utf-8');
-        return `<!-- Source: agent-os/standards/${file} -->\n\n${content.trim()}`;
+        return `<!-- Source: standards/${file} -->\n\n${content.trim()}`;
       })
     );
 
-    return `# Flow Agent OS Standards\n\n${standards.join('\n\n---\n\n')}\n`;
+    return `# Flow Standards\n\n${standards.join('\n\n---\n\n')}\n`;
   }
 
   /**
@@ -176,12 +175,11 @@ export class TemplateLoader {
   }
 
   /**
-   * Check if Agent OS templates exist.
+   * Check if canonical templates exist.
    */
   async hasTemplates(_target: Target | string): Promise<boolean> {
-    const agentOsDir = path.join(this.assetsDir, 'agent-os');
-    const agentsDir = path.join(agentOsDir, 'agents');
-    const skillsDir = path.join(agentOsDir, 'skills');
+    const agentsDir = path.join(this.assetsDir, 'agents');
+    const skillsDir = path.join(this.assetsDir, 'skills');
     const commandsDir = path.join(this.assetsDir, 'slash-commands');
     return existsSync(agentsDir) || existsSync(skillsDir) || existsSync(commandsDir);
   }
