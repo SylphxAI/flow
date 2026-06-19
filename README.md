@@ -920,7 +920,6 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 - [@sylphx/biome-config](https://www.npmjs.com/package/@sylphx/biome-config)
 - [@sylphx/bump](https://www.npmjs.com/package/@sylphx/bump)
-- [@sylphx/doctor](https://www.npmjs.com/package/@sylphx/doctor)
 
 ---
 
