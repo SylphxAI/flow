@@ -16,6 +16,20 @@ permissions:
   contents: read
 
 jobs:
+  risk-classification:
+    name: risk-classification/pass
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: ADR-29 risk classification
+        uses: SylphxAI/.github/.github/actions/adr29-admission@main
+        with:
+          mode: classify
+          policy-mode: observe
+
   ci:
     runs-on: ubuntu-latest
     steps:
@@ -39,3 +53,18 @@ jobs:
 
       - name: Build
         run: bun run build
+
+  trunk-admission:
+    name: trunk-admission/pass
+    runs-on: ubuntu-latest
+    needs:
+      - risk-classification
+      - ci
+    if: ${{ !cancelled() }}
+    steps:
+      - name: ADR-29 trunk admission
+        uses: SylphxAI/.github/.github/actions/adr29-admission@main
+        with:
+          mode: fan-in
+          policy-mode: observe
+          upstream-results-json: ${{ toJSON(needs) }}
