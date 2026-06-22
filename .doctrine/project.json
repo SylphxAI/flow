@@ -97,26 +97,17 @@
   },
   "delivery": {
     "ciModel": "adr29-admission",
-    "requiredContexts": [
-      "risk-classification/pass",
-      "trunk-admission/pass"
-    ],
+    "requiredContexts": ["risk-classification/pass", "trunk-admission/pass"],
     "deployPath": "Central reusable release workflow publishes the @sylphx/flow package from main release intent.",
     "productionProof": "Admission contexts, CI fan-in/postsubmit proof, npm package readback, projection smoke tests, and docs readback.",
     "recoveryClass": "forward-fix-only",
     "packageRelease": {
       "publishesPackages": true,
-      "ecosystems": [
-        "npm",
-        "changesets"
-      ],
+      "ecosystems": ["npm", "changesets"],
       "releaseIntent": "Changesets capture package release intent and the reusable release workflow publishes changed packages.",
       "versionPr": "Version PR and changelog changes are produced by the reusable release workflow.",
       "publisher": "SylphxAI/.github reusable release workflow with inherited repository secrets.",
-      "requiredContexts": [
-        "risk-classification/pass",
-        "trunk-admission/pass"
-      ],
+      "requiredContexts": ["risk-classification/pass", "trunk-admission/pass"],
       "publishProof": "npm package readback for @sylphx/flow plus projection smoke evidence."
     }
   },
