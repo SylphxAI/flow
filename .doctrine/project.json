@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "project": {
+    "repo": "SylphxAI/flow",
+    "name": "Flow",
+    "lifecycle": "production",
+    "layer": "tooling",
+    "summary": "Flow is a production agent-tooling repository for canonical Sylphx agent assets, runtime projections, and the @sylphx/flow CLI.",
+    "goals": [
+      "Own canonical agent assets under packages/flow/assets/.",
+      "Own the Flow CLI, runtime projection logic, docs, package release workflow, and admission workflow.",
+      "Keep agent identity, standards, and skills single-sourced and projected into runtime-specific layouts without creating prompt islands."
+    ],
+    "nonGoals": [
+      "Own individual product repos' local project facts, deployment paths, or customer-specific behavior.",
+      "Duplicate Builder identity, standards, or skills in runtime-specific directories.",
+      "Treat source revert as complete recovery after package publish or agent-runtime projection behavior is released."
+    ]
+  },
+  "boundaries": {
+    "owns": [
+      {
+        "name": "canonical-agent-assets",
+        "description": "Agent identities, standards, skills, and reusable assets under packages/flow/assets/."
+      },
+      {
+        "name": "runtime-projections",
+        "description": "Flow CLI logic that projects canonical assets into supported AI coding-tool runtime layouts."
+      }
+    ],
+    "doesNotOwn": [
+      "Individual product repos' local project facts, deployment paths, or customer-specific behavior.",
+      "Enterprise doctrine repository content unless explicitly imported as a public dependency.",
+      "Third-party AI coding tools outside Flow's documented projection adapters."
+    ],
+    "publicSurfaces": [
+      {
+        "type": "package-export",
+        "name": "@sylphx/flow CLI package",
+        "location": "packages/flow/package.json"
+      },
+      {
+        "type": "documentation",
+        "name": "Canonical agent asset docs",
+        "location": "packages/flow/assets/"
+      },
+      {
+        "type": "workflow",
+        "name": "ADR-29 admission workflow",
+        "location": ".github/workflows/ci.yml"
+      },
+      {
+        "type": "status-context",
+        "name": "Required branch contexts",
+        "location": "risk-classification/pass, trunk-admission/pass"
+      }
+    ],
+    "allowedDependencies": [
+      {
+        "repo": "SylphxAI/doctrine",
+        "surface": "enterprise engineering doctrine",
+        "direction": "downward"
+      },
+      {
+        "repo": "SylphxAI/.github",
+        "surface": "ADR-29 admission action and reusable release workflow",
+        "direction": "downward"
+      }
+    ],
+    "forbiddenCouplings": [
+      "Do not create runtime-specific prompt islands that duplicate canonical Flow assets.",
+      "Do not add product-specific behavior to canonical agent identity, standards, or skills without a documented public extension point.",
+      "Do not publish package/projection behavior without release proof and projection smoke tests."
+    ]
+  },
+  "documentation": {
+    "adr": {
+      "path": "docs/adr/",
+      "status": "present"
+    },
+    "specs": {
+      "path": "README.md",
+      "status": "present"
+    },
+    "catalog": {
+      "path": "PROJECT.md",
+      "status": "present"
+    },
+    "runbooks": {
+      "path": "AGENTS.md",
+      "status": "present"
+    },
+    "generatedReferences": {
+      "path": "packages/flow/dist/",
+      "status": "generated"
+    }
+  },
+  "delivery": {
+    "ciModel": "adr29-admission",
+    "requiredContexts": ["risk-classification/pass", "trunk-admission/pass"],
+    "deployPath": "Central reusable release workflow publishes the @sylphx/flow package from main release intent.",
+    "productionProof": "Admission contexts, CI fan-in/postsubmit proof, npm package readback, projection smoke tests, and docs readback.",
+    "recoveryClass": "forward-fix-only",
+    "packageRelease": {
+      "publishesPackages": true,
+      "ecosystems": ["npm", "changesets"],
+      "releaseIntent": "Changesets capture package release intent and the reusable release workflow publishes changed packages.",
+      "versionPr": "Version PR and changelog changes are produced by the reusable release workflow.",
+      "publisher": "SylphxAI/.github reusable release workflow with inherited repository secrets.",
+      "requiredContexts": ["risk-classification/pass", "trunk-admission/pass"],
+      "publishProof": "npm package readback for @sylphx/flow plus projection smoke evidence."
+    }
+  },
+  "adoption": {
+    "status": "baseline",
+    "gaps": [
+      {
+        "id": "admission-enforcement",
+        "description": "ADR-29 admission actions currently run in observe mode in the workflow; decide when this repo should enforce admission.",
+        "owner": "SylphxAI/flow",
+        "target": "before claiming full doctrine adoption"
+      },
+      {
+        "id": "projection-proof",
+        "description": "Make Codex/Claude/OpenCode projection smoke proof first-class release evidence.",
+        "owner": "SylphxAI/flow",
+        "target": "before claiming full package-release adoption"
+      }
+    ]
+  }
+}
