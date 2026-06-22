@@ -1,5 +1,10 @@
 # Flow Repository Instructions
 
+Engineering doctrine: https://github.com/SylphxAI/doctrine
+
+Before changing behavior, read `PROJECT.md`, `.doctrine/project.json`, this
+file, and the triggered standards in `SylphxAI/doctrine`.
+
 Flow is the public source of truth for Sylphx agent assets and runtime projections.
 
 Canonical agent behavior lives in `packages/flow/assets/`:
