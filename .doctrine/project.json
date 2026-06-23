@@ -5,6 +5,7 @@
     "name": "Flow",
     "lifecycle": "production",
     "layer": "tooling",
+    "policyPool": "agent-tool",
     "summary": "Flow is a production agent-tooling repository for canonical Sylphx agent assets, runtime projections, and the @sylphx/flow CLI.",
     "goals": [
       "Own canonical agent assets under packages/flow/assets/.",
@@ -97,6 +98,7 @@
   },
   "delivery": {
     "ciModel": "adr29-admission",
+    "deployable": false,
     "requiredContexts": ["risk-classification/pass", "trunk-admission/pass"],
     "deployPath": "Central reusable release workflow publishes the @sylphx/flow package from main release intent.",
     "productionProof": "Admission contexts, CI fan-in/postsubmit proof, npm package readback, projection smoke tests, and docs readback.",
