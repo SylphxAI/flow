@@ -1,16 +1,29 @@
 version = "1"
 
 [project]
-name = "@sylphx/flow-monorepo"
+name = "Sylphx Flow"
 slug = "flow"
 org = "sylphx"
+default_env = "production"
+description = "Sylphx Flow documentation site (VitePress) — dogfoods the Sylphx Platform as the single source of truth for the docs deploy."
 
 [build]
-strategy = "auto"
-context = "docs"
+strategy = "dockerfile"
+dockerfile = "Dockerfile"
+context = "."
 
 [[services]]
 name = "web"
 type = "web"
-port = 80
-watch_paths = ["docs/**"]
+port = 3000
+watch_paths = [
+  "docs/**",
+  "package.json",
+  "bun.lock",
+  "Dockerfile",
+  "sylphx.toml",
+]
+
+[services.health]
+mode = "http"
+path = "/"
