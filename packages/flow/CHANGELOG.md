@@ -2064,7 +2064,7 @@ Add comprehensive SaaS review command suite with parallel worker delegation.
   ## 🔗 Links
 
   - [Documentation](https://flow.sylphx.ai)
-  - [GitHub Repository](https://github.com/sylphxltd/flow)
+  - [GitHub Repository](https://github.com/SylphxAI/flow)
   - [Getting Started Guide](https://flow.sylphx.ai/guide/getting-started)
 
 ## 1.0.0

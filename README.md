@@ -8,7 +8,7 @@
 [![downloads](https://img.shields.io/npm/dm/@sylphx/flow)](https://www.npmjs.com/package/@sylphx/flow)
 [![stars](https://img.shields.io/github/stars/SylphxAI/flow)](https://github.com/SylphxAI/flow)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![CI](https://github.com/sylphxltd/flow/actions/workflows/ci.yml/badge.svg)](https://github.com/sylphxltd/flow/actions/workflows/ci.yml)
+[![CI](https://github.com/SylphxAI/flow/actions/workflows/ci.yml/badge.svg)](https://github.com/SylphxAI/flow/actions/workflows/ci.yml)
 
 [Get Started](#-installation) • [Documentation](https://flow.sylphx.ai) • [npm](https://www.npmjs.com/package/@sylphx/flow) • [Twitter](https://x.com/SylphxAI)
 
@@ -828,12 +828,12 @@ sylphx-flow "process GitHub issues" --loop 600 --max-runs 100
 
 ### Essential Reading
 
-- **[Installation & Setup](https://github.com/sylphxltd/flow/wiki/Installation-&-Setup)** - Complete setup guide
-- **[Settings Guide](https://github.com/sylphxltd/flow/wiki/Settings-Guide)** - Master the settings nexus
-- **[MEP Design Philosophy](https://github.com/sylphxltd/flow/wiki/MEP-Design-Philosophy)** - Understand the paradigm shift
-- **[Technical Architecture](https://github.com/sylphxltd/flow/wiki/Technical-Architecture)** - Deep dive into Flow's internals
-- **[CLI Commands](https://github.com/sylphxltd/flow/wiki/CLI-Commands)** - Full command reference
-- **[Agent Framework](https://github.com/sylphxltd/flow/wiki/Agent-Framework)** - How agents work
+- **[Installation & Setup](https://github.com/SylphxAI/flow/wiki/Installation-&-Setup)** - Complete setup guide
+- **[Settings Guide](https://github.com/SylphxAI/flow/wiki/Settings-Guide)** - Master the settings nexus
+- **[MEP Design Philosophy](https://github.com/SylphxAI/flow/wiki/MEP-Design-Philosophy)** - Understand the paradigm shift
+- **[Technical Architecture](https://github.com/SylphxAI/flow/wiki/Technical-Architecture)** - Deep dive into Flow's internals
+- **[CLI Commands](https://github.com/SylphxAI/flow/wiki/CLI-Commands)** - Full command reference
+- **[Agent Framework](https://github.com/SylphxAI/flow/wiki/Agent-Framework)** - How agents work
 - **[Loop Mode Guide](./packages/flow/LOOP_MODE.md)** - Autonomous execution mastery
 
 ---

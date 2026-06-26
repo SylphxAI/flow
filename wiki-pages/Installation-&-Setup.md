@@ -29,7 +29,7 @@ For development or customization:
 
 ```bash
 # Clone the repository
-git clone https://github.com/sylphxltd/flow.git
+git clone https://github.com/SylphxAI/flow.git
 cd flow
 
 # Install dependencies (using Bun)
@@ -145,7 +145,7 @@ Configuration in `.claude/mcp.json`:
 }
 ```
 
-> **💡 Using latest unreleased version?** Replace `"@sylphx/flow"` with `"github:sylphxltd/flow"` in args.
+> **💡 Using latest unreleased version?** Replace `"@sylphx/flow"` with `"github:SylphxAI/flow"` in args.
 
 #### OpenCode
 Configuration in `opencode.jsonc`:
@@ -166,7 +166,7 @@ Configuration in `opencode.jsonc`:
 }
 ```
 
-> **💡 Using latest unreleased version?** Replace `"@sylphx/flow"` with `"github:sylphxltd/flow"` in command.
+> **💡 Using latest unreleased version?** Replace `"@sylphx/flow"` with `"github:SylphxAI/flow"` in command.
 
 ### Environment Variables
 
@@ -469,14 +469,14 @@ Once installation is complete:
 - **Performance**: Use `--disable-*` flags to disable unused MCP tools
 - **Debugging**: Use `--verbose` flag for detailed output
 - **Updates**: Pull latest npm version with `npx @sylphx/flow@latest`
-- **Bleeding Edge**: Use unreleased features with `npx github:sylphxltd/flow`
+- **Bleeding Edge**: Use unreleased features with `npx github:SylphxAI/flow`
 
 ## 📞 Getting Help
 
-- **[GitHub Issues](https://github.com/sylphxltd/flow/issues)** - Report bugs
-- **[Discussions](https://github.com/sylphxltd/flow/discussions)** - Ask questions
-- **[Wiki](https://github.com/sylphxltd/flow/wiki)** - Full documentation
+- **[GitHub Issues](https://github.com/SylphxAI/flow/issues)** - Report bugs
+- **[Discussions](https://github.com/SylphxAI/flow/discussions)** - Ask questions
+- **[Wiki](https://github.com/SylphxAI/flow/wiki)** - Full documentation
 
 ---
 
-*Last Updated: 2025-10-30 | [Edit this page](https://github.com/sylphxltd/flow/wiki/Installation-&-Setup) | [Report Issues](https://github.com/sylphxltd/flow/issues)*
+*Last Updated: 2025-10-30 | [Edit this page](https://github.com/SylphxAI/flow/wiki/Installation-&-Setup) | [Report Issues](https://github.com/SylphxAI/flow/issues)*

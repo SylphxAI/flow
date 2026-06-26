@@ -52,7 +52,7 @@ export default defineConfig({
     nav: [
       { text: 'Guide', link: '/guide/getting-started' },
       { text: 'Features', link: '/features/loop-mode' },
-      { text: 'GitHub', link: 'https://github.com/sylphxltd/flow' },
+      { text: 'GitHub', link: 'https://github.com/SylphxAI/flow' },
       { text: 'npm', link: 'https://www.npmjs.com/package/@sylphx/flow' },
     ],
 
@@ -84,7 +84,7 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/sylphxltd/flow' },
+      { icon: 'github', link: 'https://github.com/SylphxAI/flow' },
       { icon: 'npm', link: 'https://www.npmjs.com/package/@sylphx/flow' },
       { icon: 'twitter', link: 'https://x.com/SylphxAI' },
     ],

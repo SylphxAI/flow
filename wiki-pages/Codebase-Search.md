@@ -645,4 +645,4 @@ cp .sylphx-flow/codebase.db backup/codebase-$(date +%Y%m%d).db
 
 ---
 
-*Last Updated: 2025-10-30 | [Edit this page](https://github.com/sylphxltd/flow/wiki/Codebase-Search) | [Report Issues](https://github.com/sylphxltd/flow/issues)*
+*Last Updated: 2025-10-30 | [Edit this page](https://github.com/SylphxAI/flow/wiki/Codebase-Search) | [Report Issues](https://github.com/SylphxAI/flow/issues)*
