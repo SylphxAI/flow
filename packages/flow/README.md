@@ -33,7 +33,7 @@ sylphx-flow status
 
 ## Documentation
 
-See the [main repository](https://github.com/sylphxltd/flow) for full documentation.
+See the [main repository](https://github.com/SylphxAI/flow) for full documentation.
 
 ## License
 

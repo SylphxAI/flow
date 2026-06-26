@@ -124,7 +124,7 @@ Sylphx Flow is the universal orchestrator that eliminates the fragmentation of A
 ## Links
 
 - **npm**: https://www.npmjs.com/package/@sylphx/flow
-- **GitHub**: https://github.com/sylphxltd/flow
+- **GitHub**: https://github.com/SylphxAI/flow
 - **Documentation**: https://flow.sylphx.ai
 - **Twitter**: https://x.com/SylphxAI
 

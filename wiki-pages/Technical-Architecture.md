@@ -704,4 +704,4 @@ Learn more about the implementation:
 
 ---
 
-*Last Updated: 2025-10-30 | [Edit this page](https://github.com/sylphxltd/flow/wiki/Technical-Architecture) | [Report Issues](https://github.com/sylphxltd/flow/issues)*
+*Last Updated: 2025-10-30 | [Edit this page](https://github.com/SylphxAI/flow/wiki/Technical-Architecture) | [Report Issues](https://github.com/SylphxAI/flow/issues)*

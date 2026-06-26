@@ -361,9 +361,9 @@ flow run "document the API endpoints" --agent writer
 
 ## 🔗 Important Links
 
-- **[GitHub Repository](https://github.com/sylphxltd/flow)** - Source code and releases
-- **[Issue Tracker](https://github.com/sylphxltd/flow/issues)** - Report bugs or request features
-- **[Discussions](https://github.com/sylphxltd/flow/discussions)** - Community discussion
+- **[GitHub Repository](https://github.com/SylphxAI/flow)** - Source code and releases
+- **[Issue Tracker](https://github.com/SylphxAI/flow/issues)** - Report bugs or request features
+- **[Discussions](https://github.com/SylphxAI/flow/discussions)** - Community discussion
 
 ## 📊 System Status
 
@@ -382,4 +382,4 @@ Sylphx Flow isn't just another CLI tool or knowledge base. It's the **missing in
 
 ---
 
-*Last Updated: 2025-10-30 | [Edit this page](https://github.com/sylphxltd/flow/wiki/Home) | [Report Issues](https://github.com/sylphxltd/flow/issues)*
+*Last Updated: 2025-10-30 | [Edit this page](https://github.com/SylphxAI/flow/wiki/Home) | [Report Issues](https://github.com/SylphxAI/flow/issues)*

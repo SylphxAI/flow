@@ -385,7 +385,7 @@ cleanupHandler.register(async () => {
 
 ```bash
 # Clone and install
-git clone https://github.com/sylphxltd/flow.git
+git clone https://github.com/SylphxAI/flow.git
 cd flow
 bun install
 

@@ -520,4 +520,4 @@ flow run "check code" --agent reviewer
 
 ---
 
-*Last Updated: 2025-10-30 | [Edit this page](https://github.com/sylphxltd/flow/wiki/Agent-Framework) | [Report Issues](https://github.com/sylphxltd/flow/issues)*
+*Last Updated: 2025-10-30 | [Edit this page](https://github.com/SylphxAI/flow/wiki/Agent-Framework) | [Report Issues](https://github.com/SylphxAI/flow/issues)*

@@ -537,4 +537,4 @@ Learn more about MEP implementation:
 
 ---
 
-*Last Updated: 2025-10-30 | [Edit this page](https://github.com/sylphxltd/flow/wiki/MEP-Design-Philosophy) | [Report Issues](https://github.com/sylphxltd/flow/issues)*
+*Last Updated: 2025-10-30 | [Edit this page](https://github.com/SylphxAI/flow/wiki/MEP-Design-Philosophy) | [Report Issues](https://github.com/SylphxAI/flow/issues)*

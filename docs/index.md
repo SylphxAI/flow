@@ -11,7 +11,7 @@ hero:
       link: /guide/getting-started
     - theme: alt
       text: View on GitHub
-      link: https://github.com/sylphxltd/flow
+      link: https://github.com/SylphxAI/flow
 
 features:
   - icon: 🔄
@@ -141,7 +141,7 @@ sylphx-flow "implement authentication"
 
 **Links:**
 - 📦 [npm Package](https://www.npmjs.com/package/@sylphx/flow)
-- 🐙 [GitHub Repository](https://github.com/sylphxltd/flow)
+- 🐙 [GitHub Repository](https://github.com/SylphxAI/flow)
 - 🐦 [Twitter/X @SylphxAI](https://x.com/SylphxAI)
 
 [Get Started →](/guide/getting-started)

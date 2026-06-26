@@ -117,6 +117,6 @@ sylphx-flow "@task.txt"
 
 ## Need Help?
 
-- [GitHub Issues](https://github.com/sylphxltd/flow/issues)
+- [GitHub Issues](https://github.com/SylphxAI/flow/issues)
 - [Documentation](/)
 - [Examples](/guide/examples)
