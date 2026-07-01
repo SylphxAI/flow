@@ -50,7 +50,7 @@
     "docs:preview": "vitepress preview docs",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "turbo run build && changeset publish",
+    "release": "echo \"Direct changeset publish is unsafe for workspace packages; use the Sylphx release workflow.\" && exit 1",
     "typecheck": "turbo typecheck"
   },
   "engines": {
@@ -71,7 +71,6 @@
   "devDependencies": {
     "@biomejs/biome": "^2.4.14",
     "@sylphx/biome-config": "^0.4.1",
-    "@sylphx/bump": "^1.6.1",
     "@types/bun": "^1.3.13",
     "@types/debug": "^4.1.13",
     "@types/node": "^24.12.3",
