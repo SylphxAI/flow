@@ -919,7 +919,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ## Powered by Sylphx
 
 - [@sylphx/biome-config](https://www.npmjs.com/package/@sylphx/biome-config)
-- [@sylphx/bump](https://www.npmjs.com/package/@sylphx/bump)
+
 
 ---
 
